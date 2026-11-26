@@ -31,7 +31,7 @@ export function controlAfterSpeed(next:Drill,record:Session):{drill:Drill;reason
  return {drill:{...next,bpm:candidate},reason:'controlMeasured'};
 }
 export function tempoProfile(history:Session[],rudiment:string,sub:number){
- const eligible=history.filter(s=>s.recognitionVerified&&s.completed===true&&!s.manualTempoChanged&&(!s.diagnosticStage||s.diagnosticResult===true)&&s.rudiment===rudiment&&s.sub===sub).sort((a,b)=>b.date.localeCompare(a.date));
+ const eligible=history.filter(s=>s.recognitionVerified&&s.completed===true&&!s.manualTempoChanged&&(!s.diagnosticStage||s.diagnosticResult===true)&&(!s.skillId||s.skillId==='timing'||s.skillId==='speed')&&s.rudiment===rudiment&&s.sub===sub).sort((a,b)=>b.date.localeCompare(a.date));
  const controls=eligible.filter(s=>s.controlTest&&s.mode==='steady'&&s.clickSub===false&&s.beats===4&&s.seconds>=60);
  const byTempo=new Map<number,Set<string>>();for(const s of controls){if(quality(s.stats)!=='pass')continue;const days=byTempo.get(s.bpm)??new Set<string>();days.add(s.practiceDay??s.date.slice(0,10));byTempo.set(s.bpm,days);}
  const confirmed=[...byTempo].filter(([,days])=>days.size>=2).map(([b])=>b);

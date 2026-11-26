@@ -1,0 +1,16 @@
+import {test,expect} from 'vitest';
+import {skillProfile,assessSkill,skillEvidence} from './skills';
+import {focusedPlan,skillIds} from './focused-plan';
+import {barSpec,defaults,type Note} from './training';
+import type {Session} from './coach';
+const good={expected:120,hits:120,accuracy:98,deviation:8,missed:0,extra:0,bias:0};
+const poor={...good,accuracy:75,deviation:30};
+const base:Session={date:'2026-11-25',mode:'steady',bpm:80,seconds:120,stats:good,completed:true,recognitionVerified:true,skillId:'pulse',skillLevel:1,skillBaseRudiment:'RL',skillBaseSub:4,skillOutcome:'pass',skillEvidence:{overall:good,silent:good}};
+const next={...base,date:'2026-11-26'};
+test('two distinct successful days advance one level; same day or unknown do not',()=>{expect(skillProfile([base,base],'pulse','RL',4).level).toBe(1);expect(skillProfile([base,next],'pulse','RL',4).level).toBe(2);expect(skillProfile([base,{...next,skillOutcome:'unknown'}],'pulse','RL',4).level).toBe(1);expect(skillProfile([base,next],'pulse','LR',4).level).toBe(1)});
+test('failed control resets evidence streak and keeps current level',()=>expect(skillProfile([base,next,{...next,date:'2026-11-27',skillOutcome:'repeat'}],'pulse','RL',4).level).toBe(1));
+test('pulse must pass silent portion; flexibility must pass transitions',()=>{expect(assessSkill({...base,skillEvidence:{overall:good,silent:poor}})).toBe('repeat');expect(assessSkill({...base,skillId:'flexibility',skillEvidence:{overall:good,transitions:poor,bySub:[good,good]}})).toBe('repeat');expect(assessSkill({...base,skillEvidence:{overall:good}})).toBe('unknown')});
+test('dynamics cannot be certified by timing alone',()=>{const r={...base,skillId:'dynamics' as const};expect(assessSkill(r)).toBe('selfCheck');expect(assessSkill({...r,skillSelfCheck:true})).toBe('pass');expect(assessSkill({...r,skillSelfCheck:false})).toBe('repeat');expect(assessSkill({...r,recognitionVerified:false,skillSelfCheck:true})).toBe('unknown')});
+test('endurance requires stable early and late segments',()=>{expect(assessSkill({...base,skillId:'endurance',skillEvidence:{overall:good,early:good,late:poor}})).toBe('repeat');expect(assessSkill({...base,skillId:'endurance',skillEvidence:{overall:good,early:good,late:good}})).toBe('pass')});
+test('level modifies actual pulse and morph exercise and retains plan length',()=>{const p=focusedPlan([base,next],'pulse',10,'RL',4,80,true);expect(p.at(-1)).toMatchObject({mode:'ghost',silentBars:2,skillLevel:2});const q=focusedPlan([],'flexibility',10,'RL',4,80,true);expect(q.at(-1)?.morphSequence).toEqual([2,4]);expect(barSpec({...defaults,mode:'morph',morphSequence:[2,4]},2).sub).toBe(4);expect(barSpec({...defaults,mode:'morph',morphSequence:[2,4]},4).sub).toBe(2);for(const skill of skillIds){const hist=[{...base,skillId:skill,skillLevel:3}];const drills=focusedPlan(hist,skill,10,'RL',4,80,true);expect(drills.reduce((a,x)=>a+x.minutes,0)).toBe(10);expect(drills.at(-1)?.skillTest).toBe(true);}});
+test('silent evidence includes extras in silent sections',()=>{const notes:Note[]=Array.from({length:48},(_,i)=>({time:i*.125,interval:.125,bar:Math.floor(i/16),step:i%16,global:i,sub:4,bpm:120,silent:i>=32,accent:false,matched:5}));const e=skillEvidence(notes,[4.3],6,{...defaults,mode:'ghost'},[]);expect(e.silent?.expected).toBe(16);expect(e.silent?.extra).toBe(1)});

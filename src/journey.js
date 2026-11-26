@@ -17,4 +17,4 @@ export function pendingControl(items,index,current,skill){
 }
 
 // Only an exercise matching its planned conditions can advance the checkpoint.
-export function planMatches(drill,c){return !!drill&&!!c&&drill.mode===c.mode&&drill.bpm===c.bpm&&drill.minutes===c.minutes&&drill.sub===c.sub&&drill.rudiment===c.rudiment&&c.beats===4&&c.countIn===1&&(drill.clickSub??false)===c.clickSub;}
+export function planMatches(drill,c){return !!drill&&!!c&&drill.mode===c.mode&&drill.bpm===c.bpm&&drill.minutes===c.minutes&&drill.sub===c.sub&&drill.rudiment===c.rudiment&&c.beats===4&&c.countIn===1&&(drill.clickSub??false)===c.clickSub&&(drill.mode!=='ghost'||((drill.audibleBars??2)===(c.audibleBars??2)&&(drill.silentBars??2)===(c.silentBars??2)))&&(drill.mode!=='morph'||JSON.stringify(drill.morphSequence??[2,3,4,6])===JSON.stringify(c.morphSequence??[2,3,4,6]));}

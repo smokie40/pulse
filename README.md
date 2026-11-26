@@ -86,3 +86,7 @@ Separate free-practice settings from guided plan stages. Show a preparation scre
 ## v0.10.0
 
 Guided tempo diagnosis uses independent 20-second steady-tempo searches, 20 BPM coarse steps, refinement to approximately 5 BPM, and a full 60-second verification. User-selected starting tempo, BPM 30–300; bounded to ten assessed search blocks and two control attempts, with one retry on insufficient recognition per block. No result without successful control. Intermediate diagnostic records do not establish working tempo. New estimates supersede older controls but do not certify multi-day mastery. Audio engine unchanged. CI uses Ubuntu 24.04 to support pinned Playwright.
+
+## v0.11.0
+
+Three progressive exercise levels per skill. Two distinct successful control days advance the task; failed controls reset the current evidence streak, unknown measurements never advance. Pulse controls analyze silent notes, flexibility controls analyze transitions and each subdivision, endurance controls compare early and late portions, dynamics requires a self-report after timing passes. Timing transfer uses left lead and doubles; hand choice and accent strength are not automatically detected. Skill levels are exercise milestones, not certifications of physical technique. No audio detector changes; the existing bar scheduler accepts a guided morph sequence.

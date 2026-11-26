@@ -1,7 +1,7 @@
 import type {ClickSound} from './click-wave';
 export type Mode = 'steady'|'ghost'|'burst'|'morph'|'ladder'|'accent'|'adaptive';
 export type VisualMode='grid'|'notation'|'pulse'|'timer';
-export type Config = {bpm:number;beats:number;sub:number;minutes:number;countIn:number;visual:VisualMode;showNext:boolean;mode:Mode;rudiment:string;volume:number;sound:ClickSound;accentVolume:number;beatVolume:number;subVolume:number;clickSub:boolean;audibleBars:number;silentBars:number;ladderStep:number;ladderMax:number;offset:number;sensitivity:number};
+export type Config = {bpm:number;beats:number;sub:number;minutes:number;countIn:number;visual:VisualMode;showNext:boolean;mode:Mode;rudiment:string;volume:number;sound:ClickSound;accentVolume:number;beatVolume:number;subVolume:number;clickSub:boolean;audibleBars:number;silentBars:number;ladderStep:number;ladderMax:number;offset:number;sensitivity:number;morphSequence?:number[]};
 export const defaults:Config={bpm:120,beats:4,sub:4,minutes:5,countIn:1,visual:'grid',showNext:true,mode:'steady',rudiment:'RL',volume:55,sound:'soft',accentVolume:100,beatVolume:100,subVolume:100,clickSub:false,audibleBars:2,silentBars:2,ladderStep:5,ladderMax:180,offset:0,sensitivity:50};
 export const modes:{id:Mode;name:string;desc:string}[]=[
 {id:'steady',name:'Precision',desc:'Ровные удары под стабильный пульс.'},
@@ -13,7 +13,8 @@ export const modes:{id:Mode;name:string;desc:string}[]=[
 {id:'accent',name:'Accent lab',desc:'Смещай акцент на следующую ноту каждой доли через такт.'}];
 export const rudiments=[{id:'RL',name:'Single stroke roll'},{id:'LR',name:'Single stroke · left lead'},{id:'RRLL',name:'Double stroke roll'},{id:'RLRRLRLL',name:'Single paradiddle'},{id:'RLRLRRLRLRLL',name:'Double paradiddle'},{id:'RLLRRL',name:'Six stroke roll · sticking'}];
 export function barSpec(c:Config,bar:number){
- const sub=c.mode==='burst'?(Math.floor(bar/2)%2?4:2):c.mode==='morph'?[2,3,4,6][Math.floor(bar/2)%4]:c.sub;
+ const seq=c.morphSequence?.length?c.morphSequence:[2,3,4,6];
+ const sub=c.mode==='burst'?(Math.floor(bar/2)%2?4:2):c.mode==='morph'?seq[Math.floor(bar/2)%seq.length]:c.sub;
  const bpm=c.mode==='ladder'?Math.min(Math.max(c.bpm,c.ladderMax),c.bpm+Math.floor(bar/4)*c.ladderStep):c.bpm;
  const silent=c.mode==='ghost'&&bar%(c.audibleBars+c.silentBars)>=c.audibleBars;
  return {sub,bpm,silent,accent:c.mode==='accent'?bar%sub:0};
