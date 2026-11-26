@@ -192,7 +192,13 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "beatVolume": "Other beats",
     "subVolume": "Subdivisions",
     "Sound preview failed": "Sound preview failed",
-    "Open diagnostics": "Microphone diagnostics"
+    "Open diagnostics": "Microphone diagnostics",
+    "Prepare stage": "Get ready…",
+    "Live count": "Live detections",
+    "Replay count": "At candidate sensitivity",
+    "Live counts matched": "Live counts matched all stages",
+    "Live count caveat": "Matching counts do not prove that every hit was identified or timed correctly.",
+    "Audible calibration": "Set all three click types to an audible volume for this test."
   },
   "ru": {
     "PRACTICE STUDIO": "СТУДИЯ ПРАКТИКИ",
@@ -366,7 +372,13 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "beatVolume": "Остальные доли",
     "subVolume": "Промежуточные ноты",
     "Sound preview failed": "Не удалось воспроизвести звук",
-    "Open diagnostics": "Диагностика микрофона"
+    "Open diagnostics": "Диагностика микрофона",
+    "Prepare stage": "Приготовься…",
+    "Live count": "Распознано в реальном времени",
+    "Replay count": "При подобранной настройке",
+    "Live counts matched": "Число событий совпало на всех этапах",
+    "Live count caveat": "Это подтверждает совпадение количества событий, но не гарантирует точность времени каждого удара.",
+    "Audible calibration": "Для проверки включи слышимую громкость всех трёх типов клика."
   }
 };
 export const translate=(lang:Lang,key:string)=>dictionaries[lang][key]??key;

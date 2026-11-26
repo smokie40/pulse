@@ -16,12 +16,12 @@ class PulseDetector extends AudioWorkletProcessor {
   const x=inputs[0]?.[0];if(!x)return true;
   for(let i=0;i<x.length;i++){
    let y=x[i];for(const filter of this.filters)y=filter.tick(y);
-   this.energy+=y*y;this.raw+=x[i]*x[i];this.peak=Math.max(this.peak,Math.abs(y));this.n++;
+   this.energy+=y*y;this.raw+=x[i]*x[i];this.rawPeak=Math.max(this.rawPeak??0,Math.abs(x[i]));this.peak=Math.max(this.peak,Math.abs(y));this.n++;
    if(this.n<this.size)continue;
    const e=this.energy/this.n,r=this.raw/this.n,ratio=e/Math.max(r,1e-12),frame=currentFrame+i;
    const floor=.028*Math.pow(.045,this.sensitivity/100),threshold=Math.max(floor*floor,this.noise*9);
    if(this.capture){this.frames.push([frame/sampleRate,e,r,this.noise,ratio]);if(this.frames.length>=50)this.flush();}
-   this.meterPeak=Math.max(this.meterPeak,this.peak);this.meterEnergy+=r;this.meterN++;
+   this.meterPeak=Math.max(this.meterPeak,this.rawPeak??0);this.rawPeak=0;this.meterEnergy+=r;this.meterN++;
    if(++this.meterCount>=25){this.port.postMessage({kind:'meter',rms:Math.sqrt(this.meterEnergy/this.meterN),peak:this.meterPeak});this.meterCount=this.meterEnergy=this.meterN=this.meterPeak=0;}
    const onset=e>threshold&&ratio>.18;
    if(onset&&this.armed&&frame-this.last>=sampleRate*.018){
