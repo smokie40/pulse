@@ -106,3 +106,7 @@ Release candidate: remove fixed 300-exercise history truncation, warn on storage
 ## v1.0.0-rc.2
 
 Unified training home for first and returning visits: a recommended or unfinished session, six visible goal choices, and free-practice link. Detailed plan opens only after selection. Replacing an unfinished plan requires confirmation; recorded results remain. Optional diagnostic and editable starter reference tempo on plan preview. Steady exercise previews distinguish click from played strokes. No changes to training engine or detector.
+
+## v1.0.0-rc.3
+
+Compact training recommendation, prominent goal graphics and actual per-skill milestones for the current sticking/subdivision. Unassessed goals show no completed levels; resume summary shows remaining planned minutes and completed/current stages. Same three sections and training algorithms.
