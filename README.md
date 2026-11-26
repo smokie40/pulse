@@ -26,3 +26,7 @@ Russian and English are selectable in the header. The browser language is used o
 ### Pages setup / Публикация
 
 Build and tests are independent of deployment. If GitHub Pages is disabled, open Settings → Pages → Source and choose GitHub Actions (not Deploy from a branch). This enables the Pages site. Then use Actions → Deploy PULSE → Run workflow. No personal access token is required for normal deployment once the site is enabled.
+
+## v0.4 Performance workspace
+
+One- or two-bar count-in (not scored), distraction-free live display, next-bar preview, measured session report with 30-second windows and rule-based feedback. Timing analysis remains experimental; automatic audio calibration and real-pad validation are not yet implemented.
