@@ -15,3 +15,6 @@ export function pendingControl(items,index,current,skill){
  const x=items[index],prev=items[index-1];
  return skill==='speed'&&x?.name==='control'&&!x.confirmation&&!x.resolvedControl&&['adaptive','ladder'].includes(prev?.mode)&&current<index;
 }
+
+// Only an exercise matching its planned conditions can advance the checkpoint.
+export function planMatches(drill,c){return !!drill&&!!c&&drill.mode===c.mode&&drill.bpm===c.bpm&&drill.minutes===c.minutes&&drill.sub===c.sub&&drill.rudiment===c.rudiment&&c.beats===4&&c.countIn===1&&(drill.clickSub??false)===c.clickSub;}

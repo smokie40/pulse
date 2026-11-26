@@ -78,3 +78,7 @@ Display the package version and the deployed Git commit (short SHA) in the studi
 ## v0.9.0
 
 First-visit choice between guided coaching and free practice. Guided microphone connection, existing six-stage calibration, tempo check and return to plan. Training cards show pending speed-control target, sticking and subdivisions. Unfinished non-diagnostic plans checkpoint the next unfinished stage in local storage; the current stage restarts after interruption, not mid-beat. Audio engine unchanged. Microphone calibration is session-specific and must be repeated after reload when needed.
+
+## v0.9.2
+
+Separate free-practice settings from guided plan stages. Show a preparation screen before every planned stage, preserve the unfinished checkpoint when leaving for free practice, and prevent edited stages from advancing the checkpoint. Show fixed control tempo when recognition is not verified. Add browser smoke tests to the deployment pipeline. Guided tempos are locked to keep training conditions comparable; free-practice live tempo remains adjustable.
