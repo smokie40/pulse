@@ -1,6 +1,6 @@
 import {type Mode,type Stats,type Note,summarize} from './training';
 export type Stage={bpm:number;accuracy:number;expected:number;extra:number;decision:'up'|'hold'|'down'|'check';next:number};
-export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean};
+export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean;manualTempoChanged?:boolean};
 export function assess(bpm:number,notes:Note[],extra:number,step:number,max:number):Stage{
  const s=summarize(notes,extra,Infinity);
  const valid=s.expected>=12&&s.hits>=s.expected*.5;
@@ -9,14 +9,14 @@ export function assess(bpm:number,notes:Note[],extra:number,step:number,max:numb
  return {bpm,accuracy:s.accuracy,expected:s.expected,extra,decision,next};
 }
 export function workingTempo(sessions:Session[],rudiment:string,sub:number):number|null{
- const candidates=sessions.filter(s=>s.rudiment===rudiment&&s.sub===sub&&s.stats&&s.seconds>=20);
+ const candidates=sessions.filter(s=>!s.manualTempoChanged&&s.rudiment===rudiment&&s.sub===sub&&s.stats&&s.seconds>=20);
  const confirmed=candidates.flatMap(s=>s.mode==='adaptive'?(s.stages??[]).filter(t=>t.decision==='up'&&t.expected>=12).map(t=>t.bpm):s.mode==='steady'&&s.stats!.accuracy>=92&&s.stats!.expected>=40&&(s.stats!.deviation??Infinity)<=20?[s.bpm]:[]);
  return confirmed.length?Math.max(...confirmed):null;
 }
 export type Drill={mode:Mode;name:string;minutes:number;bpm:number;sub:number;rudiment:string;reason:string};
 export function plan(sessions:Session[],minutes:number,rudiment:string,sub:number,fallback:number):Drill[]{
  const base=workingTempo(sessions,rudiment,sub)??fallback;
- const recent=sessions.filter(s=>s.stats&&s.seconds>=30&&s.rudiment===rudiment&&s.sub===sub).slice(0,12);
+ const recent=sessions.filter(s=>!s.manualTempoChanged&&s.stats&&s.seconds>=30&&s.rudiment===rudiment&&s.sub===sub).slice(0,12);
  const rank=(mode:Mode)=>{const x=recent.filter(s=>s.mode===mode);return x.length?x.reduce((a,s)=>a+s.stats!.accuracy,0)/x.length:70;};
  const focus=(['ghost','morph','steady'] as Mode[]).sort((a,b)=>rank(a)-rank(b))[0];
  const reason=recent.some(s=>s.mode===focus)?'Приоритет по последним измеренным занятиям.':'Проверка навыка: измерений пока недостаточно.';

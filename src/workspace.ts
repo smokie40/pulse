@@ -13,7 +13,7 @@ export const skillKey=(mode:Mode,rudiment:string,sub:number)=>[mode,rudiment,sub
 export function summarizeProgress(history:Session[]){
  const bySkill:Partial<Record<string,{count:number;latest:number;bpm:number}>>={};
  for(const s of [...history].sort((a,b)=>b.date.localeCompare(a.date))){
-  if(!s.recognitionVerified||!s.stats||s.stats.hits<12||s.stats.hits<s.stats.expected*.5||s.seconds<20)continue;
+  if(s.manualTempoChanged||!s.recognitionVerified||!s.stats||s.stats.hits<12||s.stats.hits<s.stats.expected*.5||s.seconds<20)continue;
   if(!s.rudiment||!s.sub)continue;
   const key=skillKey(s.mode,s.rudiment,s.sub),v=bySkill[key];if(v)v.count++;else bySkill[key]={count:1,latest:s.stats.accuracy,bpm:s.bpm};
  }
