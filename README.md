@@ -54,3 +54,7 @@ Compact exercise settings, direct microphone toggle, and four performance displa
 ## v0.7 Integrated studio
 
 The approved Design Study 05 HTML/CSS is the new shell, using PulseEngine, the existing AudioWorklet detector, calibration and coach modules. Existing pulse-history/settings/language storage is retained. Classic React UI remains at legacy.html. Manual tempo changes apply to future scheduled notes; adaptive and ladder tempo are automatic. Audio latency remains unmeasured.
+
+## v0.7.1
+
+Immediate audition on timbre selection. Distinct narrowband fundamentals (soft 920 Hz, studio 1450 Hz, digital 2250 Hz, low 620 Hz) with corresponding reference rejection filters. Soft and low timbres and onset detector remain unchanged. Recheck calibration when changing sound. Rapid preview requests supersede earlier requests.

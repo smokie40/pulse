@@ -2,7 +2,8 @@ export const CLICK_FREQUENCIES=[920,1840] as const;
 export type ClickKind='accent'|'beat'|'sub';
 export type ClickSound='soft'|'studio'|'digital'|'low';
 export const sounds:ClickSound[]=['soft','studio','digital','low'];
-export const frequencies=(sound:ClickSound):readonly number[]=>sound==='low'?[620,1240]:CLICK_FREQUENCIES;
+const pitch:Record<ClickSound,readonly [number,number]>={soft:CLICK_FREQUENCIES,studio:[1450,2900],digital:[2250,4500],low:[620,1240]};
+export const frequencies=(sound:ClickSound):readonly number[]=>pitch[sound]??pitch.soft;
 export function makeClick(sampleRate:number,kind:ClickKind,sound:ClickSound='soft'):Float32Array{
  const [fund,upper]=frequencies(sound);
  const p={soft:[.045,.004,.012,1],studio:[.038,.003,.009,1.5],digital:[.030,.0025,.006,1.8],low:[.055,.006,.015,.55]}[sound];

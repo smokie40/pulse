@@ -26,3 +26,6 @@ test('each sound rejects clean clicks',()=>{for(const sound of ['soft','studio',
 
 test('decaying pad reflections do not become extra strokes',()=>expect(simulate({clicks:false,hits:true,ring:true})).toHaveLength(4));
 test('distinct rapid strokes at 40 ms remain detectable',()=>expect(simulate({clicks:false,hits:true,times:Array.from({length:20},(_,i)=>.2+i*.04)})).toHaveLength(20));
+
+test('all four timbres reject clicks but preserve simultaneous strokes at both common sample rates',()=>{for(const sound of ['soft','studio','digital','low'])for(const rate of [44100,48000]){expect(simulate({sound,rate})).toHaveLength(0);expect(simulate({sound,rate,hits:true})).toHaveLength(4);}});
+test('all four sounds have distinct fundamental frequencies and finite normalized waveforms',()=>{const sounds=['soft','studio','digital','low'];expect(new Set(sounds.map(s=>frequencies(s)[0])).size).toBe(4);for(const sound of sounds){const w=makeClick(48000,'beat',sound);expect(w.every(Number.isFinite)).toBe(true);expect(Math.max(...w.map(Math.abs))).toBeCloseTo(.73,4);}});

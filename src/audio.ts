@@ -5,7 +5,7 @@ import {barSpec,matchHit,summarize,type Config,type Note} from './training';
 export class PulseEngine{
  ctx:AudioContext|null=null; gain:GainNode|null=null; stream:MediaStream|null=null; detector:AudioWorkletNode|null=null; source:MediaStreamAudioSourceNode|null=null; sink:GainNode|null=null;
  notes:Note[]=[]; extra=0; extraTimes:number[]=[]; stages:Stage[]=[]; adaptiveBpm=120; active=false; mic=false; measured=false; startTime=0; endTime=0; stoppedAt=0; cfg:Config|null=null;
- private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
+ private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
  async init(){if(!this.ctx||this.ctx.state==='closed'){this.ctx=new AudioContext({latencyHint:'interactive'});this.clickBuffers.clear();this.gain=this.ctx.createGain();this.gain.connect(this.ctx.destination);}await this.ctx.resume();}
  async enableMic(sensitivity:number){
   await this.init();if(this.mic)return;
@@ -23,7 +23,7 @@ export class PulseEngine{
   if(this.sound!==c.sound){this.sound=c.sound;this.clickBuffers.clear();this.detector?.port.postMessage({frequencies:[...frequencies(this.sound)]});}
   this.levels=[c.accentVolume,c.beatVolume,c.subVolume];if(this.gain)this.gain.gain.value=c.volume/100*.45;
  }
- async preview(c:Config){if(this.active||this.testing||this.diagnostic)return;await this.init();this.configureSound(c);this.stop();const start=this.ctx!.currentTime+.08;for(let i=0;i<4;i++)this.click(start+i*.28,i===0,i!==2);}
+ async preview(c:Config){if(this.active||this.testing||this.diagnostic)return;const revision=++this.previewRevision;await this.init();if(revision!==this.previewRevision||this.active||this.testing||this.diagnostic)return;this.stop();this.configureSound(c);const start=this.ctx!.currentTime+.04;for(let i=0;i<3;i++)this.click(start+i*.24,i===0,i!==2);}
  async capture(step:Step,seconds:number,expected:number,c:Config):Promise<Capture>{
   if(!this.mic||this.active||this.testing||this.diagnostic)throw new Error('Diagnostic unavailable');
   await this.init();this.stop();this.configureSound(c);this.setSensitivity(c.sensitivity);
@@ -80,7 +80,7 @@ export class PulseEngine{
   this.next+=interval;this.step++;if(this.step>=c.beats*b.sub){this.step=0;this.bar++;}}
   if(this.ctx.currentTime>=this.endTime+.18)this.stop();
  }
- stop(){if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const o of this.voices){try{o.stop();}catch{}}this.voices.clear();}
+ stop(){this.previewRevision++;if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const o of this.voices){try{o.stop();}catch{}}this.voices.clear();}
  snapshot(){const now=this.active?this.ctx!.currentTime:this.stoppedAt;let current:Note|undefined;for(let i=this.notes.length-1;i>=0;i--){if(this.notes[i].time<=now){current=this.notes[i];break;}}
  const counting=this.active&&now<this.startTime;const countBeat=counting&&this.cfg?Math.max(0,Math.floor((now-this.countStart)*this.cfg.bpm/60))+1:0;
  const upcoming=current?this.notes.find(n=>n.bar===current!.bar+1):undefined;
