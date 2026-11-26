@@ -102,3 +102,7 @@ Progress dashboard: 7/30/90-day practice volume and active days, historical succ
 ## v1.0.0-rc.1
 
 Release candidate: remove fixed 300-exercise history truncation, warn on storage failures, validate and merge history backups without duplicates, preserve local entries on invalid import, improve compact layout and keyboard dialog navigation. Browser storage remains finite; export regularly. Align 60-second control tolerance with completion logic. Added storage and mobile browser regression tests. Audio detector unchanged. Real hardware calibration and cross-browser manual validation remain release gates.
+
+## v1.0.0-rc.2
+
+Unified training home for first and returning visits: a recommended or unfinished session, six visible goal choices, and free-practice link. Detailed plan opens only after selection. Replacing an unfinished plan requires confirmation; recorded results remain. Optional diagnostic and editable starter reference tempo on plan preview. Steady exercise previews distinguish click from played strokes. No changes to training engine or detector.
