@@ -1,6 +1,6 @@
 import {type Mode,type Stats,type Note,summarize} from './training';
 export type Stage={bpm:number;accuracy:number;expected:number;extra:number;decision:'up'|'hold'|'down'|'check';next:number};
-export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[]};
+export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean};
 export function assess(bpm:number,notes:Note[],extra:number,step:number,max:number):Stage{
  const s=summarize(notes,extra,Infinity);
  const valid=s.expected>=12&&s.hits>=s.expected*.5;

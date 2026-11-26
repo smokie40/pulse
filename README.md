@@ -42,3 +42,7 @@ Four synthesized click timbres with matching notch frequencies, preview and inde
 ## v0.5.1
 
 Onset detector uses a decaying attack envelope and previous-hit tail rejection, with a minimum 22 ms separation. Strong new attacks can be detected during decay; weak fast strokes may still be missed. Same algorithm in replay. Diagnostic counts now use worklet capture markers and completion acknowledgement. Individual tests can be repeated and numerical features exported (no waveform/audio).
+
+## v0.6 Workspaces
+
+Training, free practice, progress and Audio Lab. Recognition checks are session-scoped and invalidated when audio settings change. Only checked sessions contribute to the coach and progress estimates; audio latency remains unmeasured. Audio and hit detection algorithms are unchanged.
