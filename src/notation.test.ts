@@ -1,0 +1,2 @@
+import {test,expect} from 'vitest';import {noteStyle} from './notation';
+test('standard note beams and tuplets for supported divisions',()=>{expect([1,2,3,4,5,6,8].map(noteStyle)).toEqual([{beams:0,tuplet:null},{beams:1,tuplet:null},{beams:1,tuplet:3},{beams:2,tuplet:null},{beams:2,tuplet:5},{beams:2,tuplet:6},{beams:3,tuplet:null}]);});

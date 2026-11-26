@@ -46,3 +46,7 @@ Onset detector uses a decaying attack envelope and previous-hit tail rejection, 
 ## v0.6 Workspaces
 
 Training, free practice, progress and Audio Lab. Recognition checks are session-scoped and invalidated when audio settings change. Only checked sessions contribute to the coach and progress estimates; audio latency remains unmeasured. Audio and hit detection algorithms are unchanged.
+
+## v0.6.1
+
+Compact exercise settings, direct microphone toggle, and four performance display modes: grid, single-line pad notation, beat pulse, timer. Next-bar preview is optional. Silent ghost-click bars suppress moving visual timing cues in every mode. Existing detector is unchanged.

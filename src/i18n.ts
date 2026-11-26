@@ -243,7 +243,18 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "skill speed": "Speed",
     "skill speed detail": "Increase tempo while maintaining timing.",
     "skill accents": "Accents",
-    "skill accents detail": "Shift accents while keeping intervals. Accent strength is not scored yet."
+    "skill accents detail": "Shift accents while keeping intervals. Accent strength is not scored yet.",
+    "Click density": "Click density",
+    "Beat clicks": "Beats only",
+    "Note clicks": "Every note",
+    "Practice display": "Practice display",
+    "visual grid": "Rhythm grid",
+    "visual notation": "Percussion notation",
+    "visual pulse": "Beat pulse",
+    "visual timer": "Timer only",
+    "Show next bar": "Show next bar",
+    "Percussion notation": "Single-line pad notation",
+    "No rhythmic cues": "Continue without visual timing cues."
   },
   "ru": {
     "PRACTICE STUDIO": "СТУДИЯ ПРАКТИКИ",
@@ -468,7 +479,18 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "skill speed": "Скорость",
     "skill speed detail": "Повышай темп, сохраняя точность.",
     "skill accents": "Акценты",
-    "skill accents detail": "Перемещай акцент, сохраняя интервалы. Сила акцента пока не оценивается."
+    "skill accents detail": "Перемещай акцент, сохраняя интервалы. Сила акцента пока не оценивается.",
+    "Click density": "Клик метронома",
+    "Beat clicks": "Только доли",
+    "Note clicks": "Каждая нота",
+    "Practice display": "Экран во время игры",
+    "visual grid": "Ритмическая сетка",
+    "visual notation": "Нотная запись",
+    "visual pulse": "Только пульс",
+    "visual timer": "Только таймер",
+    "Show next bar": "Показывать следующий такт",
+    "Percussion notation": "Однолинейная запись для пэда",
+    "No rhythmic cues": "Продолжай без визуальных подсказок."
   }
 };
 export const translate=(lang:Lang,key:string)=>dictionaries[lang][key]??key;
