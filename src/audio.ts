@@ -30,5 +30,5 @@ export class PulseEngine{
  }
  stop(){if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const o of this.voices){try{o.stop();}catch{}}this.voices.clear();}
  snapshot(){const now=this.active?this.ctx!.currentTime:this.stoppedAt;let current:Note|undefined;for(let i=this.notes.length-1;i>=0;i--){if(this.notes[i].time<=now){current=this.notes[i];break;}}
- return {active:this.active,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:summarize(this.notes,this.extra,now-.17),recent:this.notes.filter(n=>n.time<=now&&n.time>=now-4).slice(-80),measured:this.measured};}
+ return {active:this.active,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:summarize(this.notes,this.extra,this.active?now-.17:now-.001),recent:this.notes.filter(n=>n.time<=now&&n.time>=now-4).slice(-80),measured:this.measured};}
 }
