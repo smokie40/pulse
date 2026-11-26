@@ -6,3 +6,5 @@ test('speed selects adaptive only when audio is ready',()=>{expect(focusedPlan([
 
 test('timing practice and control use equal tempo with reduced click support',()=>{const p=focusedPlan([],'timing',15,'RL',4,80,false);expect(p[1].bpm).toBe(p[2].bpm);expect(p[1].clickSub).toBe(true);expect(p[2].clickSub).toBe(false);});
 test('initial tempo probe is bounded and lasts two minutes',()=>{expect(tempoProbe('RL',4,300)).toMatchObject({mode:'adaptive',minutes:2,bpm:100,sub:4});expect(tempoProbe('RL',4,30).bpm).toBe(30);});
+
+test('a successful control is repeated at the same tempo instead of shrinking every day',()=>{const h=[{date:'2026-11-27',mode:'steady' as const,bpm:100,seconds:120,stats:{expected:480,hits:480,missed:0,extra:0,accuracy:100,deviation:8,bias:0},rudiment:'RL',sub:4,beats:4,clickSub:false,controlTest:true,completed:true,recognitionVerified:true}];const timing=focusedPlan(h,'timing',15,'RL',4,80,true);expect(timing[1].bpm).toBe(100);expect(timing[2].bpm).toBe(100);expect(focusedPlan(h,'speed',15,'RL',4,80,true).at(-1)).toMatchObject({bpm:100,confirmation:true});});

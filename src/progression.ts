@@ -1,7 +1,7 @@
 import {summarize,type Note,type Stats} from './training';
 import type {Session,Drill} from './coach';
-export const quality=(s:Stats|null|undefined):'pass'|'repeat'|'reduce'|'unknown'=>{
- if(!s||s.expected<40||s.hits<s.expected*.5||s.deviation===null)return 'unknown';
+export const quality=(s:Stats|null|undefined,minExpected=40):'pass'|'repeat'|'reduce'|'unknown'=>{
+ if(!s||s.expected<minExpected||s.hits<s.expected*.5||s.deviation===null)return 'unknown';
  if(s.accuracy>=92&&s.deviation<=20)return 'pass';
  return s.accuracy<75?'reduce':'repeat';
 };
@@ -20,8 +20,8 @@ export function measuredWindows(notes:Note[],extraTimes:number[],end:number,beat
 }
 // A candidate is a measured successful block, never the last scheduled BPM.
 export function candidateTempo(windows:TempoWindow[]):number|null{
- const passed=windows.filter(w=>quality(w.stats)==='pass').map(w=>w.bpm);
- const ceiling=windows.at(-1)&&quality(windows.at(-1)!.stats)==='reduce'?windows.at(-1)!.bpm-5:300;
+ const passed=windows.filter(w=>quality(w.stats,12)==='pass').map(w=>w.bpm);
+ const ceiling=windows.at(-1)&&quality(windows.at(-1)!.stats,12)==='reduce'?windows.at(-1)!.bpm-5:300;
  const safe=passed.filter(b=>b<=ceiling);return safe.length?Math.max(...safe):null;
 }
 export function controlAfterSpeed(next:Drill,record:Session):{drill:Drill;reason:string}{
@@ -41,5 +41,5 @@ export function tempoProfile(history:Session[],rudiment:string,sub:number){
  if(latest&&quality(latest.stats)==='reduce'&&working!==null)working=Math.max(30,Math.min(working,latest.bpm-5));
  else if(latest&&quality(latest.stats)==='repeat'&&working!==null)working=Math.min(working,latest.bpm);
  else if(latest&&quality(latest.stats)==='pass')working=latest.bpm;
- return {working,confirmed:confirmed.length?Math.max(...confirmed):null,latest:latest?quality(latest.stats):'unknown'};
+ return {working,confirmed:confirmed.length?Math.max(...confirmed):null,confirmedWorking:working!==null&&confirmed.includes(working),pendingConfirmation:!!latest&&quality(latest.stats)==='pass'&&!confirmed.includes(latest.bpm),latest:latest?quality(latest.stats):'unknown'};
 }
