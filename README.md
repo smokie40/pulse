@@ -66,3 +66,7 @@ Training screen organized around a selected skill, duration-proportional route, 
 ## v0.7.3
 
 One duration-weighted visual route instead of duplicated timeline and rows. Separate skill selection. Optional two-minute bounded adaptive tempo check with verified microphone; incomplete checks do not establish working tempo. Timing practice and control use the same BPM, reducing click support for the control. Existing audio engine and detector unchanged.
+
+## v0.8.0
+
+Measured three-bar constant-tempo windows drive speed control targets. Planned accelerations capped at +20 BPM per exercise. Only completed, verified, comparable controls on two different local days confirm a tempo. Recent failed controls reduce working tempo. First-visit optional tempo check. No automatic claims about hand technique, dynamics or endurance. Thresholds are provisional training heuristics, not validated teaching standards. Audio engine and detector unchanged.

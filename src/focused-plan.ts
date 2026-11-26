@@ -1,5 +1,6 @@
-import {workingTempo,type Drill,type Session} from './coach';
+import {type Drill,type Session} from './coach';
 import type {Mode} from './training';
+import {tempoProfile} from './progression';
 export const skillIds=['timing','pulse','speed','flexibility','dynamics','endurance'] as const;
 export type Skill=typeof skillIds[number];
 type Item={mode:Mode;name:string;weight:number;factor:number;sub?:number;reason:string;clickSub?:boolean};
@@ -7,7 +8,7 @@ const warm:Item={mode:'steady',name:'warmup',weight:2,factor:.75,reason:'warmupC
 const control:Item={mode:'steady',name:'control',weight:2,factor:.9,reason:'controlCue',clickSub:false};
 export function focusedPlan(history:Session[],skill:Skill,length:number,rudiment:string,sub:number,fallback:number,adaptiveReady:boolean):Drill[]{
  const safe=history.filter(s=>s.recognitionVerified&&!s.manualTempoChanged);
- const base=workingTempo(safe,rudiment,sub)??fallback;
+ const base=tempoProfile(safe,rudiment,sub).working??fallback;
  const tempo=(factor:number)=>Math.min(300,Math.max(30,Math.round(base*factor)));
  let items:Item[];
  switch(skill){
@@ -23,8 +24,8 @@ export function focusedPlan(history:Session[],skill:Skill,length:number,rudiment
  let remaining=minutes-allocation.reduce((a,b)=>a+b,0);
  const order=items.map((x,i)=>({i,r:((minutes-items.length)*x.weight/total)%1})).sort((a,b)=>b.r-a.r);
  for(let j=0;j<remaining;j++)allocation[order[j].i]++;
- return items.map((x,i)=>({mode:x.mode,name:x.name,minutes:allocation[i],bpm:tempo(x.factor),sub:x.sub??sub,rudiment,reason:x.reason,clickSub:x.clickSub}));
+ return items.map((x,i)=>({mode:x.mode,name:x.name,minutes:allocation[i],bpm:tempo(x.factor),sub:x.sub??sub,rudiment,reason:x.reason,clickSub:x.clickSub,...(x.mode==='ladder'||x.mode==='adaptive'?{ladderStep:5,ladderMax:Math.min(300,tempo(x.factor)+20)}:{})}));
 }
 
 // A short bounded adaptive check, not a maximum-speed or mastery test.
-export function tempoProbe(rudiment:string,sub:number,fallback:number):Drill{return {mode:'adaptive',name:'probeTitle',minutes:2,bpm:Math.max(30,Math.min(100,Math.round(fallback*.8))),rudiment,sub,reason:'probeDescription',clickSub:false};}
+export function tempoProbe(rudiment:string,sub:number,fallback:number):Drill{return {mode:'adaptive',name:'probeTitle',minutes:2,bpm:Math.max(30,Math.min(100,Math.round(fallback*.8))),rudiment,sub,reason:'probeDescription',clickSub:false,ladderStep:5,ladderMax:Math.min(300,Math.max(30,Math.min(100,Math.round(fallback*.8)))+20)};}

@@ -1,6 +1,6 @@
 import {type Mode,type Stats,type Note,summarize} from './training';
 export type Stage={bpm:number;accuracy:number;expected:number;extra:number;decision:'up'|'hold'|'down'|'check';next:number};
-export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean;manualTempoChanged?:boolean;tempoProbe?:boolean;completed?:boolean};
+export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean;manualTempoChanged?:boolean;tempoProbe?:boolean;completed?:boolean;tempoWindows?:import('./progression').TempoWindow[];controlTest?:boolean;clickSub?:boolean;beats?:number;practiceDay?:string};
 export function assess(bpm:number,notes:Note[],extra:number,step:number,max:number):Stage{
  const s=summarize(notes,extra,Infinity);
  const valid=s.expected>=12&&s.hits>=s.expected*.5;
@@ -13,7 +13,7 @@ export function workingTempo(sessions:Session[],rudiment:string,sub:number):numb
  const confirmed=candidates.flatMap(s=>s.mode==='adaptive'?(s.stages??[]).filter(t=>t.decision==='up'&&t.expected>=12).map(t=>t.bpm):s.mode==='steady'&&s.stats!.accuracy>=92&&s.stats!.expected>=40&&(s.stats!.deviation??Infinity)<=20?[s.bpm]:[]);
  return confirmed.length?Math.max(...confirmed):null;
 }
-export type Drill={mode:Mode;name:string;minutes:number;bpm:number;sub:number;rudiment:string;reason:string;clickSub?:boolean};
+export type Drill={mode:Mode;name:string;minutes:number;bpm:number;sub:number;rudiment:string;reason:string;clickSub?:boolean;ladderStep?:number;ladderMax?:number};
 export function plan(sessions:Session[],minutes:number,rudiment:string,sub:number,fallback:number):Drill[]{
  const base=workingTempo(sessions,rudiment,sub)??fallback;
  const recent=sessions.filter(s=>!s.manualTempoChanged&&s.stats&&s.seconds>=30&&s.rudiment===rudiment&&s.sub===sub).slice(0,12);
