@@ -98,3 +98,7 @@ Automatic recommendation selects a focus using comparable control history, repea
 ## v0.13.0
 
 Progress dashboard: 7/30/90-day practice volume and active days, historical successful fixed-tempo controls and two-day confirmed best, matched-BPM accuracy/RMS comparisons and six skill milestones. Filter by sticking and subdivision. No synthetic values for empty history. Export retained history as JSON. Current working tempo and milestones use all retained history; activity and comparisons use selected period. Browser history remains limited to 300 exercises; older removed data cannot be recovered. Audio engine unchanged.
+
+## v1.0.0-rc.1
+
+Release candidate: remove fixed 300-exercise history truncation, warn on storage failures, validate and merge history backups without duplicates, preserve local entries on invalid import, improve compact layout and keyboard dialog navigation. Browser storage remains finite; export regularly. Align 60-second control tolerance with completion logic. Added storage and mobile browser regression tests. Audio detector unchanged. Real hardware calibration and cross-browser manual validation remain release gates.

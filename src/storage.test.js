@@ -1,0 +1,6 @@
+import {test,expect} from 'vitest';import {loadHistory,parseBackup,mergeHistory,writeStorage} from './storage.js';
+const record={date:'2026-11-27T10:00:00.000Z',mode:'steady',bpm:100,seconds:60,stats:null,rudiment:'RL',sub:4};
+test('existing history is migrated without deleting old records',()=>{const entries=Array.from({length:500},(_,i)=>({...record,date:new Date(Date.parse(record.date)-i*60000).toISOString()}));const r=loadHistory(entries);expect(r.invalid).toBe(false);expect(r.history).toHaveLength(500)});
+test('backup import is idempotent and preserves local entries',()=>{const copy=parseBackup(JSON.stringify({schema:1,history:[record,{...record,bpm:110}]}));const m=mergeHistory([record],copy);expect(m.added).toBe(1);expect(m.history).toHaveLength(2);expect(mergeHistory(m.history,copy).added).toBe(0)});
+test('malformed imports are rejected before any mutation',()=>{expect(()=>parseBackup('{"schema":2,"history":[]}')).toThrow();expect(()=>parseBackup(JSON.stringify({schema:1,history:[record,{...record,bpm:'<img>'}]}))).toThrow();expect(loadHistory([record,null]).invalid).toBe(true)});
+test('storage failures are surfaced',()=>{expect(writeStorage({setItem(){throw Error('quota')}},'x',[])).toBe(false);expect(writeStorage({setItem(){}},'x',[])).toBe(true)});
