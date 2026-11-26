@@ -141,7 +141,15 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "Mic optional description": "Practice without a microphone, or enable it for timing analysis and adaptive tempo.",
     "Advanced microphone settings": "Advanced settings",
     "Setup grid legend": "R — right hand, L — left. This is the first bar of the exercise.",
-    "Exercise preview": "EXERCISE PREVIEW"
+    "Exercise preview": "EXERCISE PREVIEW",
+    "Mic test instructions": "Do not hit the pad. The test plays 8 clicks and counts false microphone detections.",
+    "Mic test start": "Test click rejection",
+    "Mic test running": "Testing… do not play",
+    "Mic test clear": "False detections in this test: 0.",
+    "Mic test leakage": "False detections found. Lower the volume, use headphones, or adjust sensitivity.",
+    "Mic test failed": "Microphone test failed",
+    "Mic detected total": "Total detected sounds",
+    "Insufficient timing data": "Not enough data for a reliable timing estimate."
   },
   "ru": {
     "PRACTICE STUDIO": "СТУДИЯ ПРАКТИКИ",
@@ -264,7 +272,15 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "Mic optional description": "Можно заниматься без микрофона. Включи его для оценки точности и адаптивного темпа.",
     "Advanced microphone settings": "Дополнительные настройки",
     "Setup grid legend": "R — правая рука, L — левая. Это рисунок первого такта.",
-    "Exercise preview": "РИСУНОК УПРАЖНЕНИЯ"
+    "Exercise preview": "РИСУНОК УПРАЖНЕНИЯ",
+    "Mic test instructions": "Не бей по пэду. Проверка проиграет 8 кликов и посчитает ложные срабатывания микрофона.",
+    "Mic test start": "Проверить распознавание кликов",
+    "Mic test running": "Проверка… не играй",
+    "Mic test clear": "Ложных срабатываний в этой проверке: 0.",
+    "Mic test leakage": "Обнаружены ложные срабатывания. Уменьши громкость, используй наушники или настрой чувствительность.",
+    "Mic test failed": "Не удалось проверить микрофон",
+    "Mic detected total": "Всего распознано звуков",
+    "Insufficient timing data": "Недостаточно данных для достоверной оценки точности."
   }
 };
 export const translate=(lang:Lang,key:string)=>dictionaries[lang][key]??key;

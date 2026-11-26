@@ -30,3 +30,7 @@ Build and tests are independent of deployment. If GitHub Pages is disabled, open
 ## v0.4 Performance workspace
 
 One- or two-bar count-in (not scored), distraction-free live display, next-bar preview, measured session report with 30-second windows and rule-based feedback. Timing analysis remains experimental; automatic audio calibration and real-pad validation are not yet implemented.
+
+## v0.4.2 Click rejection
+
+A new two-tone, softly enveloped click uses known 920/1840 Hz components. The microphone worklet rejects these frequencies with cascaded notch filters plus a broadband-energy criterion. A no-playing test checks actual microphone leakage; it is not a latency calibration. Synthetic tests do not guarantee performance on every pad, speaker or room.
