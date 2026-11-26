@@ -31,15 +31,16 @@ export function controlAfterSpeed(next:Drill,record:Session):{drill:Drill;reason
  return {drill:{...next,bpm:candidate},reason:'controlMeasured'};
 }
 export function tempoProfile(history:Session[],rudiment:string,sub:number){
- const eligible=history.filter(s=>s.recognitionVerified&&s.completed===true&&!s.manualTempoChanged&&s.rudiment===rudiment&&s.sub===sub).sort((a,b)=>b.date.localeCompare(a.date));
+ const eligible=history.filter(s=>s.recognitionVerified&&s.completed===true&&!s.manualTempoChanged&&(!s.diagnosticStage||s.diagnosticResult===true)&&s.rudiment===rudiment&&s.sub===sub).sort((a,b)=>b.date.localeCompare(a.date));
  const controls=eligible.filter(s=>s.controlTest&&s.mode==='steady'&&s.clickSub===false&&s.beats===4&&s.seconds>=60);
  const byTempo=new Map<number,Set<string>>();for(const s of controls){if(quality(s.stats)!=='pass')continue;const days=byTempo.get(s.bpm)??new Set<string>();days.add(s.practiceDay??s.date.slice(0,10));byTempo.set(s.bpm,days);}
  const confirmed=[...byTempo].filter(([,days])=>days.size>=2).map(([b])=>b);
  const provisional=eligible.flatMap(s=>s.mode==='steady'&&s.beats===4&&s.clickSub===false&&s.seconds>=60&&quality(s.stats)==='pass'?[s.bpm]:s.mode==='adaptive'||s.mode==='ladder'?(candidateTempo(s.tempoWindows??[])===null?[]:[candidateTempo(s.tempoWindows??[])!]):[]);
- const latest=controls[0];let working=confirmed.length?Math.max(...confirmed):provisional.length?Math.max(...provisional):null;
+ const latest=controls[0],diagnosis=eligible.find(s=>s.diagnosticResult&&s.mode==='steady'&&s.beats===4&&s.clickSub===false&&s.seconds>=60&&quality(s.stats)==='pass');let working=confirmed.length?Math.max(...confirmed):provisional.length?Math.max(...provisional):null;
  // Recent control performance takes priority over an old personal best.
  if(latest&&quality(latest.stats)==='reduce'&&working!==null)working=Math.max(30,Math.min(working,latest.bpm-5));
  else if(latest&&quality(latest.stats)==='repeat'&&working!==null)working=Math.min(working,latest.bpm);
  else if(latest&&quality(latest.stats)==='pass')working=latest.bpm;
- return {working,confirmed:confirmed.length?Math.max(...confirmed):null,confirmedWorking:working!==null&&confirmed.includes(working),pendingConfirmation:!!latest&&quality(latest.stats)==='pass'&&!confirmed.includes(latest.bpm),latest:latest?quality(latest.stats):'unknown'};
+ if(diagnosis&&(!latest||diagnosis.date>latest.date))working=diagnosis.bpm;
+ return {working,confirmed:confirmed.length?Math.max(...confirmed):null,confirmedWorking:working!==null&&confirmed.includes(working),pendingConfirmation:!!latest&&(!diagnosis||latest.date>=diagnosis.date)&&quality(latest.stats)==='pass'&&!confirmed.includes(latest.bpm),latest:latest?quality(latest.stats):'unknown'};
 }

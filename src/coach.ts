@@ -1,6 +1,6 @@
 import {type Mode,type Stats,type Note,summarize} from './training';
 export type Stage={bpm:number;accuracy:number;expected:number;extra:number;decision:'up'|'hold'|'down'|'check';next:number};
-export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean;manualTempoChanged?:boolean;tempoProbe?:boolean;completed?:boolean;tempoWindows?:import('./progression').TempoWindow[];controlTest?:boolean;clickSub?:boolean;beats?:number;practiceDay?:string};
+export type Session={date:string;mode:Mode;bpm:number;seconds:number;stats:Stats|null;rudiment?:string;sub?:number;stages?:Stage[];recognitionVerified?:boolean;manualTempoChanged?:boolean;tempoProbe?:boolean;diagnosticStage?:string;diagnosticResult?:boolean;completed?:boolean;tempoWindows?:import('./progression').TempoWindow[];controlTest?:boolean;clickSub?:boolean;beats?:number;practiceDay?:string};
 export function assess(bpm:number,notes:Note[],extra:number,step:number,max:number):Stage{
  const s=summarize(notes,extra,Infinity);
  const valid=s.expected>=12&&s.hits>=s.expected*.5;
@@ -9,7 +9,7 @@ export function assess(bpm:number,notes:Note[],extra:number,step:number,max:numb
  return {bpm,accuracy:s.accuracy,expected:s.expected,extra,decision,next};
 }
 export function workingTempo(sessions:Session[],rudiment:string,sub:number):number|null{
- const candidates=sessions.filter(s=>(!s.tempoProbe||s.completed)&&!s.manualTempoChanged&&s.rudiment===rudiment&&s.sub===sub&&s.stats&&s.seconds>=20);
+ const candidates=sessions.filter(s=>(!s.tempoProbe||s.completed)&&(!s.diagnosticStage||s.diagnosticResult===true)&&!s.manualTempoChanged&&s.rudiment===rudiment&&s.sub===sub&&s.stats&&s.seconds>=20);
  const confirmed=candidates.flatMap(s=>s.mode==='adaptive'?(s.stages??[]).filter(t=>t.decision==='up'&&t.expected>=12).map(t=>t.bpm):s.mode==='steady'&&s.stats!.accuracy>=92&&s.stats!.expected>=40&&(s.stats!.deviation??Infinity)<=20?[s.bpm]:[]);
  return confirmed.length?Math.max(...confirmed):null;
 }

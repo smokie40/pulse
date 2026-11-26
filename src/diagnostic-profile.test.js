@@ -1,0 +1,4 @@
+import {test,expect} from 'vitest';import {tempoProfile} from './progression';
+const base={date:'2026-11-27',mode:'steady',bpm:145,seconds:60,stats:{expected:580,hits:580,accuracy:100,deviation:8,missed:0,extra:0,bias:0},rudiment:'RL',sub:4,beats:4,clickSub:false,recognitionVerified:true,completed:true};
+test('intermediate diagnostic records do not establish working tempo',()=>expect(tempoProfile([{...base,diagnosticStage:'search'}],'RL',4).working).toBeNull());
+test('final passed diagnosis supersedes older control without certifying multi-day mastery',()=>{const p=tempoProfile([{...base,diagnosticStage:'verify',diagnosticResult:true},{...base,bpm:80,date:'2026-11-25',controlTest:true}],'RL',4);expect(p.working).toBe(145);expect(p.confirmed).toBeNull();expect(p.pendingConfirmation).toBe(false)});

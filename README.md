@@ -82,3 +82,7 @@ First-visit choice between guided coaching and free practice. Guided microphone 
 ## v0.9.2
 
 Separate free-practice settings from guided plan stages. Show a preparation screen before every planned stage, preserve the unfinished checkpoint when leaving for free practice, and prevent edited stages from advancing the checkpoint. Show fixed control tempo when recognition is not verified. Add browser smoke tests to the deployment pipeline. Guided tempos are locked to keep training conditions comparable; free-practice live tempo remains adjustable.
+
+## v0.10.0
+
+Guided tempo diagnosis uses independent 20-second steady-tempo searches, 20 BPM coarse steps, refinement to approximately 5 BPM, and a full 60-second verification. User-selected starting tempo, BPM 30–300; bounded to ten assessed search blocks and two control attempts, with one retry on insufficient recognition per block. No result without successful control. Intermediate diagnostic records do not establish working tempo. New estimates supersede older controls but do not certify multi-day mastery. Audio engine unchanged. CI uses Ubuntu 24.04 to support pinned Playwright.
