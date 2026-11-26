@@ -25,7 +25,7 @@ export function skillProfile(history:Session[],skill:SkillId,rudiment:string,sub
  return {level,days:Math.min(2,days.size),mastered,key:levelKeys[skill][level-1]};
 }
 export function skillEvidence(notes:Note[],extras:number[],end:number,config:Config,segments:Period[]):SkillEvidence{
- const ns=notes.filter(n=>n.time<end), aggregate=(selected:Note[])=>summarize(selected,extras.filter(t=>selected.some(n=>t>=n.time-n.interval*.47&&t<n.time+n.interval*.53)).length,Infinity);
+ const ns=notes.filter(n=>n.time<end), aggregate=(selected:Note[])=>{let i=0,count=0;for(const t of extras){if(t>=end)continue;while(i<selected.length&&t>=selected[i].time+selected[i].interval*.53)i++;if(i<selected.length&&t>=selected[i].time-selected[i].interval*.47)count++;}return summarize(selected,count,Infinity);};
  const e:SkillEvidence={overall:summarize(ns,extras.filter(t=>t<end).length,Infinity)};
  if(config.mode==='ghost')e.silent=aggregate(ns.filter(n=>n.silent));
  if(config.mode==='morph'){

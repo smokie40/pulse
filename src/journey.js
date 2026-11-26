@@ -2,7 +2,7 @@
 export function restorePlan(value){
  if(!value||value.probe||!Array.isArray(value.items)||!Number.isInteger(value.index)||value.index<0||value.index>=value.items.length||!['timing','pulse','speed','flexibility','dynamics','endurance'].includes(value.skill))return null;
  const modes=['steady','ghost','burst','morph','ladder','adaptive','accent'];
- if(!value.items.every(x=>x&&modes.includes(x.mode)&&typeof x.name==='string'&&typeof x.reason==='string'&&typeof x.rudiment==='string'&&[1,2,3,4,5,6,8].includes(x.sub)&&Number.isInteger(x.minutes)&&x.minutes>0&&x.minutes<=30&&Number.isFinite(x.bpm)&&x.bpm>=30&&x.bpm<=300))return null;
+ if(!value.items.every(x=>x&&modes.includes(x.mode)&&typeof x.name==='string'&&typeof x.reason==='string'&&typeof x.rudiment==='string'&&[1,2,3,4,5,6,8].includes(x.sub)&&Number.isInteger(x.minutes)&&x.minutes>0&&x.minutes<=30&&Number.isFinite(x.bpm)&&x.bpm>=30&&x.bpm<=300&&(x.morphSequence===undefined||(Array.isArray(x.morphSequence)&&x.morphSequence.length>=2&&x.morphSequence.length<=4&&x.morphSequence.every(n=>[2,3,4,6].includes(n))))&&(x.silentBars===undefined||[1,2,4].includes(x.silentBars))&&(x.audibleBars===undefined||x.audibleBars===2)))return null;
  return {...value,items:value.items.map(x=>({...x}))};
 }
 export function checkpointAfter(plan,proposed){
