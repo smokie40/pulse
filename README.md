@@ -90,3 +90,7 @@ Guided tempo diagnosis uses independent 20-second steady-tempo searches, 20 BPM 
 ## v0.11.0
 
 Three progressive exercise levels per skill. Two distinct successful control days advance the task; failed controls reset the current evidence streak, unknown measurements never advance. Pulse controls analyze silent notes, flexibility controls analyze transitions and each subdivision, endurance controls compare early and late portions, dynamics requires a self-report after timing passes. Timing transfer uses left lead and doubles; hand choice and accent strength are not automatically detected. Skill levels are exercise milestones, not certifications of physical technique. No audio detector changes; the existing bar scheduler accepts a guided morph sequence.
+
+## v0.12.0
+
+Automatic recommendation selects a focus using comparable control history, repeat/confirmation needs, elapsed days and coverage. Manual focus applies to one newly started plan; pending plans remain unchanged. After at least 15 recorded minutes of speed/endurance practice in the local day, automatic recommendation rotates to another skill (a scheduling heuristic, not fatigue detection). Personal plans repeat the last successful control BPM when a second day is needed and reduce it by 5 BPM after a measured failed control. Unknown outcomes do not lower BPM. Next recommended focus appears after a completed plan. All data stays in browser storage. Audio engine unchanged.
