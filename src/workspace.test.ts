@@ -1,0 +1,5 @@
+import {test,expect} from 'vitest';import {summarizeProgress,skillKey,calibrationKey} from './workspace';import {defaults} from './training';import type {Session} from './coach';
+const base:Session={date:'2026-11-26',mode:'steady',bpm:100,seconds:60,rudiment:'RL',sub:4,recognitionVerified:true,stats:{expected:100,hits:98,missed:2,extra:0,accuracy:95,deviation:9,bias:0}};
+test('progress excludes unverified and insufficient sessions',()=>{const p=summarizeProgress([base,{...base,recognitionVerified:false},{...base,seconds:5}]);expect(p.bySkill[skillKey('steady','RL',4)]?.count).toBe(1);});
+test('double strokes do not inherit single stroke results',()=>{const p=summarizeProgress([base,{...base,rudiment:'RRLL',stats:{...base.stats!,accuracy:80}}]);expect(p.bySkill[skillKey('steady','RL',4)]?.latest).toBe(95);expect(p.bySkill[skillKey('steady','RRLL',4)]?.latest).toBe(80);});
+test('audio configuration changes invalidate check; tempo does not',()=>{expect(calibrationKey({...defaults,volume:70})).not.toBe(calibrationKey(defaults));expect(calibrationKey({...defaults,bpm:160})).toBe(calibrationKey(defaults));});
