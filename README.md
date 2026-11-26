@@ -62,3 +62,7 @@ Immediate audition on timbre selection. Distinct narrowband fundamentals (soft 9
 ## v0.7.2
 
 Training screen organized around a selected skill, duration-proportional route, and focused exercises. Six skill goals; plans fit requested duration and use checked history for working tempo. Speed uses adaptive mode only when microphone and recognition are ready; otherwise a tempo ladder. Dynamics and endurance are practice goals, not automatically certified skills. Audio engine unchanged.
+
+## v0.7.3
+
+One duration-weighted visual route instead of duplicated timeline and rows. Separate skill selection. Optional two-minute bounded adaptive tempo check with verified microphone; incomplete checks do not establish working tempo. Timing practice and control use the same BPM, reducing click support for the control. Existing audio engine and detector unchanged.
