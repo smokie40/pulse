@@ -134,7 +134,14 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "report repeat": "Keep the current tempo and repeat the exercise.",
     "report decline": "Accuracy was lower in the final interval than in the first. Try shorter sets with rest.",
     "○ MIC OFF": "Enable microphone",
-    "● MIC ON": "Disable microphone"
+    "● MIC ON": "Disable microphone",
+    "Sound settings": "SOUND & MODE",
+    "Microphone setup": "MICROPHONE",
+    "Mic ready description": "Microphone enabled. Timing will be assessed during practice.",
+    "Mic optional description": "Practice without a microphone, or enable it for timing analysis and adaptive tempo.",
+    "Advanced microphone settings": "Advanced settings",
+    "Setup grid legend": "R — right hand, L — left. This is the first bar of the exercise.",
+    "Exercise preview": "EXERCISE PREVIEW"
   },
   "ru": {
     "PRACTICE STUDIO": "СТУДИЯ ПРАКТИКИ",
@@ -250,7 +257,14 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "report good": "Точность высокая. Повтори серию для подтверждения результата или попробуй немного повысить темп.",
     "report slow": "Попробуй уменьшить темп на 5 BPM и повторить упражнение.",
     "report repeat": "Сохрани текущий темп и повтори упражнение.",
-    "report decline": "В последнем интервале точность ниже, чем в первом. Попробуй более короткие серии с отдыхом."
+    "report decline": "В последнем интервале точность ниже, чем в первом. Попробуй более короткие серии с отдыхом.",
+    "Sound settings": "ЗВУК И РЕЖИМ",
+    "Microphone setup": "МИКРОФОН",
+    "Mic ready description": "Микрофон включён. Точность будет оценена во время тренировки.",
+    "Mic optional description": "Можно заниматься без микрофона. Включи его для оценки точности и адаптивного темпа.",
+    "Advanced microphone settings": "Дополнительные настройки",
+    "Setup grid legend": "R — правая рука, L — левая. Это рисунок первого такта.",
+    "Exercise preview": "РИСУНОК УПРАЖНЕНИЯ"
   }
 };
 export const translate=(lang:Lang,key:string)=>dictionaries[lang][key]??key;
