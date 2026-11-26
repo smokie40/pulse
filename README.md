@@ -58,3 +58,7 @@ The approved Design Study 05 HTML/CSS is the new shell, using PulseEngine, the e
 ## v0.7.1
 
 Immediate audition on timbre selection. Distinct narrowband fundamentals (soft 920 Hz, studio 1450 Hz, digital 2250 Hz, low 620 Hz) with corresponding reference rejection filters. Soft and low timbres and onset detector remain unchanged. Recheck calibration when changing sound. Rapid preview requests supersede earlier requests.
+
+## v0.7.2
+
+Training screen organized around a selected skill, duration-proportional route, and focused exercises. Six skill goals; plans fit requested duration and use checked history for working tempo. Speed uses adaptive mode only when microphone and recognition are ready; otherwise a tempo ladder. Dynamics and endurance are practice goals, not automatically certified skills. Audio engine unchanged.
