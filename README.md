@@ -50,3 +50,7 @@ Training, free practice, progress and Audio Lab. Recognition checks are session-
 ## v0.6.1
 
 Compact exercise settings, direct microphone toggle, and four performance display modes: grid, single-line pad notation, beat pulse, timer. Next-bar preview is optional. Silent ghost-click bars suppress moving visual timing cues in every mode. Existing detector is unchanged.
+
+## v0.7 Integrated studio
+
+The approved Design Study 05 HTML/CSS is the new shell, using PulseEngine, the existing AudioWorklet detector, calibration and coach modules. Existing pulse-history/settings/language storage is retained. Classic React UI remains at legacy.html. Manual tempo changes apply to future scheduled notes; adaptive and ladder tempo are automatic. Audio latency remains unmeasured.
