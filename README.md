@@ -74,3 +74,7 @@ Measured three-bar constant-tempo windows drive speed control targets. Planned a
 ## v0.8.1
 
 Display the package version and the deployed Git commit (short SHA) in the studio header at build time. Hover over the version for the build ID on compact displays. No changes to practice or audio logic.
+
+## v0.9.0
+
+First-visit choice between guided coaching and free practice. Guided microphone connection, existing six-stage calibration, tempo check and return to plan. Training cards show pending speed-control target, sticking and subdivisions. Unfinished non-diagnostic plans checkpoint the next unfinished stage in local storage; the current stage restarts after interruption, not mid-beat. Audio engine unchanged. Microphone calibration is session-specific and must be repeated after reload when needed.

@@ -1,0 +1,17 @@
+// Guided entry and checkpoint state. A checkpoint points to the next unfinished exercise.
+export function restorePlan(value){
+ if(!value||value.probe||!Array.isArray(value.items)||!Number.isInteger(value.index)||value.index<0||value.index>=value.items.length||!['timing','pulse','speed','flexibility','dynamics','endurance'].includes(value.skill))return null;
+ const modes=['steady','ghost','burst','morph','ladder','adaptive','accent'];
+ if(!value.items.every(x=>x&&modes.includes(x.mode)&&typeof x.name==='string'&&typeof x.reason==='string'&&typeof x.rudiment==='string'&&[1,2,3,4,5,6,8].includes(x.sub)&&Number.isInteger(x.minutes)&&x.minutes>0&&x.minutes<=30&&Number.isFinite(x.bpm)&&x.bpm>=30&&x.bpm<=300))return null;
+ return {...value,items:value.items.map(x=>({...x}))};
+}
+export function checkpointAfter(plan,proposed){
+ if(!plan||plan.probe)return null;
+ const next={...plan,items:plan.items.map(x=>({...x})),index:plan.index+1};
+ if(proposed&&next.index<next.items.length){next.items[next.index]={...proposed.drill};next.items[next.index].resolvedControl=true;}
+ return next.index<next.items.length?next:null;
+}
+export function pendingControl(items,index,current,skill){
+ const x=items[index],prev=items[index-1];
+ return skill==='speed'&&x?.name==='control'&&!x.confirmation&&!x.resolvedControl&&['adaptive','ladder'].includes(prev?.mode)&&current<index;
+}
