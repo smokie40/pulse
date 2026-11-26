@@ -8,7 +8,7 @@ import {plan,workingTempo,type Session,type Drill} from './coach';
 const read=<T,>(key:string,fallback:T):T=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback;}catch{return fallback;}};
 const save=(key:string,v:unknown)=>{try{localStorage.setItem(key,JSON.stringify(v));}catch{}};
 const fmt=(n:number)=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0');
-const subs:Record<number,string>={1:t("Четверти"),2:t("Восьмые"),3:t("Триоли"),4:t("16-е"),5:t("Квинтоли"),6:t("Секстоли"),8:t("32-е")};
+const subs:Record<number,string>={1:'Четверти',2:'Восьмые',3:'Триоли',4:'16-е',5:'Квинтоли',6:'Секстоли',8:'32-е'};
 const engine=new PulseEngine();
 function App(){
  const [lang,setLang]=useState<Lang>(()=>initialLanguage(read('pulse-language',null),navigator.language));
