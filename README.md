@@ -18,3 +18,7 @@ Audio analysis is experimental; use wired headphones and calibrate timing. All p
 ## v0.2 Adaptive coach
 
 Adaptive speed requires a microphone. Every four bars the engine scores the first three bars, using the fourth for input latency. The threshold is heuristic, not a validated measure of technique. Working tempo is estimated per sticking and subdivision from measured practice. Coach plans are loaded stage by stage; no server or audio uploads.
+
+## Languages
+
+Russian and English are selectable in the header. The browser language is used on first launch; the choice is stored locally.
