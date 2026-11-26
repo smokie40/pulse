@@ -1,4 +1,4 @@
-export type Mode = 'steady'|'ghost'|'burst'|'morph'|'ladder'|'accent';
+export type Mode = 'steady'|'ghost'|'burst'|'morph'|'ladder'|'accent'|'adaptive';
 export type Config = {bpm:number;beats:number;sub:number;minutes:number;mode:Mode;rudiment:string;volume:number;clickSub:boolean;audibleBars:number;silentBars:number;ladderStep:number;ladderMax:number;offset:number;sensitivity:number};
 export const defaults:Config={bpm:120,beats:4,sub:4,minutes:5,mode:'steady',rudiment:'RL',volume:55,clickSub:false,audibleBars:2,silentBars:2,ladderStep:5,ladderMax:180,offset:0,sensitivity:50};
 export const modes:{id:Mode;name:string;desc:string}[]=[
@@ -7,6 +7,7 @@ export const modes:{id:Mode;name:string;desc:string}[]=[
 {id:'burst',name:'Speed burst',desc:'Два такта восьмыми, два такта шестнадцатыми.'},
 {id:'morph',name:'Rhythm morph',desc:'Каждые два такта: восьмые, триоли, шестнадцатые, секстоли.'},
 {id:'ladder',name:'Tempo ladder',desc:'Темп растёт через каждые четыре такта до заданного потолка.'},
+{id:'adaptive',name:'Adaptive speed',desc:'Каждые четыре такта оценивает качество и меняет темп. Нужен микрофон.'},
 {id:'accent',name:'Accent lab',desc:'Смещай акцент на следующую ноту каждой доли через такт.'}];
 export const rudiments=[{id:'RL',name:'Single stroke roll'},{id:'LR',name:'Single stroke · left lead'},{id:'RRLL',name:'Double stroke roll'},{id:'RLRRLRLL',name:'Single paradiddle'},{id:'RLRLRRLRLRLL',name:'Double paradiddle'},{id:'RLLRRL',name:'Six stroke roll · sticking'}];
 export function barSpec(c:Config,bar:number){

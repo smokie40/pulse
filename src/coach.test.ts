@@ -1,0 +1,10 @@
+import {expect,test} from 'vitest';
+import {assess,plan,workingTempo} from './coach';
+import type {Note} from './training';
+const notes=(error:number|undefined):Note[]=>Array.from({length:48},(_,i)=>({time:i*.125,interval:.125,bar:Math.floor(i/16),step:i%16,global:i,sub:4,bpm:120,silent:false,accent:false,matched:error}));
+test('good timing increases tempo',()=>expect(assess(120,notes(4),0,5,180).next).toBe(125));
+test('ceiling enforced',()=>expect(assess(120,notes(4),0,5,122).next).toBe(122));
+test('poor timing lowers tempo',()=>expect(assess(120,notes(40),0,5,180).next).toBe(115));
+test('no microphone hits do not change tempo',()=>expect(assess(120,notes(undefined),0,5,180)).toMatchObject({decision:'check',next:120}));
+test('no measured history means no confirmed tempo',()=>expect(workingTempo([],'RL',4)).toBeNull());
+test('plan exactly fits requested time',()=>{for(const t of [10,15,20,30,45])expect(plan([],t,'RL',4,120).reduce((a,d)=>a+d.minutes,0)).toBe(t);});
