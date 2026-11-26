@@ -70,3 +70,7 @@ One duration-weighted visual route instead of duplicated timeline and rows. Sepa
 ## v0.8.0
 
 Measured three-bar constant-tempo windows drive speed control targets. Planned accelerations capped at +20 BPM per exercise. Only completed, verified, comparable controls on two different local days confirm a tempo. Recent failed controls reduce working tempo. First-visit optional tempo check. No automatic claims about hand technique, dynamics or endurance. Thresholds are provisional training heuristics, not validated teaching standards. Audio engine and detector unchanged.
+
+## v0.8.1
+
+Display the package version and the deployed Git commit (short SHA) in the studio header at build time. Hover over the version for the build ID on compact displays. No changes to practice or audio logic.
