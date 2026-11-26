@@ -175,8 +175,8 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "Start stage": "Start stage",
     "Calibration candidate": "Candidate sensitivity found",
     "Calibration candidate detail": "Reanalysis matched the target counts at every stage. Apply the setting and repeat the live test to confirm.",
-    "Calibration no fit": "No suitable sensitivity found",
-    "Calibration no fit detail": "No sensitivity matched every target count. Confirm your stroke counts, then try headphones, another sound or lower volume.",
+    "Calibration no fit": "No suitable setting",
+    "Calibration no fit detail": "If silence and click-only tests show zero events but strokes are overcounted, the detector may be retriggering on decay. Export diagnostic data for analysis. Individual stages can be repeated.",
     "Sensitivity applied": "Sensitivity applied",
     "Apply sensitivity": "Apply sensitivity",
     "Repeat diagnostics": "Repeat diagnostics",
@@ -198,7 +198,9 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "Replay count": "At candidate sensitivity",
     "Live counts matched": "Live counts matched all stages",
     "Live count caveat": "Matching counts do not prove that every hit was identified or timed correctly.",
-    "Audible calibration": "Set all three click types to an audible volume for this test."
+    "Audible calibration": "Set all three click types to an audible volume for this test.",
+    "Retry stage": "Retry stage",
+    "Export diagnostic": "Export diagnostic data (no audio)"
   },
   "ru": {
     "PRACTICE STUDIO": "СТУДИЯ ПРАКТИКИ",
@@ -355,8 +357,8 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "Start stage": "Начать этап",
     "Calibration candidate": "Найдена подходящая чувствительность",
     "Calibration candidate detail": "При повторном анализе записи число событий совпало с заданием на всех этапах. Примени настройку и повтори проверку на живом сигнале.",
-    "Calibration no fit": "Не удалось разделить сигналы",
-    "Calibration no fit detail": "Ни одна чувствительность не дала нужное число событий на всех этапах. Убедись, что число ударов верно; попробуй наушники, другой тембр или меньшую громкость.",
+    "Calibration no fit": "Не удалось подобрать настройку",
+    "Calibration no fit detail": "Если в тишине и при кликах событий нет, но ударов распознаётся больше, вероятно, детектор повторно реагирует на затухание. Сохрани данные диагностики для анализа. Можно повторить отдельные этапы.",
     "Sensitivity applied": "Чувствительность применена",
     "Apply sensitivity": "Применить чувствительность",
     "Repeat diagnostics": "Повторить диагностику",
@@ -378,7 +380,9 @@ const dictionaries:Record<Lang,Record<string,string>>={
     "Replay count": "При подобранной настройке",
     "Live counts matched": "Число событий совпало на всех этапах",
     "Live count caveat": "Это подтверждает совпадение количества событий, но не гарантирует точность времени каждого удара.",
-    "Audible calibration": "Для проверки включи слышимую громкость всех трёх типов клика."
+    "Audible calibration": "Для проверки включи слышимую громкость всех трёх типов клика.",
+    "Retry stage": "Повторить этап",
+    "Export diagnostic": "Сохранить данные диагностики (без аудио)"
   }
 };
 export const translate=(lang:Lang,key:string)=>dictionaries[lang][key]??key;

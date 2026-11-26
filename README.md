@@ -38,3 +38,7 @@ A new two-tone, softly enveloped click uses known 920/1840 Hz components. The mi
 ## v0.5 Audio diagnostics
 
 Four synthesized click timbres with matching notch frequencies, preview and independent click-level controls. Guided six-stage diagnostic records only numerical 2 ms energy features locally in memory, then replays the detection rule over sensitivity candidates. Matching counts are necessary but not proof of correct hit identity or timing. Repeat live after applying a candidate. Audio latency remains a separate problem; no automatic timing correction is applied.
+
+## v0.5.1
+
+Onset detector uses a decaying attack envelope and previous-hit tail rejection, with a minimum 22 ms separation. Strong new attacks can be detected during decay; weak fast strokes may still be missed. Same algorithm in replay. Diagnostic counts now use worklet capture markers and completion acknowledgement. Individual tests can be repeated and numerical features exported (no waveform/audio).

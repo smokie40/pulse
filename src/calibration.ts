@@ -4,14 +4,26 @@ export type Capture={step:Step;frames:Frame[];expected:number;liveCount?:number}
 export const steps:{id:Step;seconds:number;expected:number}[]=[
  {id:'noise',seconds:3,expected:0},{id:'leak',seconds:5,expected:0},{id:'normal',seconds:10,expected:10},{id:'quiet',seconds:10,expected:10},{id:'fast',seconds:7,expected:20},{id:'mixed',seconds:8,expected:10}
 ];
-export function detect(frames:Frame[],sensitivity:number){
- let last=-Infinity,armed=true,low=0,count=0;
+type OnsetState={last:number;time:number;envelope:number;attackPeak:number};
+export function newOnset():OnsetState{return {last:-Infinity,time:0,envelope:0,attackPeak:0};}
+export function onsetStep(state:OnsetState,time:number,e:number,noise:number,ratio:number,sensitivity:number):boolean{const gap=time-state.last;
+ const dt=Math.max(0,time-state.time);
  const floor=.028*Math.pow(.045,sensitivity/100);
- for(const [time,e,_raw,noise,ratio] of frames){
-  const threshold=Math.max(floor*floor,noise*9),onset=e>threshold&&ratio>.18;
-  if(onset&&armed&&time-last>=.018){count++;last=time;armed=false;low=0;}
-  if(!onset||e<threshold*.45){if(++low>=2)armed=true;}else low=0;
- }return count;
+ const threshold=Math.max(floor*floor,noise*9);
+ const previous=state.envelope;
+ const attack=e>threshold&&ratio>.18;
+ // A new stroke must rise above the decaying envelope of the previous sound.
+ const tail=gap<.075?state.attackPeak*.48*Math.exp(-gap/.055):0;
+ const fresh=attack&&gap>=.022&&e>Math.max(tail,previous*2.2);
+ state.envelope=Math.max(e,previous*Math.exp(-dt/.010));
+ state.time=time;
+ if(fresh){state.last=time;state.attackPeak=e;return true;}
+ if(gap<.014&&e>state.attackPeak)state.attackPeak=e;
+ return false;}
+export function detect(frames:Frame[],sensitivity:number){
+ const state=newOnset();let count=0;
+ for(const [time,e,_raw,noise,ratio] of frames)if(onsetStep(state,time,e,noise,ratio,sensitivity))count++;
+ return count;
 }
 export function evaluate(captures:Capture[],sensitivity:number){
  const rows=captures.map(c=>({step:c.step,expected:c.expected,detected:detect(c.frames,sensitivity),valid:c.frames.length>=100}));
