@@ -7,10 +7,11 @@ class Notch {
 class PulseDetector extends AudioWorkletProcessor {
  constructor(){
   super();this.noise=2e-7;this.last=-Infinity;this.sensitivity=50;this.energy=0;this.raw=0;this.peak=0;this.n=0;this.armed=true;this.low=0;
-  this.size=Math.max(24,Math.round(sampleRate*.002));this.setFrequencies([920,1840]);
-  this.port.onmessage=e=>{if(typeof e.data.sensitivity==='number')this.sensitivity=Math.max(0,Math.min(100,e.data.sensitivity));if(Array.isArray(e.data.frequencies))this.setFrequencies(e.data.frequencies);};
+  this.capture=false;this.frames=[];this.meterCount=0;this.meterPeak=0;this.meterEnergy=0;this.meterN=0;this.size=Math.max(24,Math.round(sampleRate*.002));this.setFrequencies([920,1840]);
+  this.port.onmessage=e=>{if(typeof e.data.sensitivity==='number')this.sensitivity=Math.max(0,Math.min(100,e.data.sensitivity));if(Array.isArray(e.data.frequencies))this.setFrequencies(e.data.frequencies);if(e.data.capture===true){this.capture=true;this.frames=[];}if(e.data.capture===false){this.capture=false;this.flush();}};
  }
  setFrequencies(fs){this.filters=fs.filter(f=>f>0&&f<sampleRate*.45).flatMap(f=>[new Notch(f),new Notch(f)]);}
+ flush(){if(this.frames.length){this.port.postMessage({kind:'frames',frames:this.frames});this.frames=[];}}
  process(inputs){
   const x=inputs[0]?.[0];if(!x)return true;
   for(let i=0;i<x.length;i++){
@@ -19,10 +20,13 @@ class PulseDetector extends AudioWorkletProcessor {
    if(this.n<this.size)continue;
    const e=this.energy/this.n,r=this.raw/this.n,ratio=e/Math.max(r,1e-12),frame=currentFrame+i;
    const floor=.028*Math.pow(.045,this.sensitivity/100),threshold=Math.max(floor*floor,this.noise*9);
+   if(this.capture){this.frames.push([frame/sampleRate,e,r,this.noise,ratio]);if(this.frames.length>=50)this.flush();}
+   this.meterPeak=Math.max(this.meterPeak,this.peak);this.meterEnergy+=r;this.meterN++;
+   if(++this.meterCount>=25){this.port.postMessage({kind:'meter',rms:Math.sqrt(this.meterEnergy/this.meterN),peak:this.meterPeak});this.meterCount=this.meterEnergy=this.meterN=this.meterPeak=0;}
    const onset=e>threshold&&ratio>.18;
    if(onset&&this.armed&&frame-this.last>=sampleRate*.018){
     this.last=frame;this.armed=false;this.low=0;
-    this.port.postMessage({time:(frame-(this.size-1)/2)/sampleRate,peak:this.peak});
+    this.port.postMessage({kind:'hit',time:(frame-(this.size-1)/2)/sampleRate,peak:this.peak});
    }
    if(!onset||e<threshold*.45){if(++this.low>=2)this.armed=true;}else this.low=0;
    if(e<threshold)this.noise=.99*this.noise+.01*e;

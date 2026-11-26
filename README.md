@@ -34,3 +34,7 @@ One- or two-bar count-in (not scored), distraction-free live display, next-bar p
 ## v0.4.2 Click rejection
 
 A new two-tone, softly enveloped click uses known 920/1840 Hz components. The microphone worklet rejects these frequencies with cascaded notch filters plus a broadband-energy criterion. A no-playing test checks actual microphone leakage; it is not a latency calibration. Synthetic tests do not guarantee performance on every pad, speaker or room.
+
+## v0.5 Audio diagnostics
+
+Four synthesized click timbres with matching notch frequencies, preview and independent click-level controls. Guided six-stage diagnostic records only numerical 2 ms energy features locally in memory, then replays the detection rule over sensitivity candidates. Matching counts are necessary but not proof of correct hit identity or timing. Repeat live after applying a candidate. Audio latency remains a separate problem; no automatic timing correction is applied.

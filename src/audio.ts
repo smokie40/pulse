@@ -1,29 +1,49 @@
-import {CLICK_FREQUENCIES,makeClick,type ClickKind} from './click-wave';
+import type {Capture,Frame,Step} from './calibration';
+import {frequencies,makeClick,type ClickKind,type ClickSound} from './click-wave';
 import {assess,type Stage} from './coach';
 import {barSpec,matchHit,summarize,type Config,type Note} from './training';
 export class PulseEngine{
  ctx:AudioContext|null=null; gain:GainNode|null=null; stream:MediaStream|null=null; detector:AudioWorkletNode|null=null; source:MediaStreamAudioSourceNode|null=null; sink:GainNode|null=null;
  notes:Note[]=[]; extra=0; extraTimes:number[]=[]; stages:Stage[]=[]; adaptiveBpm=120; active=false; mic=false; measured=false; startTime=0; endTime=0; stoppedAt=0; cfg:Config|null=null;
- private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0;
+ private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false;
  async init(){if(!this.ctx||this.ctx.state==='closed'){this.ctx=new AudioContext({latencyHint:'interactive'});this.clickBuffers.clear();this.gain=this.ctx.createGain();this.gain.connect(this.ctx.destination);}await this.ctx.resume();}
  async enableMic(sensitivity:number){
   await this.init();if(this.mic)return;
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
   const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
-  try{await this.ctx!.audioWorklet.addModule(new URL('hit-detector.js?v=5',document.baseURI).href);
+  try{await this.ctx!.audioWorklet.addModule(new URL('hit-detector.js?v=6',document.baseURI).href);
   this.source=this.ctx!.createMediaStreamSource(stream);this.detector=new AudioWorkletNode(this.ctx!,'pulse-detector');this.sink=this.ctx!.createGain();this.sink.gain.value=0;
-  this.detector.port.postMessage({sensitivity,frequencies:[...CLICK_FREQUENCIES]});this.source.connect(this.detector);this.detector.connect(this.sink);this.sink.connect(this.ctx!.destination);
-  this.detector.port.onmessage=(e:MessageEvent<{time:number;peak:number}>)=>{this.micEvents++;if(this.testing){this.testEvents++;return;}if(!this.active||!this.cfg)return;const t=e.data.time-this.cfg.offset/1000;if(t<this.startTime||t>=this.endTime)return;if(!matchHit(this.notes,t)){this.extra++;this.extraTimes.push(t);}};
+  this.detector.port.postMessage({sensitivity,frequencies:[...frequencies(this.sound)]});this.source.connect(this.detector);this.detector.connect(this.sink);this.sink.connect(this.ctx!.destination);
+  this.detector.port.onmessage=(e:MessageEvent<{kind:string;time:number;peak:number;rms:number;frames:Frame[]}>)=>{if(e.data.kind==='meter'){this.meterRms=e.data.rms;this.meterPeak=e.data.peak;return;}if(e.data.kind==='frames'){this.captureFrames?.push(...e.data.frames);return;}if(e.data.kind!=='hit')return;this.micEvents++;if(this.testing){this.testEvents++;return;}if(!this.active||!this.cfg)return;const t=e.data.time-this.cfg.offset/1000;if(t<this.startTime||t>=this.endTime)return;if(!matchHit(this.notes,t)){this.extra++;this.extraTimes.push(t);}};
   this.stream=stream;this.mic=true;}catch(e){stream.getTracks().forEach(t=>t.stop());this.disableMic();throw e;}
  }
- disableMic(){this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;}
+ disableMic(){this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
  setSensitivity(v:number){this.detector?.port.postMessage({sensitivity:v});}
+ configureSound(c:Config){
+  if(this.sound!==c.sound){this.sound=c.sound;this.clickBuffers.clear();this.detector?.port.postMessage({frequencies:[...frequencies(this.sound)]});}
+  this.levels=[c.accentVolume,c.beatVolume,c.subVolume];if(this.gain)this.gain.gain.value=c.volume/100*.45;
+ }
+ async preview(c:Config){if(this.active||this.testing||this.diagnostic)return;await this.init();this.configureSound(c);this.stop();const start=this.ctx!.currentTime+.08;for(let i=0;i<4;i++)this.click(start+i*.28,i===0,i!==2);}
+ async capture(step:Step,seconds:number,expected:number,c:Config):Promise<Capture>{
+  if(!this.mic||this.active||this.testing||this.diagnostic)throw new Error('Diagnostic unavailable');
+  await this.init();this.stop();this.configureSound(c);this.setSensitivity(c.sensitivity);
+  this.diagnostic=true;this.captureFrames=[];this.detector!.port.postMessage({capture:true});
+  try{
+   const start=this.ctx!.currentTime+.5;
+   if(step==='leak'||step==='mixed'){const count=step==='leak'?8:10;for(let i=0;i<count;i++)this.click(start+i*(step==='leak'?.5:.67),i%4===0,step==='mixed'||i%2===0);}
+   await new Promise<void>(resolve=>window.setTimeout(resolve,seconds*1000));
+   this.detector?.port.postMessage({capture:false});
+   await new Promise<void>(resolve=>window.setTimeout(resolve,150));
+   if(!this.mic||document.hidden)throw new Error('Diagnostic interrupted');
+   return {step,expected,frames:[...this.captureFrames!]};
+  }finally{this.detector?.port.postMessage({capture:false});this.captureFrames=null;this.diagnostic=false;}
+ }
  private click(t:number,accent:boolean,beat:boolean){
   const ctx=this.ctx!,kind:ClickKind=accent?'accent':beat?'beat':'sub';
   let buffer=this.clickBuffers.get(kind);
-  if(!buffer){const wave=makeClick(ctx.sampleRate,kind);buffer=ctx.createBuffer(1,wave.length,ctx.sampleRate);buffer.getChannelData(0).set(wave);this.clickBuffers.set(kind,buffer);}
-  const source=ctx.createBufferSource();source.buffer=buffer;source.connect(this.gain!);this.voices.add(source);
-  source.onended=()=>{this.voices.delete(source);source.disconnect();};source.start(t);
+  if(!buffer){const wave=makeClick(ctx.sampleRate,kind,this.sound);buffer=ctx.createBuffer(1,wave.length,ctx.sampleRate);buffer.getChannelData(0).set(wave);this.clickBuffers.set(kind,buffer);}
+  const source=ctx.createBufferSource();source.buffer=buffer;const level=ctx.createGain();level.gain.value=this.levels[accent?0:beat?1:2]/100;source.connect(level);level.connect(this.gain!);this.voices.add(source);
+  source.onended=()=>{this.voices.delete(source);source.disconnect();level.disconnect();};source.start(t);
  }
  async testLeakage(volume:number,sensitivity:number):Promise<number>{
   if(!this.mic||this.active||this.testing)throw new Error('Microphone test unavailable');
@@ -37,7 +57,7 @@ export class PulseEngine{
    return this.testEvents;
   }finally{this.testing=false;}
  }
- async start(c:Config){await this.init();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.cfg={...c};this.notes=[];this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
+ async start(c:Config){await this.init();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.configureSound(c);this.cfg={...c};this.notes=[];this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
   this.countStart=this.ctx!.currentTime+.15;this.countNext=this.countStart;this.countIndex=0;this.startTime=this.countStart+c.countIn*c.beats*60/c.bpm;this.next=this.startTime;this.endTime=this.startTime+c.minutes*60;this.stoppedAt=this.startTime;this.active=true;this.schedule();this.timer=window.setInterval(()=>this.schedule(),25);}
  private schedule(){if(!this.active||!this.ctx||!this.cfg)return;const c=this.cfg;
   while(this.countIndex<c.countIn*c.beats&&this.countNext<this.ctx.currentTime+.15){if(this.countNext>=this.ctx.currentTime)this.click(this.countNext,this.countIndex%c.beats===0,true);this.countIndex++;this.countNext=this.countStart+this.countIndex*60/c.bpm;}
@@ -56,5 +76,5 @@ export class PulseEngine{
  snapshot(){const now=this.active?this.ctx!.currentTime:this.stoppedAt;let current:Note|undefined;for(let i=this.notes.length-1;i>=0;i--){if(this.notes[i].time<=now){current=this.notes[i];break;}}
  const counting=this.active&&now<this.startTime;const countBeat=counting&&this.cfg?Math.max(0,Math.floor((now-this.countStart)*this.cfg.bpm/60))+1:0;
  const upcoming=current?this.notes.find(n=>n.bar===current!.bar+1):undefined;
- return {active:this.active,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:summarize(this.notes,this.extra,this.active?now-.17:now-.001),recent:this.notes.filter(n=>n.time<=now&&n.time>=now-4).slice(-80),measured:this.measured,micEvents:this.micEvents,stages:[...this.stages]};}
+ return {active:this.active,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:summarize(this.notes,this.extra,this.active?now-.17:now-.001),recent:this.notes.filter(n=>n.time<=now&&n.time>=now-4).slice(-80),measured:this.measured,micEvents:this.micEvents,meterRms:this.meterRms,meterPeak:this.meterPeak,stages:[...this.stages]};}
 }
