@@ -94,3 +94,7 @@ Three progressive exercise levels per skill. Two distinct successful control day
 ## v0.12.0
 
 Automatic recommendation selects a focus using comparable control history, repeat/confirmation needs, elapsed days and coverage. Manual focus applies to one newly started plan; pending plans remain unchanged. After at least 15 recorded minutes of speed/endurance practice in the local day, automatic recommendation rotates to another skill (a scheduling heuristic, not fatigue detection). Personal plans repeat the last successful control BPM when a second day is needed and reduce it by 5 BPM after a measured failed control. Unknown outcomes do not lower BPM. Next recommended focus appears after a completed plan. All data stays in browser storage. Audio engine unchanged.
+
+## v0.13.0
+
+Progress dashboard: 7/30/90-day practice volume and active days, historical successful fixed-tempo controls and two-day confirmed best, matched-BPM accuracy/RMS comparisons and six skill milestones. Filter by sticking and subdivision. No synthetic values for empty history. Export retained history as JSON. Current working tempo and milestones use all retained history; activity and comparisons use selected period. Browser history remains limited to 300 exercises; older removed data cannot be recovered. Audio engine unchanged.
