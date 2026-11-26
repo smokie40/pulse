@@ -22,3 +22,7 @@ Adaptive speed requires a microphone. Every four bars the engine scores the firs
 ## Languages
 
 Russian and English are selectable in the header. The browser language is used on first launch; the choice is stored locally.
+
+### Pages setup / Публикация
+
+Build and tests are independent of deployment. If GitHub Pages is disabled, open Settings → Pages → Source and choose GitHub Actions (not Deploy from a branch). This enables the Pages site. Then use Actions → Deploy PULSE → Run workflow. No personal access token is required for normal deployment once the site is enabled.
