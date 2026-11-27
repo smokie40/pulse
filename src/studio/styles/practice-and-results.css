@@ -247,3 +247,8 @@
 #playing #liveTempoRange::-webkit-slider-thumb{margin-top:-6px}
 #playing #liveTempoRange::-moz-range-track{height:4px;border-radius:999px;background:linear-gradient(to right,var(--accent) 0 var(--fill,18.5%),#35373a var(--fill,18.5%) 100%)}
 #playing #liveTempoRange:disabled{cursor:default}
+
+/* Each live tempo control owns a distinct grid cell and pointer target. */
+#playing #liveMinus{grid-column:1;grid-row:1;justify-self:center}
+#playing #livePlus{grid-column:3;grid-row:1;justify-self:center}
+#playing #liveTempoRange{grid-column:1/-1;grid-row:2}
