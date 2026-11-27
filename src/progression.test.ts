@@ -16,3 +16,8 @@ test('three bars of quarter notes may establish a preliminary tempo',()=>{expect
 
 test('incomparable speed windows cannot raise the standard working tempo',()=>{expect(tempoProfile([{...base,beats:3}],'RL',4).working).toBeNull();expect(controlAfterSpeed(drill,{...base,clickSub:true}).drill.bpm).toBe(80)});
 test('unknown newer control cannot erase an earlier required reduction',()=>{const control={...base,mode:'steady' as const,bpm:100,clickSub:false,beats:4,controlTest:true};const fail={...control,bpm:90,stats:bad,date:'2026-11-28'};const unknown={...control,stats:{...good,expected:10,hits:2},date:'2026-11-29'};expect(tempoProfile([control,fail,unknown],'RL',4).working).toBe(85)});
+
+test('extra events at tempo-window boundaries are counted exactly once',()=>{
+ const notes:Note[]=Array.from({length:96},(_,i)=>({time:i*.125,interval:.125,bar:Math.floor(i/16),step:i%16,global:i,sub:4,bpm:120,silent:false,accent:false,matched:5}));
+ const extras=[12,6,0,5.999,11.999];expect(measuredWindows(notes,extras,12,4).map(x=>x.stats.extra)).toEqual([2,2]);
+});

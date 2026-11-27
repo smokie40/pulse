@@ -12,3 +12,9 @@ test('a guided control with incorrect count-in cannot be certified as planned',(
  const out=buildSessionRecord({...base,cfg:{...cfg,countIn:0},planRef,planIndex:0,verified:true});
  expect(out.record.controlTest).toBe(false);
 });
+
+test('a technical interruption cannot advance a completed-looking exercise or certify recognition',()=>{
+ const planRef={skill:'timing',items:[{...cfg,name:'control'}]};
+ const out=buildSessionRecord({...base,planRef,planIndex:0,verified:true,interrupted:true});
+ expect(out.completed).toBe(false);expect(out.record).toMatchObject({completed:false,recognitionVerified:false,interrupted:true});
+});

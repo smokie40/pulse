@@ -24,7 +24,7 @@ export class PulseEngine{
  private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
  async init(){if(!this.ctx||this.ctx.state==='closed'){if(this.mic)this.disableMic();const ctx=this.ctx=new AudioContext({latencyHint:'interactive'});this.workletReady=null;this.clickBuffers.clear();this.gain=ctx.createGain();this.gain.connect(ctx.destination);ctx.addEventListener('statechange',()=>{if(this.ctx===ctx&&ctx.state!=='running'&&(this.active||this.captureController))this.cancelPending();});}await this.ctx.resume();}
  // An interrupted session is not eligible as completed control evidence.
- cancelPending(){this.startRevision++;this.previewRevision++;if(!this.mic)this.micRevision++;this.captureController?.abort();if(this.active){this.interrupted=true;this.stop();}else this.stop();}
+ cancelPending(){this.startRevision++;this.previewRevision++;if(!this.mic)this.micRevision++;this.captureController?.abort();if(this.active)this.interrupted=true;this.stop();}
  async enableMic(sensitivity:number){
   if(this.mic)return;const revision=++this.micRevision;await this.init();if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
@@ -65,7 +65,7 @@ export class PulseEngine{
    });
    if(signal.aborted||!this.mic||document.hidden)throw abortError();
    return {step,expected,frames:[...this.captureFrames!],liveCount:this.captureHits};
-  }finally{this.detector?.port.postMessage({capture:false});this.captureFrames=null;this.captureDone=null;this.diagnostic=false;this.captureController=null;this.stop();}
+  }finally{try{this.detector?.port.postMessage({capture:false});}catch{}this.captureFrames=null;this.captureDone=null;this.diagnostic=false;this.captureController=null;this.stop();}
  }
  private click(t:number,accent:boolean,beat:boolean){
   const ctx=this.ctx!,kind:ClickKind=accent?'accent':beat?'beat':'sub';
@@ -87,15 +87,16 @@ export class PulseEngine{
   }finally{this.testing=false;}
  }
  async start(c:Config){if(this.captureController||this.testing)throw new Error('Audio busy');const revision=++this.startRevision;this.previewRevision++;await this.init();if(revision!==this.startRevision||document.hidden||this.ctx?.state!=='running')throw abortError();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.interrupted=false;this.configureSound(c);this.cfg={...c};this.notes=[];this.liveStats.reset();this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
-  this.countStart=this.ctx!.currentTime+.15;this.countNext=this.countStart;this.countIndex=0;this.startTime=this.countStart+c.countIn*c.beats*60/c.bpm;this.next=this.startTime;this.endTime=this.startTime+(c.minutes>0?c.minutes*60:86400);this.stoppedAt=this.startTime;this.active=true;this.schedule();this.timer=window.setInterval(()=>this.schedule(),25);}
+  this.countStart=this.ctx!.currentTime+.15;this.countNext=this.countStart;this.countIndex=0;this.startTime=this.countStart+c.countIn*c.beats*60/c.bpm;this.next=this.startTime;this.endTime=this.startTime+(c.minutes>0?c.minutes*60:86400);this.stoppedAt=this.startTime;this.active=true;this.schedule();if(this.active)this.timer=window.setInterval(()=>this.schedule(),25);}
  // Apply manual tempo to future notes only; already scheduled clicks are never moved.
  setLiveTempo(value:number):boolean{if(!this.active||!this.ctx||!this.cfg||this.ctx.currentTime<this.startTime||this.cfg.mode==='adaptive'||this.cfg.mode==='ladder')return false;this.cfg.bpm=Math.max(30,Math.min(300,Math.round(value)));return true;}
+ private interruptAt(time:number){this.interrupted=true;this.stop();this.stoppedAt=Math.min(this.stoppedAt,time);}
  private schedule(){if(!this.active||!this.ctx||!this.cfg)return;const c=this.cfg,now=this.ctx.currentTime;
   // Never synthesize a large backlog of notes after sleep or main-thread starvation.
   // End at the last scheduled boundary, without certifying a broken control.
   const deadline=this.countIndex<c.countIn*c.beats?this.countNext:this.next;
-  if(deadline<this.endTime&&deadline<now-.25){this.interrupted=true;this.stop();this.stoppedAt=Math.min(this.stoppedAt,deadline);return;}
-  while(this.countIndex<c.countIn*c.beats&&this.countNext<this.ctx.currentTime+.15){if(this.countNext>=this.ctx.currentTime)this.click(this.countNext,this.countIndex%c.beats===0,true);this.countIndex++;this.countNext=this.countStart+this.countIndex*60/c.bpm;}
+  if(deadline<this.endTime&&deadline<now-.25){this.interruptAt(deadline);return;}
+  while(this.countIndex<c.countIn*c.beats&&this.countNext<this.ctx.currentTime+.15){if(this.countNext<now){this.interruptAt(this.countNext);return;}this.click(this.countNext,this.countIndex%c.beats===0,true);this.countIndex++;this.countNext=this.countStart+this.countIndex*60/c.bpm;}
   while(this.next<this.ctx.currentTime+.15&&this.next<this.endTime){if(c.mode==='adaptive'&&this.step===0&&this.bar>0&&this.bar%4===0){
  const sample=this.notes.slice(lowerBound(this.notes,this.bar-4,n=>n.bar),lowerBound(this.notes,this.bar-1,n=>n.bar));
  const first=sample[0]?.time??0,last=sample[sample.length-1];
@@ -103,11 +104,14 @@ export class PulseEngine{
  const stage=assess(this.adaptiveBpm,sample,extra,c.ladderStep,c.ladderMax);this.stages.push(stage);this.adaptiveBpm=stage.next;
  }const b=barSpec(c.mode==='adaptive'?{...c,bpm:this.adaptiveBpm}:c,this.bar),beat=this.step%b.sub===0,accent=this.step%b.sub===b.accent,interval=60/b.bpm/b.sub;
   const n:Note={time:this.next,interval,bar:this.bar,step:this.step,global:this.global++,sub:b.sub,bpm:b.bpm,silent:b.silent,accent};
-  this.notes.push(n);if(!b.silent&&(beat||c.clickSub||c.mode==='accent')&&this.next>=this.ctx.currentTime)this.click(this.next,c.mode==='accent'?accent:this.step===0,beat);
+  const audible=!b.silent&&(beat||c.clickSub||c.mode==='accent');if(audible&&this.next<now){this.interruptAt(this.next);return;}
+  this.notes.push(n);if(audible)this.click(this.next,c.mode==='accent'?accent:this.step===0,beat);
   this.next+=interval;this.step++;if(this.step>=c.beats*b.sub){this.step=0;this.bar++;}}
   if(this.ctx.currentTime>=this.endTime+.18)this.stop();
  }
  stop(){this.previewRevision++;if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const o of this.voices){try{o.stop();}catch{}}this.voices.clear();}
+ // Raw samples are no longer needed after the result/skill evidence has been built.
+ releaseSessionData(){if(this.active)return;this.notes=[];this.extraTimes=[];this.stages=[];this.extra=0;this.liveStats.reset();}
  snapshot(includeDetails=true){const now=this.active?this.ctx!.currentTime:this.stoppedAt;let index=this.notes.length-1;while(index>=0&&this.notes[index].time>now)index--;const current=this.notes[index];
  const counting=this.active&&now<this.startTime;const countBeat=counting&&this.cfg?Math.max(0,Math.floor((now-this.countStart)*this.cfg.bpm/60))+1:0;
  let nextIndex=index+1;while(current&&nextIndex<this.notes.length&&this.notes[nextIndex].bar===current.bar)nextIndex++;

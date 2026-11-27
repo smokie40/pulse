@@ -33,3 +33,17 @@ test('invalid history JSON is surfaced rather than silently treated as first use
  expect(storage.importBackup(JSON.stringify({schema:1,history:[record]}))).toEqual({added:1,updated:0});
  expect(storage.status()).toBe('');
 });
+
+test('two stale tabs merge history before saving rather than overwriting sessions',()=>{
+ const {storage:first,data}=fixture();
+ const second=createStudioStorage({getStorage:()=>({getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)})});
+ first.appendRecord(record);second.appendRecord({...record,date:'2026-11-27T11:00:00.000Z',bpm:115});
+ expect(JSON.parse(data.get('pulse-history'))).toHaveLength(2);
+ expect(first.refreshHistory()).toBe(true);expect(first.history.map(x=>x.bpm)).toEqual([115,100]);
+ expect(first.refreshHistory()).toBe(false);
+});
+test('unchanged preferences do not trigger another synchronous write',()=>{
+ let writes=0;const data=new Map();
+ const storage=createStudioStorage({getStorage:()=>({getItem:k=>data.get(k),setItem:(k,v)=>{writes++;data.set(k,v);}})});
+ storage.saveSettings({bpm:120});storage.saveSettings({bpm:120});storage.saveSettings({bpm:125});expect(writes).toBe(2);
+});
