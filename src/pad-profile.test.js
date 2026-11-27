@@ -35,3 +35,16 @@ test('missing features or identical click and pad data cannot yield a valid prof
  expect(learnPadProfile([t[0],{...t[2],step:'leak',expected:0},t[2],t[3]])).toBeNull();
  expect(learnPadProfile(t.map(c=>({...c,frames:c.frames.map(f=>f.slice(0,5))})))).toBeNull();
 });
+
+// Independent synthetic fixture: the click dominates all six bands in absolute energy.
+test('signed spectral contrast separates quieter pad hits from much louder clicks',()=>{
+ const captureBands=(step,expected,shape,amplitude,n)=>({step,expected,frames:Array.from({length:1600},(_,i)=>{
+  const pulse=i>=100&&Math.floor((i-100)/70)<n&&(i-100)%70<5?amplitude*Math.exp(-((i-100)%70)/2):0;
+  return [i*.002,0,0,1e-10,1,shape.map(v=>v*pulse+1e-10)];
+ })});
+ const click=[.02,.08,.43,.39,.07,.01],pad=[.23,.22,.27,.18,.08,.02],quiet=[.33,.24,.19,.14,.08,.02];
+ const training=[captureBands('noise',0,click,0,0),captureBands('leak',0,click,.3,16),captureBands('normal',10,pad,.0018,10),captureBands('quiet',10,quiet,.0006,10)];
+ const p=learnPadProfile(training);expect(p).not.toBeNull();expect(p.weights.some(w=>w<0)).toBe(true);
+ for(const c of training)expect(countProfile(c,p)).toBe(c.expected);
+ expect(countProfile(captureBands('leak',0,click,.45,16),p)).toBe(0);
+});

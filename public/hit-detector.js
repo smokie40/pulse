@@ -29,7 +29,7 @@ class PulseDetector extends AudioWorkletProcessor {
  constructor(){
   super();this.noise=2e-7;this.onset=newOnset();this.sensitivity=50;this.energy=0;this.raw=0;this.peak=0;this.n=0;
   this.capture=false;this.frames=[];this.meterCount=0;this.meterPeak=0;this.meterEnergy=0;this.meterN=0;this.size=Math.max(24,Math.round(sampleRate*.002));this.setFrequencies([920,1840]);this.profile=null;this.bands=PAD_BANDS.map(f=>new Band(Math.min(f,sampleRate*.4)));this.bandSum=new Float64Array(PAD_BANDS.length);
-  this.port.onmessage=e=>{if(typeof e.data.sensitivity==='number')this.sensitivity=Math.max(0,Math.min(100,e.data.sensitivity));if(Array.isArray(e.data.frequencies))this.setFrequencies(e.data.frequencies);if(Object.prototype.hasOwnProperty.call(e.data,'padProfile')){const p=e.data.padProfile;this.profile=p&&Array.isArray(p.weights)&&p.weights.length===PAD_BANDS.length&&p.weights.every(v=>Number.isFinite(v)&&v>=0&&v<=1)&&p.weights.some(v=>v>0)&&Number.isFinite(p.noise)&&p.noise>=0?p:null;this.bands=PAD_BANDS.map(f=>new Band(Math.min(f,sampleRate*.4)));this.onset=newOnset();this.energy=this.raw=this.peak=this.n=0;this.bandSum.fill(0);}if(e.data.capture===true){this.capture=true;this.frames=[];this.onset=newOnset();this.energy=this.raw=this.peak=this.n=0;this.bandSum.fill(0);}if(e.data.capture===false){this.capture=false;this.flush();this.port.postMessage({kind:'capture-end'});}};
+  this.port.onmessage=e=>{if(typeof e.data.sensitivity==='number')this.sensitivity=Math.max(0,Math.min(100,e.data.sensitivity));if(Array.isArray(e.data.frequencies))this.setFrequencies(e.data.frequencies);if(Object.prototype.hasOwnProperty.call(e.data,'padProfile')){const p=e.data.padProfile;this.profile=p&&Array.isArray(p.weights)&&p.weights.length===PAD_BANDS.length&&p.weights.every(v=>Number.isFinite(v)&&v>=-1&&v<=1)&&p.weights.some(v=>v>0)&&Number.isFinite(p.noise)&&p.noise>=0?p:null;this.bands=PAD_BANDS.map(f=>new Band(Math.min(f,sampleRate*.4)));this.onset=newOnset();this.energy=this.raw=this.peak=this.n=0;this.bandSum.fill(0);}if(e.data.capture===true){this.capture=true;this.frames=[];this.onset=newOnset();this.energy=this.raw=this.peak=this.n=0;this.bandSum.fill(0);}if(e.data.capture===false){this.capture=false;this.flush();this.port.postMessage({kind:'capture-end'});}};
  }
  setFrequencies(fs){this.filters=fs.filter(f=>f>0&&f<sampleRate*.45).flatMap(f=>[new Notch(f),new Notch(f)]);}
  flush(){if(this.frames.length){this.port.postMessage({kind:'frames',frames:this.frames});this.frames=[];}}
@@ -42,7 +42,7 @@ class PulseDetector extends AudioWorkletProcessor {
    if(this.n<this.size)continue;
    const bands=this.capture||this.profile?Array.from(this.bandSum,b=>b/this.n):null;
    let e=this.energy/this.n;const r=this.raw/this.n,frame=currentFrame+i;
-   if(this.profile){e=0;for(let j=0;j<this.bands.length;j++)e+=bands[j]*this.profile.weights[j];}
+   if(this.profile){e=0;for(let j=0;j<this.bands.length;j++)e+=bands[j]*this.profile.weights[j];e=Math.max(0,e);}
    const ratio=this.profile?1:e/Math.max(r,1e-12),noise=this.profile?this.profile.noise:this.noise;
    const floor=.028*Math.pow(.045,this.sensitivity/100),threshold=Math.max(floor*floor,noise*9);
    if(this.capture){this.frames.push([frame/sampleRate,e,r,noise,ratio,bands]);if(this.frames.length>=50)this.flush();}

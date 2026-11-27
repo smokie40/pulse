@@ -208,3 +208,7 @@ Six ready-to-play CC0 recorded/produced WAV one-shots replace the previous defau
 ## v1.0.0-rc.26
 
 Experimental device-specific pad recognition: six overlapping spectral energy bands, training on room noise/click/normal/quiet captures and a fixed weighted-band onset profile. Click-only is recaptured after training; fast and mixed stages are held out. Calibration is verified only if replay and fresh live checks agree. No time gate removes hits coincident with the metronome. Profiles are session-local and invalidated by sound/volume/sensitivity/device changes. No PCM recordings are stored or transmitted. Real-device testing is required; overlapping signals may be inseparable from a single microphone.
+
+## v1.0.0-rc.26.1
+
+When all positive-band profiles fail, learn signed band contrasts from strong click-only frames. Clip negative residuals to zero in both replay and AudioWorklet. Select a stable passing sensitivity range and prefer residual separation. Independent click, fast and mixed checks are still required. A synthetic regression represents a much louder click across all bands. No user's diagnostic recording is committed.

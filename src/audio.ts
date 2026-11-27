@@ -19,7 +19,7 @@ export class PulseEngine{
   if(this.mic)return;const revision=++this.micRevision;await this.init();if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
   const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
-  try{if(revision!==this.micRevision)throw new Error('Microphone request cancelled');await this.ctx!.audioWorklet.addModule(new URL('hit-detector.js?v=8',document.baseURI).href);
+  try{if(revision!==this.micRevision)throw new Error('Microphone request cancelled');await this.ctx!.audioWorklet.addModule(new URL('hit-detector.js?v=9',document.baseURI).href);
   if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   this.source=this.ctx!.createMediaStreamSource(stream);this.detector=new AudioWorkletNode(this.ctx!,'pulse-detector');this.sink=this.ctx!.createGain();this.sink.gain.value=0;
   this.detector.port.postMessage({sensitivity,frequencies:[...frequencies(this.sound)]});this.source.connect(this.detector);this.detector.connect(this.sink);this.sink.connect(this.ctx!.destination);
