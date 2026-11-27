@@ -164,3 +164,7 @@ Playback controller owns start, frame loop, stop and final aggregation. Runtime 
 ## v1.0.0-rc.16
 
 Training route lifecycle is isolated in a dedicated controller: active route, persisted checkpoint, adaptive fallback, completion guards, follow-up control drill and diagnostic transitions. Session identity and free-practice restoration are preserved. Added route lifecycle regression tests. UI, audio engine, detector and CSS unchanged.
+
+## v1.0.0-rc.17
+
+Centralized practice configuration, temporary drill preparation, persisted free-practice parameters and restoration in a dedicated state owner. Audio and calibration preferences remain shared across guided and free practice; fractional diagnostic durations are preserved. Controller and settings handlers use snapshots and explicit patches. Added state regression tests. No intentional UI, detector, scoring, or storage-schema changes.
