@@ -110,3 +110,7 @@ Unified training home for first and returning visits: a recommended or unfinishe
 ## v1.0.0-rc.3
 
 Compact training recommendation, prominent goal graphics and actual per-skill milestones for the current sticking/subdivision. Unassessed goals show no completed levels; resume summary shows remaining planned minutes and completed/current stages. Same three sections and training algorithms.
+
+## v1.0.0-rc.4
+
+Unified musical work surface: open recommendation area, direct resume and separate plan/cancel actions, explicit optional microphone and tempo check, distinct free-practice list, meaningful rhythm illustrations, editable plan sticking and subdivision, simplified performance and result presentation, evidence-first progress. Existing audio, detector, scoring, training, and storage modules are unchanged. Silent bars retain the intentional visual blackout.
