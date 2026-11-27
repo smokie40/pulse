@@ -33,7 +33,7 @@
 .home-skill-copy{position:relative;min-height:0}
 .home-skill strong{font-size:19px;line-height:1.25;padding-right:18px}
 .home-skill small{font-size:13px;line-height:1.4;margin-top:5px}
-.home-skill .home-skill-status small{font-size:12px}
+
 .home-arrow{right:2px;top:116px;font-size:21px;line-height:1;color:#aaaeb1}
 .home-skill:hover .home-arrow,.exercise-tile:hover .tile-arrow{color:var(--accent)}
 .home-skill:hover{background:#17191b}
