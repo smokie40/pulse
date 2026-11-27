@@ -136,3 +136,7 @@ Unified goal and exercise selection surfaces: shared responsive grid, diagram di
 ## v1.0.0-rc.9
 
 Open score-inspired selection surfaces: title and short caption precede musical diagrams; internal vertical rules and shared horizontal rules define the choices without card fills or enclosing borders. Both tabs retain identical responsive diagram scale, typography and click targets. Adaptive mode remains a separate full-width row. No detection, scoring, storage or training algorithm changes.
+
+## v1.0.0-rc.10
+
+RC9 UI baseline preserved at `baseline/rc9-ui`. Direct time-signature selection, separate mode settings, keyboard focus preservation, unified setup controls, sticky stop control, no empty progress bar for unlimited practice, consolidated result summary, actual BPM scale and distinct result actions. RC9 selection matrices, detector, scoring and training algorithms retained. Additional E2E tests cover setup and results.

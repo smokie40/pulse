@@ -332,6 +332,96 @@
  #training #skillPath .choice-tile::after,#library #exerciseLibrary .choice-tile::after{display:none}
  #library #exerciseLibrary .choice-tile[data-mode=adaptive]{display:flex;align-items:stretch}
 }
+
+/* RC10 — instrument workspace on the frozen RC9 visual system. */
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .choice-copy{position:static}
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .choice-arrow{top:50%;right:8px;transform:translateY(-50%)}
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .glyph{transform:translateX(-12px)}
+#setup .setup-intro{text-align:left;margin:0 0 18px}
+#setup .setup-intro h1{font-size:clamp(30px,4vw,46px);line-height:1.12;letter-spacing:-.045em}
+#setup .setup-back{display:block;text-align:left;color:var(--muted);padding:6px 0;margin:0 0 12px;font-size:13px;min-height:32px}
+#setup .setup-back:hover{color:var(--accent)}
+#setup #stagePrep{margin:0 0 8px}
+.setup-parameters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.7fr);gap:24px;align-items:center;border-block:1px solid var(--line);padding:17px 0}
+.setup-tempo,.setup-rhythm{min-width:0}
+.setup-tempo{padding-right:24px;border-right:1px solid var(--line)}
+#setup .tempo{margin:0 auto 10px;gap:14px}
+#setup .bpm-box input{font-size:clamp(60px,7vw,88px)}
+#setup .tempo-slider{margin:0 auto 8px;width:100%;max-width:340px}
+#setup .rhythm-chooser{margin:0 auto;gap:5px;max-width:100%;grid-template-columns:repeat(4,minmax(0,1fr));display:grid}
+#setup .sub-choice{min-height:52px;padding:4px 2px}
+#setup .sub-choice svg{height:30px;max-width:100%}
+#setup .sub-choice span{font-size:11px}
+#setup .mode-preview{margin:12px auto 0;max-width:100%}
+#setup .mode-preview .glyph{height:64px;max-width:280px}
+#setup.guided-setup:not(:has(#modePreview:not([hidden]))) .setup-parameters{grid-template-columns:1fr}
+#setup.guided-setup:not(:has(#modePreview:not([hidden]))) .setup-tempo{border:0;padding:0}
+#setup.guided-setup:not(:has(#modePreview:not([hidden]))) .setup-rhythm{display:none}
+#setup.guided-setup #choices{display:none}
+#setup .score{padding:15px 0 10px;margin:0 auto}
+#setup .meter-control{min-height:36px;text-align:left;color:var(--ink);font-size:14px;border:1px solid var(--line);border-radius:3px;padding:4px 8px;justify-self:start}
+#setup .meter-control:disabled{border-color:transparent;opacity:1;color:var(--muted)}
+#setup .meter-control:not(:disabled):hover{border-color:var(--accent)}
+#setup .action-area{width:100%;max-width:none;margin:8px 0 0;border-top:1px solid var(--line);padding-top:12px;display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,280px);gap:10px 20px;align-items:center;text-align:left}
+#setup .setup-parameter-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;grid-column:1/-1}
+#setup .duration-control{margin:0;border:1px solid var(--line);min-height:36px;padding:5px 9px}
+#setup .setup-controls{margin:0;gap:8px;justify-content:flex-start}
+#setup .setup-controls button{min-height:36px}
+#setup .stage-cue{grid-column:1/-1;text-align:left;margin:0;max-width:none}
+#setup #setupMic{margin:0;text-align:left;font-size:13px;padding:6px 0;justify-self:start}
+#setup #practiceError{grid-column:1/-1;margin:0;text-align:left}
+#setup #practiceError:empty{display:none}
+#setup #start{grid-column:2;margin:0;height:48px}
+#playing .play-head{position:sticky;top:0;z-index:5;background:#131416;padding:12px 0;border-bottom:1px solid var(--line);gap:12px}
+#playing .play-stage{margin-top:14px}
+#playing .play-head h1{line-height:1.15}
+#playing .live-context:empty{display:none}
+#playing .play-metrics{justify-content:space-between;max-width:760px;margin-inline:auto}
+#playing .stop{flex:none}
+#results .result-heading{margin-bottom:16px}
+#results .result-summary{display:flex;align-items:stretch;border-block:1px solid var(--line);padding:16px 0;margin-bottom:12px;gap:0}
+#results .result-summary .result-time{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;flex:1;min-width:0;margin:0;padding:0 18px 0 0}
+#results .result-summary .result-detail{display:flex;flex:2;align-items:center;gap:0;border:0;border-left:1px solid var(--line);margin:0;padding:0}
+#results .result-summary .result-detail:has(>div[hidden]){flex:1}
+#results .result-summary .result-detail>div{flex:1;min-width:0;padding-left:18px}
+#results .result-summary strong{font-size:36px;line-height:1.15;font-weight:650}
+#results .result-summary .result-time span,#results .result-summary .result-detail span{font-size:13px;color:var(--muted)}
+#results #resultAnalysisState{margin:0 0 12px}
+#results #resultAnalysis .result-detail{border-top:0;margin:0 0 12px}
+#results .result-actions{max-width:none;grid-template-columns:minmax(0,280px) minmax(0,1fr);align-items:center;gap:10px 20px;margin:20px 0 24px}
+#results .result-actions .primary{grid-column:1;margin:0}
+#results .result-actions .text-action{text-align:left;justify-self:start;padding:10px 0}
+#results #probeResult{grid-column:1/-1;margin:0;text-align:left}
+#results .result-graph{margin:0 0 20px}
+@media(max-width:800px){
+ .setup-parameters{grid-template-columns:1fr;gap:12px;padding:14px 0}
+ .setup-tempo{border:0;padding:0}
+ #setup .rhythm-chooser{grid-template-columns:repeat(7,minmax(0,1fr))}
+ #setup .setup-intro h1{font-size:30px}
+ #setup .action-area{grid-template-columns:minmax(0,1fr) minmax(0,180px)}
+ #results .result-summary strong{font-size:29px}
+}
+@media(max-width:480px){
+ #setup .setup-intro{margin-bottom:12px}
+ #setup .rhythm-chooser{grid-template-columns:repeat(4,minmax(0,1fr))}
+ #setup .score-head{grid-template-columns:auto minmax(0,1fr) 38px;gap:4px}
+ #setup .meter-control{font-size:12px;padding:3px 5px}
+ #setup .action-area{grid-template-columns:1fr;gap:8px}
+ #setup #start{grid-column:1}
+ #setup .setup-controls button{font-size:12px}
+ #playing .play-head{padding:8px 0}
+ #playing .play-head h1{font-size:20px}
+ #playing .play-metrics{gap:5px}
+ #playing .beat-lights{flex-wrap:wrap;max-width:68%}
+ #results .result-summary{flex-wrap:wrap;gap:12px}
+ #results .result-summary .result-time{flex:0 0 100%}
+ #results .result-summary .result-detail{border:0;flex:1 0 100%;padding-top:10px;border-top:1px solid var(--line)}
+ #results .result-summary .result-detail>div{padding-left:0}
+ #results .result-summary .result-detail>div+div{padding-left:12px}
+ #results .result-actions{grid-template-columns:1fr}
+ #results .result-actions .text-action{padding:8px 0}
+ #library #exerciseLibrary .choice-tile[data-mode=adaptive] .glyph{transform:none}
+}
 </style>
 </head>
 <body>
@@ -355,13 +445,13 @@
 <main id="lab" class="new-page lab-page" hidden><header id="guideHead" class="page-intro guide-head" hidden><span class="kicker" id="guideStep"></span><h1 id="guideTitle"></h1><p id="guideDesc"></p><p id="guideHint" class="subtle"></p><p id="guideMessage" role="alert"></p></header><header class="page-intro normal-lab-head"><h1 data-t="labTitle">Звук и калибровка</h1><p data-t="labIntro">Настрой один раз — дальше просто играй.</p></header><section class="lab-sound"><div><h2 data-t="sound">Звук метронома</h2><button class="text-action" id="soundName">Мягкий тон ↗</button></div><button id="previewClick" class="round" aria-label="Preview">▶</button><div class="lab-volume"><input type="range" min="0" max="100" id="labVol" value="55" aria-label="Volume"><span id="labVolNum">55%</span></div></section><section class="mic-section"><div class="lab-heading"><div><h2 data-t="micTitle">Микрофон</h2><p id="micStatus"></p></div><button id="micToggle" class="text-action"></button></div><div class="signal-meter" id="signalMeter"></div><div class="meter-caption"><span data-t="inputLevel">Входной сигнал</span><span id="meterDb">— dBFS</span></div></section><section class="cal-section"><div class="lab-heading"><div><h2 data-t="calTitle">Проверка ударов</h2><p data-t="calIntro">Шесть коротких испытаний. По одному за раз.</p></div><span id="calCounter" class="tag">0 / 6</span></div><div id="calSteps"></div><div class="cal-current" id="calCurrent"></div><button class="primary" id="calStart"></button><p id="calMessage" class="subtle" role="status"></p><button id="exportCal" class="text-action">JSON ↓</button><button id="calReset" class="text-action" data-t="resetCal">Начать заново</button><details class="lab-advanced"><summary data-t="extraAudio">Дополнительные параметры</summary><label><span data-t="sensitivity">Чувствительность</span> <span id="sensNum">50</span><input type="range" id="sensitivity" min="0" max="100" value="50"></label><p data-t="latency">Задержка не измерена.</p></details></section><button id="guideContinue" class="primary" hidden></button><button id="guideSkip" class="text-action" data-t="guideSkip" hidden></button></main>
   <main id="library" class="library-page" hidden><div class="library-heading"><h1 data-t="library">Упражнения</h1><p data-t="libraryIntro">Выбери, что хочешь тренировать.</p></div><div id="exerciseLibrary" class="exercise-library choice-grid"></div></main>
   <main id="setup" class="workspace">
-    <div class="intro">
-      <p id="stagePrep" class="kicker" hidden></p><div class="eyebrow" data-t="eyebrow">Контроль ритма</div>
+    <div class="intro setup-intro">
+      <button id="stageBack" class="text-action setup-back" hidden></button><p id="stagePrep" class="kicker" hidden></p><div class="eyebrow" data-t="eyebrow">Контроль ритма</div>
       <h1 data-t="title">Равномерные удары</h1>
       <p data-t="intro">Играй ровно, сохраняя одинаковые интервалы между ударами.</p>
     </div>
 
-    <div class="tempo">
+    <section class="setup-parameters"><div class="setup-tempo"><div class="tempo">
       <button id="minus" class="round" aria-label="Уменьшить темп">−</button>
       <div class="bpm-box"><input id="bpm" inputmode="numeric" type="number" min="30" max="300" value="80" aria-label="Темп BPM"><span class="unit">BPM</span></div>
       <button id="plus" class="round" aria-label="Увеличить темп">+</button>
@@ -371,17 +461,17 @@
       <div class="tempo-scale"><span style="left:0.0000%">30</span><span style="left:22.2222%">90</span><span style="left:44.4444%">150</span><span style="left:66.6667%">210</span><span style="left:88.8889%">270</span><span style="left:100.0000%">300</span></div>
     </div>
 
-    <div id="choices" class="rhythm-chooser" aria-label="Длительность нот"></div><div id="modePreview" class="mode-preview" hidden></div>
+    </div><div class="setup-rhythm"><div id="choices" class="rhythm-chooser" aria-label="Длительность нот"></div><div id="modePreview" class="mode-preview" hidden></div></div></section>
 
     <section class="score">
-      <div class="score-head"><span class="tag" id="timeSignature">4/4</span><div class="pattern-nav"><button id="prevPattern" class="arrow" aria-label="Предыдущий рисунок"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button><button id="patternBtn" class="pattern-label" aria-haspopup="dialog"><span id="patternText">Одиночные удары</span><span class="pattern-dots" id="patternDots"></span></button><button id="nextPattern" class="arrow" aria-label="Следующий рисунок"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></div><span class="tag stroke-count" id="strokeCount"></span></div>
+      <div class="score-head"><button class="tag meter-control" id="timeSignature" aria-haspopup="dialog">4/4</button><div class="pattern-nav"><button id="prevPattern" class="arrow" aria-label="Предыдущий рисунок"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button><button id="patternBtn" class="pattern-label" aria-haspopup="dialog"><span id="patternText">Одиночные удары</span><span class="pattern-dots" id="patternDots"></span></button><button id="nextPattern" class="arrow" aria-label="Следующий рисунок"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></div><span class="tag stroke-count" id="strokeCount"></span></div>
       <div class="staff-container" id="staff"></div>
       <div class="legend" data-t="legend">R — правая рука · L — левая</div>
     </section>
 
-    <div class="action-area">
+    <div class="action-area"><div class="setup-parameter-strip">
       <button id="durationBtn" class="duration-control" aria-haspopup="dialog"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span id="durationText">5 мин</span><svg class="down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg></button>
-      <div class="setup-controls"><button id="setupClick" class="text-action"></button><button id="setupCount" class="text-action"></button><button id="setupModeSettings" class="text-action" data-t="modeSettings" hidden></button></div><p id="stageCue" class="stage-cue" hidden></p><button id="setupMic" class="text-action"></button><p id="practiceError" class="subtle" role="alert"></p><button id="start" class="primary"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg><span data-t="start">Начать тренировку</span></button><button id="stageBack" class="text-action" data-t="stageBack" hidden></button>
+      <div class="setup-controls"><button id="setupClick" class="text-action"></button><button id="setupCount" class="text-action" aria-haspopup="dialog"></button><button id="setupModeSettings" class="text-action" data-t="modeSettings" aria-haspopup="dialog" hidden></button></div></div><p id="stageCue" class="stage-cue" hidden></p><button id="setupMic" class="text-action"></button><p id="practiceError" class="subtle" role="alert"></p><button id="start" class="primary"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg><span data-t="start">Начать тренировку</span></button>
 
     </div>
   </main>
@@ -411,11 +501,11 @@
         <div class="staff-container" id="liveStaff"></div>
       </section>
 
-      <div class="progress"><i id="progressBar"></i></div>
+      <div class="progress" id="liveProgress"><i id="progressBar"></i></div>
       <p class="practice-note" id="liveAccuracy"></p><p class="practice-note" data-t="previewNote">Демонстрация метронома · анализ ударов не подключён.</p>
     </div>
   </main>
-  <main id="results" class="results-page" hidden><div class="result-heading"><div class="result-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></div><h1 data-t="finished">Тренировка завершена</h1><p id="resultExercise"></p></div><div id="resultAnalysis"></div><div class="result-time"><strong id="resultTime">00:00</strong><span data-t="practiceTime">Время практики</span></div><div class="result-detail"><div><span id="resultTempoLabel" data-t="tempoStart">Начальный темп</span><strong id="resultStart">80 <small>BPM</small></strong></div><div id="resultEndMetric"><span data-t="tempoEnd">Последний темп</span><strong id="resultEnd">80 <small>BPM</small></strong></div></div><p id="skillResult" class="subtle" hidden></p><p id="nextRecommendation" class="next-recommendation" hidden></p><section id="skillReview" class="skill-review" hidden><p data-t="reviewQuestion"></p><div><button id="reviewYes" class="text-action" data-t="reviewYes"></button><button id="reviewNo" class="text-action" data-t="reviewNo"></button></div></section><p id="resultAnalysisState" class="result-note" data-t="noAnalysis"></p><div id="resultNext" class="result-next" hidden></div><div class="result-actions"><button class="primary" id="repeatPractice" data-t="repeat">Повторить</button><button class="text-action" id="otherExercise" data-t="other">Выбрать другое упражнение</button><button class="text-action" id="returnPlan" data-t="returnPlan" hidden></button><button class="text-action" id="adjustPractice" data-t="adjust">Изменить настройки</button></div><div id="resultCharts"></div><div class="result-graph" id="resultGraph"></div></main>
+  <main id="results" class="results-page" hidden><div class="result-heading"><div class="result-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></div><h1 data-t="finished">Тренировка завершена</h1><p id="resultExercise"></p></div><div class="result-summary"><div class="result-time"><span data-t="practiceTime">Время практики</span><strong id="resultTime">00:00</strong></div><div class="result-detail"><div><span id="resultTempoLabel" data-t="tempoStart">Начальный темп</span><strong id="resultStart">80 <small>BPM</small></strong></div><div id="resultEndMetric"><span data-t="tempoEnd">Последний темп</span><strong id="resultEnd">80 <small>BPM</small></strong></div></div></div><p id="resultAnalysisState" class="result-note" data-t="noAnalysis"></p><div id="resultAnalysis"></div><p id="skillResult" class="subtle" hidden></p><p id="nextRecommendation" class="next-recommendation" hidden></p><section id="skillReview" class="skill-review" hidden><p data-t="reviewQuestion"></p><div><button id="reviewYes" class="text-action" data-t="reviewYes"></button><button id="reviewNo" class="text-action" data-t="reviewNo"></button></div></section><div id="resultNext" class="result-next" hidden></div><div class="result-actions"><button class="primary" id="repeatPractice" data-t="repeat">Повторить</button><button class="text-action" id="otherExercise" data-t="other">Выбрать другое упражнение</button><button class="text-action" id="returnPlan" data-t="returnPlan" hidden></button><button class="text-action" id="adjustPractice" data-t="adjust">Изменить настройки</button></div><div id="resultCharts"></div><div class="result-graph" id="resultGraph"></div></main>
 </div>
 
 <div id="overlay" class="popover" hidden>
