@@ -156,3 +156,7 @@ Incremental live timing statistics with late-hit invalidation, bounded recent-no
 ## v1.0.0-rc.14
 
 Feature-level extraction: progress owns its filters and history I/O interface, training and results views receive explicit snapshots, microphone controller owns calibration and connection lifecycle. Locale resources are split. CSS is divided into ordered, balanced layers with byte-for-byte cascade parity; historical overrides are retained pending selector-level cleanup. The RC13 Playwright stop assertion now selects the visible destination and confirms that playback has ended. Detector and scoring unchanged.
+
+## v1.0.0-rc.15
+
+Playback controller owns start, frame loop, stop and final aggregation. Runtime state is explicit; the pure session record builder preserves evidence fields and returns completion/diagnostic decisions without mutating the input. Modal focus and audio/mode settings controllers are separate. Removed obsolete sound handler. Existing practice variables still live in the composition controller; CSS cascade and detector remain unchanged. Added session record and settings dialog regression tests.
