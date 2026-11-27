@@ -107,6 +107,8 @@ export class PulseEngine{
   const audible=!b.silent&&(beat||c.clickSub||c.mode==='accent');if(audible&&this.next<now){this.interruptAt(this.next);return;}
   this.notes.push(n);if(audible)this.click(this.next,c.mode==='accent'?accent:this.step===0,beat);
   this.next+=interval;this.step++;if(this.step>=c.beats*b.sub){this.step=0;this.bar++;}}
+  // In unmeasured practice only a short recent display buffer is needed.
+  if(!this.measured&&this.notes.length>2048)this.notes.splice(0,this.notes.length-512);
   if(this.ctx.currentTime>=this.endTime+.18)this.stop();
  }
  stop(){this.previewRevision++;if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const o of this.voices){try{o.stop();}catch{}}this.voices.clear();}
@@ -118,5 +120,5 @@ export class PulseEngine{
  const upcoming=current&&this.notes[nextIndex]?.bar===current.bar+1?this.notes[nextIndex]:undefined;
  let recentStart=index+1;while(recentStart>0&&index+1-recentStart<80&&this.notes[recentStart-1].time>=now-4)recentStart--;
  const recent=includeDetails?this.notes.slice(recentStart,index+1):[];
- return {active:this.active,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:this.liveStats.read(this.notes,this.extra,this.active?now-.17:now-.001),recent,measured:this.measured,micEvents:this.micEvents,meterRms:this.meterRms,meterPeak:this.meterPeak,stages:includeDetails?[...this.stages]:[]};}
+ return {active:this.active,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:this.liveStats.read(this.measured?this.notes:[],this.extra,this.active?now-.17:now-.001),recent,measured:this.measured,micEvents:this.micEvents,meterRms:this.meterRms,meterPeak:this.meterPeak,stages:includeDetails?[...this.stages]:[]};}
 }

@@ -192,3 +192,7 @@ UX audit corrections: one back arrow, unbroken guided stroke count on narrow scr
 ## v1.0.0-rc.23
 
 Unified plan header and controls, compact narrow-screen setup, responsive SVG chart geometry, measured-result hierarchy, clear calibration targets and observed counts, and explicit pass/fail stage indicators. Existing training and detector algorithms are unchanged. Added responsive regression checks. Physical pad calibration remains a real-device validation task.
+
+## v1.0.0-rc.24
+
+Technical reliability pass: cancelled audio starts/captures cannot resume after an interruption; missed audible clicks interrupt a run instead of generating misleading data; interrupted runs are saved as incomplete/unverified. Hour-long report calculations use ordered ranges, unmeasured playback retains a bounded display buffer, raw samples are released after analysis. History merges stale-tab sessions before writes and reconciles storage events; settings avoid identical writes. Browser smoke coverage includes Chromium, Firefox and WebKit. Free practice has a 24-hour safety ceiling matching the existing history schema. Real hardware measurements and simultaneous-tab transactions remain separate validation topics.

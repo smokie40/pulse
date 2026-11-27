@@ -20,7 +20,7 @@ export function createStudioStorage({getStorage,onStatus=()=>{}}){
  // Merge the latest persisted history before writes so a stale tab does not erase another tab's sessions.
  function latestHistory(){try{const raw=getStorage().getItem(keys.history);if(raw==null)return [];const loaded=loadHistory(JSON.parse(raw));if(loaded.invalid)historyRepair=true;return loaded.history;}catch{historyRepair=true;return [];}}
  function combined(){return mergeHistory(history,latestHistory()).history;}
- function refreshHistory(){const next=combined();const changed=JSON.stringify(next)!==JSON.stringify(history);if(changed)history=next;onStatus(status());return changed;}
+ function refreshHistory(reconcile=false){const disk=latestHistory(),merged=mergeHistory(history,disk),next=merged.history;const changed=JSON.stringify(next)!==JSON.stringify(history);if(changed)history=next;if(reconcile){const missing=mergeHistory(disk,history);if(missing.added||missing.updated)write(keys.history,missing.history);}onStatus(status());return changed;}
  function saveHistory(){const next=combined();if(!write(keys.history,next))return false;history=next;return true;}
  // A new session remains available in memory even when persistent storage is full.
  function appendRecord(record){history.unshift(record);return saveHistory();}

@@ -26,8 +26,12 @@ The stylesheet entry preserves the existing ordered cascade. RC20 removes repeat
 
 ## Regression checks
 
-`npm test` validates domain algorithms and isolated controllers. `npm run build` checks TypeScript and production assets. `npm run test:e2e` runs training, practice, progress, layout and navigation suites against the production build. Legacy URL compatibility is included. CI publishes only after these checks pass. Physical microphone performance and subjective visual parity still require manual evaluation.
+`npm test` validates domain algorithms and isolated controllers. `npm run build` checks TypeScript and production assets. `npm run test:e2e` runs training, practice, progress, layout and navigation suites against the production build. Legacy URL compatibility is included. Chromium runs the full browser suite; Firefox and WebKit run the core compatibility smoke test. CI uses the committed npm lockfile and publishes only after these checks pass. Physical microphone performance and subjective visual parity still require manual evaluation.
 
 ## Data compatibility
 
 The existing localStorage keys and backup schema remain unchanged. The old React page no longer writes to the same storage keys through its own implementation.
+
+## Reliability constraints
+
+Audio operations are cancellable; scheduler gaps or missed audible clicks invalidate the active session. Raw note samples are kept for measured reports and released after results are built. Without microphone analysis, only recent notes are retained. Free practice is bounded at 24 hours to match the history schema. History updates merge current persisted records and reconcile cross-tab events; localStorage is not a transactional multi-tab database. No microphone recordings are persisted.

@@ -37,3 +37,9 @@ test('cancel active playback invalidates evidence, and fresh playback resets int
  const {engine,clock}=fixture();await engine.start({...defaults,countIn:0});clock.currentTime=1;engine.cancelPending();expect(engine.interrupted).toBe(true);expect(engine.active).toBe(false);
  await engine.start({...defaults,countIn:0});expect(engine.interrupted).toBe(false);engine.stop();
 });
+
+test('unmeasured hour-long scheduler retains only a bounded display buffer',async()=>{
+ const {engine,clock,schedule}=fixture();await engine.start({...defaults,countIn:0,minutes:0,bpm:300,sub:8});
+ for(let i=1;i<=3600*40;i++){clock.currentTime=i*.025;schedule();if(!engine.active)throw Error('unexpected interruption');}
+ expect(engine.notes.length).toBeLessThanOrEqual(2048);expect(engine.snapshot().elapsed).toBeGreaterThan(3599);expect(engine.snapshot().current?.global).toBeGreaterThan(143000);engine.stop();
+});

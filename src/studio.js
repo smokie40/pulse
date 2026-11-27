@@ -75,5 +75,5 @@ $('start').onclick=start;$('stop').onclick=stop;
 document.addEventListener('keydown',e=>{if(e.code==='Space' && !e.repeat && $('overlay').hidden && !['INPUT','BUTTON','SELECT','TEXTAREA','A'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault(); runtime.active?stop():navigation.page==='setup'&&start()}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){engine.cancelPending();stop();}});
 window.addEventListener('resize',()=>{if(!runtime.active) render()});
-window.addEventListener('storage',e=>{if(e.key==='pulse-history'&&storage.refreshHistory()&&!runtime.active&&!runtime.starting&&!microphone.busy){if(navigation.page==='training'||navigation.page==='progress')views[navigation.page]?.();}});
+window.addEventListener('storage',e=>{if(e.key==='pulse-history'&&e.newValue!==null&&storage.refreshHistory(true)&&!runtime.active&&!runtime.starting&&!microphone.busy){if(navigation.page==='training'||navigation.page==='progress')views[navigation.page]?.();}});
 showPage('training');

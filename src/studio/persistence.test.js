@@ -47,3 +47,10 @@ test('unchanged preferences do not trigger another synchronous write',()=>{
  const storage=createStudioStorage({getStorage:()=>({getItem:k=>data.get(k),setItem:(k,v)=>{writes++;data.set(k,v);}})});
  storage.saveSettings({bpm:120});storage.saveSettings({bpm:120});storage.saveSettings({bpm:125});expect(writes).toBe(2);
 });
+
+test('storage-event reconciliation repairs a lost concurrent write without repeating unchanged writes',()=>{
+ const {storage,data}=fixture();storage.appendRecord(record);
+ const remote={...record,date:'2026-11-27T11:00:00.000Z',bpm:115};data.set('pulse-history',JSON.stringify([remote]));
+ expect(storage.refreshHistory(true)).toBe(true);expect(JSON.parse(data.get('pulse-history'))).toHaveLength(2);
+ expect(storage.refreshHistory(true)).toBe(false);
+});

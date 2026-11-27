@@ -1,0 +1,23 @@
+name: RC24 technical audit
+on:
+  push:
+    branches: [rc24-audit]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Resolve reproducible npm lockfile
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          node -e 'const s=JSON.stringify(require("./package-lock.json"));for(let i=0;i<s.length;i+=1000)console.log("PULSE_LOCK_CHUNK:"+String(i/1000).padStart(4,"0")+":"+s.slice(i,i+1000));console.log("PULSE_LOCK_LENGTH:"+s.length)'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:e2e
