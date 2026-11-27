@@ -131,6 +131,8 @@
 @media(max-width:760px){.home-skill .glyph{height:66px}.home-arrow{top:94px}.exercise-tile .glyph{height:53px}.exercise-tile{min-height:80px}#playing .live-tempo-row{grid-template-columns:38px minmax(0,1fr) 38px}.performance .stop{min-width:0;min-height:44px}.performance .score svg.staff{max-height:none!important}.live-note-value{font-size:12px}.performance .time-left strong{font-size:30px}}
 @media(max-width:460px){.home-skill .glyph{height:53px}.home-skill{padding:8px 2px 12px;gap:5px}.exercise-tile .glyph{height:43px}.setup-controls{gap:5px}.setup-controls button{padding:5px;font-size:11px}.guided-setup .tempo{margin:10px auto}.guided-setup .score-head{grid-template-columns:32px minmax(0,1fr) 40px}.performance .stop{font-size:12px}.result-next .glyph{width:35%;height:47px}}
 
+/* RC7: apply desktop optical changes only at desktop widths. Keep RC6's verified compact layout on smaller viewports. */
+@media(min-width:801px){
 /* RC7 — shared optical scale, layout rhythm and restrained focus. */
 :root{--work-width:1080px;--space-grid:30px}
 #training,#library,#progress,#setup,#results,#playing{width:100%;max-width:var(--work-width);margin-inline:auto}
@@ -197,8 +199,19 @@
 #results .measured-chart p,.hit-labels{font-size:13px}
 #results .result-next strong{font-size:20px}
 @media(max-width:1050px){.top .main-nav{gap:20px}.top .main-nav button{font-size:14px}.tools{gap:4px}.top .icon-btn{width:38px;height:38px}.top .icon-btn svg{width:21px;height:21px}.home-skill strong,.exercise-tile strong{font-size:17px}.home-skill .glyph{height:84px}.home-arrow{top:104px}.exercise-tile .glyph{height:70px}.exercise-tile{gap:13px}.exercise-tile[data-mode=adaptive]{gap:13px}}
-@media(max-width:760px){:root{--space-grid:18px}#training,#library,#progress,#setup,#results{padding-top:26px}.top .main-nav{gap:16px}.top .main-nav button{font-size:13px;padding:8px 2px;min-height:36px}.top .main-nav button[aria-current=page]:after{bottom:2px}.top .icon-btn{width:34px;height:36px}.top .icon-btn svg{width:20px;height:20px}.tools{gap:3px}.home-copy{grid-template-columns:minmax(0,1fr) minmax(145px,220px);gap:6px 16px}.home-skill-grid{row-gap:14px}.home-skill .glyph{height:72px;max-width:225px}.home-arrow{top:92px}.home-skill strong,.exercise-tile strong{font-size:16px}.home-goal-heading h2{font-size:21px}.exercise-library{gap:5px}.exercise-tile,.exercise-tile[data-mode=adaptive]{min-height:83px;grid-column:auto;grid-template-columns:130px minmax(0,1fr) 16px;gap:14px;padding:10px 0}.exercise-tile .glyph{height:56px}.analytics-filters{gap:12px}.analytics-section h2{font-size:21px}.route-card .glyph{height:65px}.route-card h2{font-size:16px}}
-@media(max-width:460px){:root{--space-grid:14px}.top .main-nav{gap:8px}.top .main-nav button{font-size:12px;padding-inline:0}.top .icon-btn{width:30px;height:34px}.tools{gap:2px}.home-copy{display:flex;flex-direction:column;gap:6px}.home-mic-line{font-size:12px;gap:7px}.home-mic-line button{font-size:12px}.home-recommend{padding:14px 0}.home-goals{margin-top:22px}.home-goal-heading h2{font-size:19px}.home-skill-grid{gap:12px var(--space-grid)}.home-skill{gap:6px;padding:5px 0 10px}.home-skill .glyph{height:59px}.home-skill strong{font-size:15px;padding-right:0}.home-skill small{font-size:12px}.home-skill-copy{min-height:47px}.exercise-tile,.exercise-tile[data-mode=adaptive]{grid-template-columns:100px minmax(0,1fr) 12px;gap:10px;min-height:78px}.exercise-tile .glyph{height:45px}.exercise-tile strong{font-size:15px}.exercise-tile p{font-size:12px}.home-diagnostic h2{font-size:16px}.home-diagnostic button{font-size:13px}.analytics-filters label,.analytics-section p,.history-row p{font-size:12px}.analytics-filters select{font-size:12px}.route-card .glyph{height:45px}.route-card h2{font-size:15px}.route-card p,.route-pattern{font-size:12px}}
+
+}
+@media(max-width:800px){
+ .top .main-nav button{position:relative}
+ .top .main-nav button:focus:not(:focus-visible){outline:none}
+ .top .main-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+ .top .main-nav button[aria-current=page]:after{content:"";position:absolute;left:0;right:0;bottom:1px;height:1px;background:var(--accent)}
+ .top .main-nav{min-width:0;gap:clamp(8px,2vw,16px)}
+ .top .main-nav button{min-width:0}
+ .home-skill .glyph{min-width:0;max-width:100%}
+ .home-copy,.home-main-action,.home-skill-copy,.exercise-copy{min-width:0}
+ .home-skill strong,.exercise-tile strong{overflow-wrap:anywhere}
+}
 </style>
 </head>
 <body>
