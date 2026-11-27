@@ -1,12 +1,13 @@
+import {noteStyle} from './notation';
 // Musical illustrations and notation. Pure SVG output; no DOM or application state.
 function glyph(id){let art='';const orange='#ff7840',grey='#72757a';if(id==='ladder'||id==='adaptive'){const pts=id==='ladder'?'M12 53 H48 V43 H84 V32 H120 V21 H156 V10 H188':'M12 51 H48 V33 H84 V43 H120 V23 H156 V12 H188';art='<path d="'+pts+'" fill="none" stroke="'+orange+'" stroke-width="2.5" stroke-linejoin="round"/>';}
 else {const groups=id==='morph'?[2,3,4,6]:id==='burst'?[2,2,4,4]:[4,4,4,4];let index=0;for(let b=0;b<4;b++){const n=groups[b];for(let j=0;j<n;j++){const x=12+b*46+(j+.5)*38/n;const mute=id==='ghost'&&b>=2;const a=id==='accent'?j===b:j===0;const h=a?35:21;art+='<rect x="'+x+'" y="'+(33-h/2)+'" width="3.5" height="'+h+'" rx="1.7" fill="'+(mute?'#383b3f':a?orange:grey)+'"/>';index++;}if(b<3)art+='<path d="M'+(57+b*46)+' 12V54" stroke="#34363a" stroke-dasharray="2 4"/>';}}
 return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true">'+art+'</svg>'}
 export function notesIcon(n){
-  const spacing=Math.min(18,60/n), xs=Array.from({length:n},(_,i)=>40+(i-(n-1)/2)*spacing), beams=n===1?0:n<=3?1:n<=6?2:3;
+  const spacing=Math.min(18,60/n), xs=Array.from({length:n},(_,i)=>40+(i-(n-1)/2)*spacing), {beams,tuplet}=noteStyle(n);
   let a=xs.map(x=>`<ellipse cx="${x}" cy="30" rx="4.3" ry="3" transform="rotate(-20 ${x} 30)" fill="currentColor"/><path d="M${x+3.5} 29V11" stroke="currentColor" stroke-width="1.5"/>`).join('');
   if(beams)a+=Array.from({length:beams},(_,i)=>`<path d="M${xs[0]+3.5} ${11+i*5}H${xs[n-1]+3.5}" stroke="currentColor" stroke-width="2.8"/>`).join('');
-  if([3,5,6].includes(n))a+=`<text x="40" y="7" font-size="9" fill="currentColor" text-anchor="middle">${n}</text>`;
+  if(tuplet!==null)a+=`<text x="40" y="7" font-size="9" fill="currentColor" text-anchor="middle">${n}</text>`;
   return `<svg viewBox="0 0 80 40" aria-hidden="true">${a}</svg>`;
 }
 
@@ -15,7 +16,7 @@ export function renderNotation({beats,sticking,mode,width:viewportWidth},n,now=-
   const width=viewportWidth<=800?440:Math.max(880,beats*n*22);
   const height=Math.ceil(beats/perRow)*127;
   const cell=(width-12)/perRow;
-  const top=36, sy=72, beams=n===1?0:n<=3?1:n<=6?2:3;
+  const top=36, sy=72, {beams,tuplet}=noteStyle(n);
   let out='';
   for(let b=0;b<beats;b++){
     const left=6+(b%perRow)*cell;
@@ -33,7 +34,7 @@ export function renderNotation({beats,sticking,mode,width:viewportWidth},n,now=-
       if(live)out+='</g>';
     }
     for(let i=0;i<beams;i++)out+=`<path d="M${xs[0]+5.5} ${top+i*6}H${xs[n-1]+5.5}" stroke="#eeedea" stroke-width="3.6"/>`;
-    if([3,5,6].includes(n))out+=`<text x="${(xs[0]+xs[n-1])/2}" y="30" fill="#b0b0b0" font-size="11" text-anchor="middle">${n}</text>`;
+    if(tuplet!==null)out+=`<text x="${(xs[0]+xs[n-1])/2}" y="30" fill="#b0b0b0" font-size="11" text-anchor="middle">${n}</text>`;
     out+='</g>';
   }
   return `<svg class="staff" viewBox="0 0 ${width} ${height}" role="img">${out}</svg>`;

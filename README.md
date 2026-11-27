@@ -1,6 +1,6 @@
 # PULSE
 
-Browser-based practice-pad training studio for drummers. React, TypeScript, Vite and Web Audio API.
+Browser-based practice-pad training studio for drummers. JavaScript, TypeScript, Vite and Web Audio API. See [architecture](ARCHITECTURE.md).
 
 ## Run locally
 
@@ -176,3 +176,7 @@ Screen transitions and microphone-guide return context have one navigation owner
 ## v1.0.0-rc.19
 
 Studio persistence owns existing storage keys, history loading, session append, backup import/export and storage failure status. Failed session saves retain in-memory records; failed imports leave history unchanged. The progress view delegates persistence through explicit operations. Existing key names, backup schema, repair and deduplication rules retained. Added persistence regression tests.
+
+## v1.0.0-rc.20
+
+Completed studio composition refactor: training focus, training events, setup and session results have independent modules. Removed redundant identical CSS declarations without reordering the remaining cascade. Retired the parallel React UI and dependencies; legacy.html redirects to the maintained studio, using the existing data keys. Musical note-style logic remains tested and shared with the active renderer. Split all 34 existing browser tests into feature suites, added legacy URL and training-focus regressions. No intentional change to visual design, audio engine, detector, scoring or training algorithms.

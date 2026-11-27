@@ -1,0 +1,1 @@
+export const plan={skill:'speed',index:0,items:[{mode:'steady',name:'warmup',minutes:1,bpm:60,sub:4,rudiment:'RL',reason:'warmupCue'},{mode:'ladder',name:'ladderWork',minutes:1,bpm:68,sub:4,rudiment:'RL',reason:'ladderCue',ladderStep:5,ladderMax:88},{mode:'steady',name:'control',minutes:1,bpm:72,sub:4,rudiment:'RL',reason:'controlCue'}]};
