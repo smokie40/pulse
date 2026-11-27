@@ -1,4 +1,5 @@
 import type {Capture,Frame,Step} from './calibration';
+import type {PadProfile} from './pad-profile';
 import {frequencies,makeClick,type ClickKind,type ClickSound} from './click-wave';
 import {assess,type Stage} from './coach';
 import {barSpec,matchHit,type Config,type Note} from './training';
@@ -18,7 +19,7 @@ export class PulseEngine{
   if(this.mic)return;const revision=++this.micRevision;await this.init();if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
   const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
-  try{if(revision!==this.micRevision)throw new Error('Microphone request cancelled');await this.ctx!.audioWorklet.addModule(new URL('hit-detector.js?v=7',document.baseURI).href);
+  try{if(revision!==this.micRevision)throw new Error('Microphone request cancelled');await this.ctx!.audioWorklet.addModule(new URL('hit-detector.js?v=8',document.baseURI).href);
   if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   this.source=this.ctx!.createMediaStreamSource(stream);this.detector=new AudioWorkletNode(this.ctx!,'pulse-detector');this.sink=this.ctx!.createGain();this.sink.gain.value=0;
   this.detector.port.postMessage({sensitivity,frequencies:[...frequencies(this.sound)]});this.source.connect(this.detector);this.detector.connect(this.sink);this.sink.connect(this.ctx!.destination);
@@ -26,6 +27,7 @@ export class PulseEngine{
   this.stream=stream;this.mic=true;}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
  }
  disableMic(){this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
+ setPadProfile(profile:PadProfile|null){this.detector?.port.postMessage({padProfile:profile});}
  setSensitivity(v:number){this.detector?.port.postMessage({sensitivity:v});}
  configureSound(c:Config){
   if(this.sound!==c.sound){this.sound=c.sound;this.clickBuffers.clear();this.detector?.port.postMessage({frequencies:[...frequencies(this.sound)]});}

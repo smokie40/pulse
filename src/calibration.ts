@@ -1,6 +1,6 @@
-export type Frame=[number,number,number,number,number]; // time, filtered energy, raw energy, noise estimate, ratio
+export type Frame=[number,number,number,number,number,number[]?]; // time, filtered energy, raw energy, noise estimate, ratio
 export type Step='noise'|'leak'|'normal'|'quiet'|'fast'|'mixed';
-export type Capture={step:Step;frames:Frame[];expected:number;liveCount?:number};
+export type Capture={step:Step;frames:Frame[];expected:number;liveCount?:number;profileCount?:number};
 export const steps:{id:Step;seconds:number;expected:number}[]=[
  {id:'noise',seconds:3,expected:0},{id:'leak',seconds:5,expected:0},{id:'normal',seconds:10,expected:10},{id:'quiet',seconds:10,expected:10},{id:'fast',seconds:7,expected:20},{id:'mixed',seconds:8,expected:10}
 ];
