@@ -6,7 +6,9 @@ import {measuredWindows} from '../progression';
 import {periods} from '../report';
 
 export function createPlayback({$,t,engine,runtime,getContext,config,setBpm,setActualBpm,showPage,loadPlanStep,openGuide,setGuideReturnProgress,saveSession,render,subdivisions}){
-let raf=0;
+let raf=0,pauseBusy=false,pauseError=false;
+ function updatePause(){const paused=engine.paused;$('pause').disabled=pauseBusy;$('pause').setAttribute('aria-pressed',String(paused));$('pauseLabel').textContent=t(paused?'resumePlay':'pausePlay');$('pauseIcon').textContent=paused?'▶':'Ⅱ';$('playing').classList.toggle('is-paused',paused);$('pauseStatus').hidden=!paused&&!pauseError;$('pauseStatus').textContent=t(pauseError?'pauseError':paused?'pausedPlay':'');}
+ async function togglePause(){if(!runtime.active||pauseBusy)return;const session=runtime.session;pauseBusy=true;pauseError=false;const pending=engine.togglePause();updatePause();try{const ok=await pending;if(runtime.active&&runtime.session===session)pauseError=!ok;}finally{pauseBusy=false;if(runtime.active)updatePause();}}
 async function start(){
  const before=getContext();if(runtime.active||runtime.starting||before.micBusy||before.micConnecting||before.page!=='setup'||document.hidden)return;
  runtime.starting=true;for(const id of ['trainingBtn','progressBtn','libraryBtn','labBtn','soundBtn','settingsBtn'])$(id).disabled=true;setBpm($('bpm').value);$('start').disabled=true;$('practiceError').textContent='';
@@ -20,18 +22,18 @@ async function start(){
   await engine.start(cfg);
   if(document.hidden){engine.stop();return;}
   runtime.active=true;runtime.requestedBpm=null;const {bpm,beats,minutes,mode,rudiment}=cfg;const session=runtime.session={initial:bpm,last:bpm,elapsed:0,points:[{time:0,bpm}],cfg,stats:null,verified:runtime.runVerified,planRef:planRun,planIndex:planRun?.index};
-  showPage('playing');$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;
+  showPage('playing');pauseError=false;updatePause();$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;
   $('beatLights').innerHTML=Array.from({length:beats},(_,i)=>'<i>'+(i+1)+'</i>').join('');
   $('timerLabel').dataset.t=minutes?'remaining':'elapsed';$('timerLabel').textContent=t(minutes?'remaining':'elapsed');$('liveProgress').hidden=!minutes;
   const liveNotation=createLiveNotation($('liveStaff'));let lastVisual=-1,lastCompact=null;
   function frame(){
    if(!runtime.active)return;const snap=engine.snapshot(),cur=snap.current;
    if(!snap.active){stop();return;}
-   const counting=snap.counting,silent=!!cur?.silent;$('playing').classList.toggle('is-counting',counting);$('playing').classList.toggle('is-silent',silent);$('countInLabel').hidden=!counting;$('liveNoteValue').hidden=counting||silent;$('liveNoteValue').textContent=cur?t('notes')[subdivisions.indexOf(cur.sub)]:'';
-   $('countdown').hidden=!counting;$('liveScore').hidden=counting||silent;$('silentStage').hidden=!silent;
+   const counting=snap.counting,silent=!!cur?.silent;updatePause();$('playing').classList.toggle('is-counting',counting);$('playing').classList.toggle('is-silent',silent);$('countInLabel').hidden=!counting;$('liveNoteValue').hidden=counting||silent;$('liveNoteValue').textContent=cur?t('notes')[subdivisions.indexOf(cur.sub)]:'';
+   $('countdown').hidden=!counting;$('liveScore').hidden=counting||silent;$('silentStage').hidden=!silent||snap.paused;
    $('beatLights').style.visibility=silent?'hidden':'visible';document.querySelector('.time-left').style.visibility=silent?'hidden':'visible';$('progressBar').parentElement.style.visibility=silent?'hidden':'visible';
    const locked=!!session.planRef||counting||silent||mode==='adaptive'||mode==='ladder';
-   for(const id of ['liveMinus','livePlus','liveTempoRange'])$(id).disabled=locked;
+   for(const id of ['liveMinus','livePlus','liveTempoRange'])$(id).disabled=locked||snap.paused;
    $('liveTempoHint').textContent=t(mode==='adaptive'||mode==='ladder'?'autoTempo':session.planRef?'guidedTempo':'');$('playing').classList.toggle('tempo-locked',locked);$('liveStageTitle').textContent=session.planRef?(session.planRef.probe?t('probeTitle'):t('stageLabel')+' '+(session.planIndex+1)+' / '+session.planRef.items.length+' · '+t(session.planRef.items[session.planIndex].name)):t('practice');$('liveMicStatus').textContent=t(snap.measured?(runtime.runVerified?'analysisReady':'analysisUnchecked'):'analysisOff');
    const actual=cur?.bpm??session.initial;
    if(runtime.requestedBpm===actual)runtime.requestedBpm=null;
@@ -48,6 +50,6 @@ async function start(){
  }catch(e){engine.stop();runtime.active=false;showPage('setup');$('practiceError').textContent=t('startError')+' '+String(e);}
  finally{runtime.starting=false;$('start').disabled=false;if(!runtime.active){const {micBusy,micConnecting}=getContext();for(const id of ['trainingBtn','progressBtn','libraryBtn','labBtn'])$(id).disabled=micBusy||micConnecting;render();}}
 }
-function stop(){if(!runtime.active)return;engine.stop();runtime.active=false;cancelAnimationFrame(raf);const session=runtime.session;const snap=engine.snapshot();$('soundBtn').disabled=false;$('settingsBtn').disabled=false;session.elapsed=snap.elapsed;session.last=snap.current?.bpm??session.last;if(session.last!==session.points.at(-1).bpm)session.points.push({time:session.elapsed,bpm:session.last});session.stats=snap.measured?snap.stats:null;session.timingDistribution=snap.measured?timingDistribution(engine.notes,engine.stoppedAt-.001):null;session.stages=snap.stages;session.verified=runtime.runVerified&&engine.mic;session.segments=snap.measured?periods(engine.notes,engine.extraTimes,engine.startTime,engine.stoppedAt):[];session.tempoWindows=snap.measured&&(session.cfg.mode==='adaptive'||session.cfg.mode==='ladder')?measuredWindows(engine.notes,engine.extraTimes,engine.stoppedAt,session.cfg.beats):[];if(session.elapsed>=1)saveSession();runtime.requestedBpm=null;if(session.elapsed<1&&getContext().planRun){loadPlanStep(false);return;}showPage(session.elapsed>=1?'results':'setup');}
-return {start,stop};
+function stop(){if(!runtime.active)return;engine.stop();runtime.active=false;cancelAnimationFrame(raf);const session=runtime.session;const snap=engine.snapshot();$('soundBtn').disabled=false;$('settingsBtn').disabled=false;session.elapsed=snap.elapsed;session.last=snap.current?.bpm??session.last;if(session.last!==session.points.at(-1).bpm)session.points.push({time:session.elapsed,bpm:session.last});session.stats=snap.measured?snap.stats:null;session.timingDistribution=snap.measured?timingDistribution(engine.notes,engine.stoppedAt-.001):null;session.stages=snap.stages;session.paused=engine.hadPause;session.verified=runtime.runVerified&&engine.mic;session.segments=snap.measured?periods(engine.notes,engine.extraTimes,engine.startTime,engine.stoppedAt):[];session.tempoWindows=snap.measured&&(session.cfg.mode==='adaptive'||session.cfg.mode==='ladder')?measuredWindows(engine.notes,engine.extraTimes,engine.stoppedAt,session.cfg.beats):[];if(session.elapsed>=1)saveSession();runtime.requestedBpm=null;if(session.elapsed<1&&getContext().planRun){loadPlanStep(false);return;}showPage(session.elapsed>=1?'results':'setup');}
+return {start,stop,togglePause};
 }

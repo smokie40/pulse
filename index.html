@@ -61,10 +61,10 @@
   <main id="playing" class="performance" hidden>
     <div class="play-head">
       <div><div id="liveStageTitle" class="live-context"></div><p id="liveMicStatus" class="live-context"></p><h1 data-t="title">Равномерные удары</h1></div>
-      <button class="stop" id="stop">■ <span data-t="stop">Остановить</span></button>
+      <div class="play-actions"><button class="pause-control" id="pause" aria-pressed="false"><span id="pauseIcon" aria-hidden="true">Ⅱ</span> <span id="pauseLabel" data-t="pausePlay">Пауза</span></button><button class="stop" id="stop">■ <span data-t="stop">Остановить</span></button></div>
     </div>
 
-    <div class="play-stage">
+    <div class="play-stage"><p id="pauseStatus" class="pause-status" role="status" hidden></p>
       <div class="live-tempo-panel">
         
         <div class="live-tempo-row">

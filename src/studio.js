@@ -70,9 +70,9 @@ $('exerciseLibrary').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b||
 $('repeatPractice').onclick=()=>{if(!runtime.session)return;if(plans.active&&runtime.session.planRef===plans.active&&!runtime.session.completed){loadPlanStep(false);return;}plans.leave();practice.apply(runtime.session.cfg);showPage('setup');};$('otherExercise').onclick=()=>showPage('library');$('adjustPractice').onclick=()=>{plans.leave();if(runtime.session)practice.apply(runtime.session.cfg);showPage('setup')};
 $('trainingBtn').onclick=()=>showPage('training');$('progressBtn').onclick=()=>showPage('progress');$('labBtn').onclick=navigation.showLab;$('progressPractice').onclick=()=>showPage('library');
 $('stageBack').onclick=()=>navigation.backFromPractice();
-$('start').onclick=start;$('stop').onclick=stop;
+$('start').onclick=start;$('stop').onclick=stop;$('pause').onclick=playback.togglePause;
 ['ru','en'].forEach(l=>$(l).onclick=()=>{lang=l;render();});
-document.addEventListener('keydown',e=>{if(e.code==='Space' && !e.repeat && $('overlay').hidden && !['INPUT','BUTTON','SELECT','TEXTAREA','A'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault(); runtime.active?stop():navigation.page==='setup'&&start()}});
+document.addEventListener('keydown',e=>{if(e.code==='Space' && !e.repeat && $('overlay').hidden && !['INPUT','BUTTON','SELECT','TEXTAREA','A'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault(); runtime.active?playback.togglePause():navigation.page==='setup'&&start()}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
 window.addEventListener('resize',()=>{if(!runtime.active) render()});
 showPage('training');

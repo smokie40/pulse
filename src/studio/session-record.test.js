@@ -12,3 +12,5 @@ test('a guided control with incorrect count-in cannot be certified as planned',(
  const out=buildSessionRecord({...base,cfg:{...cfg,countIn:0},planRef,planIndex:0,verified:true});
  expect(out.record.controlTest).toBe(false);
 });
+
+test('a paused control is preserved but cannot certify uninterrupted playing',()=>{const planRef={skill:'timing',items:[{...cfg,name:'control'}]};const out=buildSessionRecord({...base,planRef,planIndex:0,paused:true,verified:true});expect(out.completed).toBe(false);expect(out.record).toMatchObject({paused:true,completed:false,recognitionVerified:false,seconds:60});expect(buildSessionRecord({...base,paused:true,verified:true}).record).toMatchObject({paused:true,completed:true,recognitionVerified:false});});

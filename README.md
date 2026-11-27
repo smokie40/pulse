@@ -192,3 +192,7 @@ UX audit corrections: one back arrow, unbroken guided stroke count on narrow scr
 ## v1.0.0-rc.23
 
 Unified plan header and controls, compact narrow-screen setup, responsive SVG chart geometry, measured-result hierarchy, clear calibration targets and observed counts, and explicit pass/fail stage indicators. Existing training and detector algorithms are unchanged. Added responsive regression checks. Physical pad calibration remains a real-device validation task.
+
+## v1.0.0-rc.23.1
+
+Stable-interface patch: pause/resume on the performance screen and Space shortcut. AudioContext suspension freezes the exercise clock and scheduler. Paused practice remains in history but does not certify uninterrupted control, skill or diagnostic performance. Stop remains available while paused. RC24 technical work stays on its audit branch.

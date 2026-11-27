@@ -202,3 +202,12 @@
 #dailyPlan .focus-hero #levelInfo,#dailyPlan .focus-hero #recommendationReason,#dailyPlan .focus-hero #autoFocus{text-align:left;margin-inline:0}
 #dailyPlan .focus-hero #autoFocus{display:inline-block;margin-top:2px}
 #lab .cal-track .cal-stage-result{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;margin-top:3px}
+
+/* Playback controls: pause is reversible; stop remains independently available. */
+#playing .play-actions{display:flex;align-items:center;gap:8px;flex:none}
+#playing .pause-control{border:1px solid var(--line);border-radius:6px;padding:10px 16px;min-height:48px;color:var(--ink);font-size:15px;white-space:nowrap;font-weight:650}
+#playing .pause-control:hover{border-color:var(--muted)}
+#playing.is-paused .pause-control{background:var(--accent);border-color:var(--accent);color:#171411}
+#playing .pause-status{color:var(--accent);font-size:14px;line-height:1.4;text-align:center;margin:0 0 12px}
+#playing.is-paused .beat-lights i.on{opacity:.45}
+@media(max-width:600px){#playing .play-head{flex-wrap:wrap;gap:8px}#playing .play-actions{width:100%;justify-content:flex-end}#playing .pause-control{min-height:44px;padding:8px 12px;font-size:13px}#playing .play-actions .stop{min-height:44px}}

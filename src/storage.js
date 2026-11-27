@@ -14,7 +14,7 @@ function stats(x){
 export function cleanRecord(x){
  if(!object(x)||!date(x.date)||!modes.includes(x.mode)||!finite(x.bpm,30,300)||!finite(x.seconds,0,86400))throw Error('invalidRecord');
  const r={date:x.date,mode:x.mode,bpm:x.bpm,seconds:x.seconds,stats:x.stats==null?null:stats(x.stats)};
- for(const k of ['recognitionVerified','manualTempoChanged','tempoProbe','diagnosticResult','completed','controlTest','clickSub','skillSelfCheck'])if(typeof x[k]==='boolean')r[k]=x[k];
+ for(const k of ['recognitionVerified','paused','manualTempoChanged','tempoProbe','diagnosticResult','completed','controlTest','clickSub','skillSelfCheck'])if(typeof x[k]==='boolean')r[k]=x[k];
  if(day(x.practiceDay))r.practiceDay=x.practiceDay;
  for(const k of ['rudiment','skillBaseRudiment'])if(patterns.includes(x[k]))r[k]=x[k];
  for(const k of ['sub','skillBaseSub'])if(subs.includes(x[k]))r[k]=x[k];
@@ -37,6 +37,7 @@ export function cleanRecord(x){
   if(Array.isArray(x.skillEvidence.bySub)){if(x.skillEvidence.bySub.length>8)throw Error('invalidEvidence');e.bySub=x.skillEvidence.bySub.map(stats);}
   if(e.overall)r.skillEvidence=e;
  }
+ if(r.paused){r.recognitionVerified=false;if(r.diagnosticResult!==undefined)r.diagnosticResult=false;if(r.controlTest||r.skillId||r.tempoProbe)r.completed=false;}
  // A legacy record can be retained as practice without being treated as verified control evidence.
  if(r.skillOutcome&&(!r.skillId||!r.skillLevel||!r.skillBaseRudiment||!r.skillBaseSub||!r.skillEvidence||!r.completed||!r.recognitionVerified||r.manualTempoChanged))delete r.skillOutcome;
  return r;
