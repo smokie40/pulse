@@ -118,7 +118,7 @@ export class PulseEngine{
  const counting=this.active&&now<this.startTime;const countBeat=counting&&this.cfg?Math.max(0,Math.floor((now-this.countStart)*this.cfg.bpm/60))+1:0;
  let nextIndex=index+1;while(current&&nextIndex<this.notes.length&&this.notes[nextIndex].bar===current.bar)nextIndex++;
  const upcoming=current&&this.notes[nextIndex]?.bar===current.bar+1?this.notes[nextIndex]:undefined;
- let recentStart=index+1;while(recentStart>0&&index+1-recentStart<80&&this.notes[recentStart-1].time>=now-4)recentStart--;
+ let recentStart=index+1;while(includeDetails&&recentStart>0&&index+1-recentStart<80&&this.notes[recentStart-1].time>=now-4)recentStart--;
  const recent=includeDetails?this.notes.slice(recentStart,index+1):[];
  return {active:this.active,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:this.liveStats.read(this.measured?this.notes:[],this.extra,this.active?now-.17:now-.001),recent,measured:this.measured,micEvents:this.micEvents,meterRms:this.meterRms,meterPeak:this.meterPeak,stages:includeDetails?[...this.stages]:[]};}
 }

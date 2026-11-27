@@ -21,6 +21,12 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Disable unrelated Microsoft apt feed on the ephemeral Linux runner
+        run: |
+          for file in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            [ -f "$file" ] || continue
+            if grep -q 'packages.microsoft.com' "$file"; then sudo mv "$file" "$file.disabled"; fi
+          done
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3
