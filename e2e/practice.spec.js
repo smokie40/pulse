@@ -52,3 +52,11 @@ test('free practice supports live tempo buttons and range without resetting the 
  await expect.poll(async()=>{const [m,s]= (await page.locator('#remaining').textContent()).split(':').map(Number);return m*60+s;}).toBeGreaterThanOrEqual(3);await page.locator('#stop').click();await expect(page.locator('#results')).toBeVisible();
  const rec=await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-history'))[0]);expect(rec.bpm).toBe(140);expect(rec.last).toBe(160);expect(rec.manualTempoChanged).toBe(true);expect(rec.seconds).toBeGreaterThanOrEqual(3);
 });
+
+
+test('six recorded clicks can be auditioned and selection survives reload',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./');await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();
+ for(const sound of ['woodblock','studioStick','rimshot','claves','softBlock','electronic']){await page.locator('[data-sound="'+sound+'"]').click();await expect(page.locator('[data-sound="'+sound+'"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#soundPreviewError')).toHaveText('');}
+ await page.keyboard.press('Escape');expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-settings')).sound)).toBe('electronic');
+ await page.reload();await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();await expect(page.locator('[data-sound="electronic"]')).toHaveClass(/selected/);expect(errors).toEqual([]);
+});

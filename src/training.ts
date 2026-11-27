@@ -2,7 +2,7 @@ import type {ClickSound} from './click-wave';
 export type Mode = 'steady'|'ghost'|'burst'|'morph'|'ladder'|'accent'|'adaptive';
 export type VisualMode='grid'|'notation'|'pulse'|'timer';
 export type Config = {bpm:number;beats:number;sub:number;minutes:number;countIn:number;visual:VisualMode;showNext:boolean;mode:Mode;rudiment:string;volume:number;sound:ClickSound;accentVolume:number;beatVolume:number;subVolume:number;clickSub:boolean;audibleBars:number;silentBars:number;ladderStep:number;ladderMax:number;offset:number;sensitivity:number;morphSequence?:number[]};
-export const defaults:Config={bpm:120,beats:4,sub:4,minutes:5,countIn:1,visual:'grid',showNext:true,mode:'steady',rudiment:'RL',volume:55,sound:'soft',accentVolume:100,beatVolume:100,subVolume:100,clickSub:false,audibleBars:2,silentBars:2,ladderStep:5,ladderMax:180,offset:0,sensitivity:50};
+export const defaults:Config={bpm:120,beats:4,sub:4,minutes:5,countIn:1,visual:'grid',showNext:true,mode:'steady',rudiment:'RL',volume:55,sound:'woodblock',accentVolume:100,beatVolume:100,subVolume:100,clickSub:false,audibleBars:2,silentBars:2,ladderStep:5,ladderMax:180,offset:0,sensitivity:50};
 export const modes:{id:Mode;name:string;desc:string}[]=[
 {id:'steady',name:'Precision',desc:'Ровные удары под стабильный пульс.'},
 {id:'ghost',name:'Ghost click',desc:'Чередуй звучащие и беззвучные такты. Не сбивайся в тишине.'},

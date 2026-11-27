@@ -200,3 +200,7 @@ Stable-interface patch: pause/resume on the performance screen and Space shortcu
 ## v1.0.0-rc.23.2
 
 Performance-only controls: bottom transport, restart (discards current unsaved attempt), volume, fullscreen, screen wake lock, keyboard shortcuts and cancellable visual three-second resume countdown. Hit feedback distinguishes detection from matching quality. Volume is locked during adaptive and diagnostic playback; other live changes invalidate recognition verification. Device aids depend on browser support. RC24 remains separate.
+
+## v1.0.0-rc.25
+
+Six ready-to-play CC0 recorded/produced WAV one-shots replace the previous default synthesized click choices. Trimmed and normalized locally; three levels use the same waveform, preserving the beat hierarchy. Sources and exact upstream blob IDs are in `public/clicks/SOURCES.md`. The old reference tone remains available for microphone compatibility. Sound changes reset calibration; sample-specific spectral peaks are sent to the existing detector, not a time gate. Woodblock, claves and electronic pass controlled modelled leakage tests; studio stick, rimshot and soft wood can trigger the detector in that model and require headphones/physical calibration before verified use. No claim of real-room rejection or subjective listening quality. RC24 technical work is still separate.

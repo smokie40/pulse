@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {test,expect} from 'vitest';
-import {frequencies,makeClick} from './click-wave';
+import {frequencies,makeClick,sampleSounds} from './click-wave';
 const source=readFileSync(new URL('../public/hit-detector.js',import.meta.url),'utf8');
 function simulate({clicks=true,hits=false,rate=48000,echo=.2,sound='soft',ring=false,times=[.2,.65,1.1,1.55]}={}){
  const events=[],context={sampleRate:rate,currentFrame:0,AudioWorkletProcessor:class{constructor(){this.port={postMessage:e=>e.kind==='hit'&&events.push(e),onmessage:null};}},registerProcessor:(_,P)=>{context.detector=new P();}};
@@ -29,3 +29,6 @@ test('distinct rapid strokes at 40 ms remain detectable',()=>expect(simulate({cl
 
 test('all four timbres reject clicks but preserve simultaneous strokes at both common sample rates',()=>{for(const sound of ['soft','studio','digital','low'])for(const rate of [44100,48000]){expect(simulate({sound,rate})).toHaveLength(0);expect(simulate({sound,rate,hits:true})).toHaveLength(4);}});
 test('all four sounds have distinct fundamental frequencies and finite normalized waveforms',()=>{const sounds=['soft','studio','digital','low'];expect(new Set(sounds.map(s=>frequencies(s)[0])).size).toBe(4);for(const sound of sounds){const w=makeClick(48000,'beat',sound);expect(w.every(Number.isFinite)).toBe(true);expect(Math.max(...w.map(Math.abs))).toBeCloseTo(.73,4);}});
+
+test('recorded woodblock, claves and electronic tick reject modelled leakage while preserving coincident pad transients',()=>{for(const sound of ['woodblock','claves','electronic'])for(const rate of [44100,48000]){expect(simulate({sound,rate})).toHaveLength(0);expect(simulate({sound,rate,hits:true})).toHaveLength(4);}});
+test('all six recordings produce bounded distinct waveforms at both device rates',()=>{for(const rate of [44100,48000]){const waves=sampleSounds.map(sound=>makeClick(rate,'accent',sound));expect(new Set(waves.map(w=>Array.from(w.slice(0,100)).join(','))).size).toBe(6);for(const [i,w] of waves.entries()){expect(w.every(Number.isFinite)).toBe(true);expect(w.length/rate).toBeLessThanOrEqual(.071);expect(Math.max(...w.map(Math.abs))).toBeLessThanOrEqual(.91);const b=makeClick(rate,'beat',sampleSounds[i]),s=makeClick(rate,'sub',sampleSounds[i]);expect(Math.max(...b.map(Math.abs))).toBeLessThan(Math.max(...w.map(Math.abs)));expect(Math.max(...s.map(Math.abs))).toBeLessThan(Math.max(...b.map(Math.abs)));}}});

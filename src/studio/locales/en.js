@@ -106,6 +106,7 @@ export default {
   "emptyHistory": "Your first completed practice will appear here.",
   "labTitle": "Sound & calibration",
   "labIntro": "Set up once, then just play.",
+  "sampleMicHint": "Recheck the microphone after changing sounds. Headphones are recommended for broadband clicks. If calibration fails, select the reference tone.",
   "softSound": "Soft pulse",
   "micTitle": "Microphone",
   "connect": "Connect",
