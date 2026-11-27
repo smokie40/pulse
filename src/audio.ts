@@ -4,9 +4,14 @@ import {frequencies,makeClick,type ClickKind,type ClickSound} from './click-wave
 import {assess,type Stage} from './coach';
 import {barSpec,matchHit,type Config,type Note} from './training';
 import {LiveStats} from './live-stats';
+import {makeLatencyProbe,estimateLatency,TRIALS,SPACING,LEAD,MAX_DELAY_MS,type LatencyEstimate} from './latency';
 export class PulseEngine{
  private liveStats=new LiveStats();
  private micRevision=0;
+ private latency:LatencyEstimate|null=null;private latencyTask:AbortController|null=null;
+ get timingCalibration(){return this.mic?this.latency:null;}
+ invalidateLatency(){this.latency=null;this.latencyTask?.abort();}
+ effectiveOffset(manual:number){return this.timingCalibration?.offsetMs??manual;}
  private pausedAt:number|null=null;
  private pauseTask:Promise<boolean>|null=null;
  hadPause=false;
@@ -14,7 +19,7 @@ export class PulseEngine{
  ctx:AudioContext|null=null; gain:GainNode|null=null; stream:MediaStream|null=null; detector:AudioWorkletNode|null=null; source:MediaStreamAudioSourceNode|null=null; sink:GainNode|null=null;
  notes:Note[]=[]; extra=0; extraTimes:number[]=[]; stages:Stage[]=[]; adaptiveBpm=120; active=false; mic=false; measured=false; startTime=0; endTime=0; stoppedAt=0; cfg:Config|null=null;
  private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='woodblock'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
- async init(){if(!this.ctx||this.ctx.state==='closed'){this.ctx=new AudioContext({latencyHint:'interactive'});this.clickBuffers.clear();this.gain=this.ctx.createGain();this.gain.connect(this.ctx.destination);}await this.ctx.resume();}
+ async init(){if(!this.ctx||this.ctx.state==='closed'){this.invalidateLatency();this.ctx=new AudioContext({latencyHint:'interactive'});this.ctx.addEventListener('sinkchange',()=>this.invalidateLatency());this.clickBuffers.clear();this.gain=this.ctx.createGain();this.gain.connect(this.ctx.destination);}await this.ctx.resume();}
  async enableMic(sensitivity:number){
   if(this.mic)return;const revision=++this.micRevision;await this.init();if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
@@ -24,18 +29,19 @@ export class PulseEngine{
   this.source=this.ctx!.createMediaStreamSource(stream);this.detector=new AudioWorkletNode(this.ctx!,'pulse-detector');this.sink=this.ctx!.createGain();this.sink.gain.value=0;
   this.detector.port.postMessage({sensitivity,frequencies:[...frequencies(this.sound)]});this.source.connect(this.detector);this.detector.connect(this.sink);this.sink.connect(this.ctx!.destination);
   this.detector.port.onmessage=(e:MessageEvent<{kind:string;time:number;peak:number;rms:number;frames:Frame[];captured?:boolean}>)=>{if(e.data.kind==='capture-end'){this.captureDone?.();return;}if(e.data.kind==='meter'){this.meterRms=e.data.rms;this.meterPeak=e.data.peak;return;}if(e.data.kind==='frames'){this.captureFrames?.push(...e.data.frames);return;}if(e.data.kind!=='hit')return;this.micEvents++;if(e.data.captured&&this.captureFrames!==null){this.captureHits++;this.diagnosticLiveCount=this.captureHits;}if(this.testing){this.testEvents++;return;}if(!this.active||this.paused||!this.cfg)return;const t=e.data.time-this.cfg.offset/1000;if(t<this.startTime||t>=this.endTime)return;const matched=matchHit(this.notes,t);if(matched)this.liveStats.matched(matched);else{this.extra++;this.extraTimes.push(t);}};
-  this.stream=stream;this.mic=true;}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
+  this.stream=stream;this.mic=true;const track=stream.getAudioTracks()[0];track?.addEventListener('mute',()=>{if(this.stream===stream)this.invalidateLatency();});navigator.mediaDevices?.addEventListener('devicechange',this.onDeviceChange);}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
  }
- disableMic(){this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
+ private onDeviceChange=()=>this.invalidateLatency();
+ disableMic(){this.invalidateLatency();navigator.mediaDevices?.removeEventListener('devicechange',this.onDeviceChange);this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
  setPadProfile(profile:PadProfile|null){this.detector?.port.postMessage(profile?{padProfile:profile,sensitivity:profile.sensitivity}:{padProfile:null});}
  setSensitivity(v:number){this.detector?.port.postMessage({sensitivity:v});}
  configureSound(c:Config){
   if(this.sound!==c.sound){this.sound=c.sound;this.clickBuffers.clear();this.detector?.port.postMessage({frequencies:[...frequencies(this.sound)]});}
   this.levels=[c.accentVolume,c.beatVolume,c.subVolume];if(this.gain)this.gain.gain.value=c.volume/100*.45;
  }
- async preview(c:Config){if(this.active||this.testing||this.diagnostic)return;const revision=++this.previewRevision;await this.init();if(revision!==this.previewRevision||this.active||this.testing||this.diagnostic)return;this.stop();this.configureSound(c);const start=this.ctx!.currentTime+.04;for(let i=0;i<3;i++)this.click(start+i*.24,i===0,i!==2);}
+ async preview(c:Config){if(this.active||this.testing||this.diagnostic||this.latencyTask)return;const revision=++this.previewRevision;await this.init();if(revision!==this.previewRevision||this.active||this.testing||this.diagnostic||this.latencyTask)return;this.stop();this.configureSound(c);const start=this.ctx!.currentTime+.04;for(let i=0;i<3;i++)this.click(start+i*.24,i===0,i!==2);}
  async capture(step:Step,seconds:number,expected:number,c:Config):Promise<Capture>{
-  if(!this.mic||this.active||this.testing||this.diagnostic)throw new Error('Diagnostic unavailable');
+  if(!this.mic||this.active||this.testing||this.diagnostic||this.latencyTask)throw new Error('Diagnostic unavailable');
   await this.init();this.stop();this.configureSound(c);this.setSensitivity(c.sensitivity);
   this.diagnostic=true;
   try{
@@ -53,6 +59,44 @@ export class PulseEngine{
    if(!this.mic||document.hidden)throw new Error('Diagnostic interrupted');
    return {step,expected,frames:[...this.captureFrames!],liveCount:this.captureHits};
   }finally{this.detector?.port.postMessage({capture:false});this.captureFrames=null;this.captureDone=null;this.diagnostic=false;}
+ }
+ // A separate silent capture node receives the same microphone input as the detector.
+ async measureLatency(c:Config):Promise<LatencyEstimate|null>{
+  if(!this.mic||this.active||this.testing||this.diagnostic||this.latencyTask||!c.volume)return null;
+  this.invalidateLatency();const controller=new AbortController();this.latencyTask=controller;const signal=controller.signal;
+  let node:AudioWorkletNode|null=null,source:MediaStreamAudioSourceNode|null=null,ctx:AudioContext|null=null,timeout:number|undefined;
+  const voices:AudioBufferSourceNode[]=[];let probeGain:GainNode|null=null;
+  const hidden=()=>{if(document.hidden)controller.abort();};
+  document.addEventListener('visibilitychange',hidden);
+  try{
+   this.stop();await this.init();ctx=this.ctx;source=this.source;
+   if(!ctx||!source||!this.sink||signal.aborted||document.hidden||ctx.state!=='running')return null;
+   await ctx.audioWorklet.addModule(new URL('latency-capture.js?v=1',document.baseURI).href);
+   if(signal.aborted||!this.mic||this.ctx!==ctx||this.source!==source)return null;
+   const rate=ctx.sampleRate,probe=makeLatencyProbe(rate),first=Math.ceil((ctx.currentTime+LEAD)*rate);
+   const starts=Array.from({length:TRIALS},(_,i)=>first+Math.round(i*SPACING*rate));
+   const begin=first-Math.round(.1*rate),end=starts.at(-1)!+Math.ceil((MAX_DELAY_MS/1000+.15)*rate)+probe.length;
+   node=new AudioWorkletNode(ctx,'pulse-loopback',{numberOfInputs:1,numberOfOutputs:1,channelCount:1,processorOptions:{startFrame:begin,endFrame:end}});
+   const capture= new Promise<Float32Array>((resolve,reject)=>{
+    const abort=()=>reject(new Error('Loopback interrupted'));
+    signal.addEventListener('abort',abort,{once:true});
+    timeout=window.setTimeout(()=>{signal.removeEventListener('abort',abort);reject(new Error('Loopback timed out'));},9000);
+    node!.port.onmessage=e=>{signal.removeEventListener('abort',abort);if(e.data.kind==='loopback'&&e.data.startFrame===begin&&e.data.samples instanceof Float32Array&&e.data.samples.length===end-begin)resolve(e.data.samples);else reject(new Error('Invalid loopback capture'));};
+   });
+   source.connect(node);node.connect(this.sink);
+   const buffer=ctx.createBuffer(1,probe.length,rate);buffer.getChannelData(0).set(probe);
+   probeGain=ctx.createGain();probeGain.gain.value=Math.min(.75,c.volume/100*.65);probeGain.connect(ctx.destination);
+   for(const start of starts){const v=ctx.createBufferSource();v.buffer=buffer;v.connect(probeGain);voices.push(v);v.start(start/rate);}
+   const samples=await capture;
+   if(signal.aborted||document.hidden||!this.mic||this.ctx!==ctx||this.source!==source||ctx.state!=='running')return null;
+   const measured=estimateLatency(samples,probe,starts.map(s=>s-begin),rate);
+   this.latency=measured;return measured;
+  }catch{return null;}finally{
+   window.clearTimeout(timeout);document.removeEventListener('visibilitychange',hidden);controller.abort();
+   if(node){node.port.onmessage=null;try{source?.disconnect(node);}catch{}node.disconnect();}
+   for(const v of voices){try{v.stop();}catch{}v.disconnect();}probeGain?.disconnect();
+   if(this.latencyTask===controller)this.latencyTask=null;
+  }
  }
  private click(t:number,accent:boolean,beat:boolean){
   const ctx=this.ctx!,kind:ClickKind=accent?'accent':beat?'beat':'sub';
@@ -73,7 +117,7 @@ export class PulseEngine{
    return this.testEvents;
   }finally{this.testing=false;}
  }
- async start(c:Config){if(this.pauseTask)await this.pauseTask;await this.init();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.hadPause=false;this.configureSound(c);this.cfg={...c};this.notes=[];this.liveStats.reset();this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
+ async start(c:Config){if(this.latencyTask)throw new Error('Latency measurement active');if(this.pauseTask)await this.pauseTask;await this.init();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.hadPause=false;this.configureSound(c);this.cfg={...c,offset:this.effectiveOffset(c.offset)};this.notes=[];this.liveStats.reset();this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
   this.countStart=this.ctx!.currentTime+.15;this.countNext=this.countStart;this.countIndex=0;this.startTime=this.countStart+c.countIn*c.beats*60/c.bpm;this.next=this.startTime;this.endTime=c.minutes>0?this.startTime+c.minutes*60:Infinity;this.stoppedAt=this.startTime;this.active=true;this.schedule();this.timer=window.setInterval(()=>this.schedule(),25);}
  // Apply manual tempo to future notes only; already scheduled clicks are never moved.
  setLiveTempo(value:number):boolean{if(!this.active||this.paused||!this.ctx||!this.cfg||this.ctx.currentTime<this.startTime||this.cfg.mode==='adaptive'||this.cfg.mode==='ladder'||!Number.isFinite(value))return false;this.cfg.bpm=Math.max(30,Math.min(300,Math.round(value)));return true;}
@@ -83,12 +127,12 @@ export class PulseEngine{
  const sample=this.notes.filter(n=>n.bar>=this.bar-4&&n.bar<this.bar-1);
  const first=sample[0]?.time??0,last=sample[sample.length-1];
  const extra=this.extraTimes.filter(t=>last&&t>=first-last.interval*.47&&t<=last.time+last.interval*.47).length;
- const stage=assess(this.adaptiveBpm,sample,extra,c.ladderStep,c.ladderMax);this.stages.push(stage);this.adaptiveBpm=stage.next;
+ const stage=this.timingCalibration?assess(this.adaptiveBpm,sample,extra,c.ladderStep,c.ladderMax):{bpm:this.adaptiveBpm,accuracy:0,expected:sample.length,extra,decision:'check' as const,next:this.adaptiveBpm};this.stages.push(stage);this.adaptiveBpm=stage.next;
  }const b=barSpec(c.mode==='adaptive'?{...c,bpm:this.adaptiveBpm}:c,this.bar),beat=this.step%b.sub===0,accent=this.step%b.sub===b.accent,interval=60/b.bpm/b.sub;
   const n:Note={time:this.next,interval,bar:this.bar,step:this.step,global:this.global++,sub:b.sub,bpm:b.bpm,silent:b.silent,accent};
   this.notes.push(n);if(!b.silent&&(beat||c.clickSub||c.mode==='accent')&&this.next>=this.ctx.currentTime)this.click(this.next,c.mode==='accent'?accent:this.step===0,beat);
   this.next+=interval;this.step++;if(this.step>=c.beats*b.sub){this.step=0;this.bar++;}}
-  if(this.ctx.currentTime>=this.endTime+.18)this.stop();
+  if(this.ctx.currentTime>=this.endTime+.18+(this.measured?Math.max(0,c.offset)/1000:0))this.stop();
  }
  // AudioContext time freezes while suspended: no timestamp shifting or synthetic missed notes.
  async togglePause():Promise<boolean>{
@@ -111,5 +155,5 @@ export class PulseEngine{
  const upcoming=current&&this.notes[nextIndex]?.bar===current.bar+1?this.notes[nextIndex]:undefined;
  let recentStart=index+1;while(recentStart>0&&index+1-recentStart<80&&this.notes[recentStart-1].time>=now-4)recentStart--;
  const recent=this.notes.slice(recentStart,index+1);
- return {active:this.active,paused:this.paused,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:this.liveStats.read(this.notes,this.extra,this.active?now-.17:now-.001),recent,measured:this.measured,micEvents:this.micEvents,meterRms:this.meterRms,meterPeak:this.meterPeak,stages:[...this.stages]};}
+ return {active:this.active,paused:this.paused,counting,countBeat,upcoming,elapsed:Math.max(0,Math.min(this.endTime,now)-this.startTime),current,stats:this.liveStats.read(this.notes,this.extra,this.active?now-.17-Math.max(0,this.cfg?.offset??0)/1000:now-.001),recent,measured:this.measured,micEvents:this.micEvents,meterRms:this.meterRms,meterPeak:this.meterPeak,stages:[...this.stages]};}
 }
