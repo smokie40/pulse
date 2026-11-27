@@ -1,9 +1,8 @@
 import {progressOverview,periodHistory} from '../analytics';
-import {parseBackup,mergeHistory} from '../storage.js';
 import {renderTempoChart,renderActivityChart,renderComparisonChart} from '../studio-charts.js';
 import {localDay,fmt} from '../studio-state.js';
 
-export function createProgress({$,t,getState,initialRudiment,initialSub,stickings,subdivisions,patternNames,exercises,save,replaceHistory,renderStorageNotice,startProbe}){
+export function createProgress({$,t,getState,initialRudiment,initialSub,stickings,subdivisions,patternNames,exercises,importBackup,exportBackup,renderStorageNotice,startProbe}){
 let progressDays=30,progressRudiment=initialRudiment,progressSub=initialSub,comparisonBpm=null;
 const locale=()=>getState().lang==='ru'?'ru-RU':'en-GB';
 const shortDay=d=>new Date(d+'T12:00:00').toLocaleDateString(locale(),{day:'numeric',month:'short'});
@@ -35,7 +34,7 @@ $('progressPattern').onchange=e=>{progressRudiment=e.target.value;comparisonBpm=
 $('progressSub').onchange=e=>{progressSub=+e.target.value;comparisonBpm=null;renderProgress()};
 $('compareBpm').onchange=e=>{comparisonBpm=+e.target.value;renderProgress()};
 $('importHistory').onclick=()=>{$('historyImportFile').value='';$('historyImportFile').click()};
-$('historyImportFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;const status=$('importStatus');status.textContent='';try{if(file.size>50*1024*1024)throw Error('large');const incoming=parseBackup(await file.text());const merged=mergeHistory(getState().historyData,incoming);if(!save('pulse-history',merged.history)){status.textContent=t('importNoSpace');return;}replaceHistory(merged.history);renderStorageNotice();renderProgress();status.textContent=t('importSuccess')+' · '+merged.added+' '+t('analyticsExercises')+' · '+t('importUpdated')+' '+merged.updated;}catch{status.textContent=t('importInvalid')}};
-$('exportHistory').onclick=()=>{const blob=new Blob([JSON.stringify({schema:1,exportedAt:new Date().toISOString(),history:getState().historyData},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pulse-history-'+localDay()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('historyImportFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;const status=$('importStatus');status.textContent='';try{if(file.size>50*1024*1024)throw Error('large');const merged=importBackup(await file.text());if(!merged){status.textContent=t('importNoSpace');return;}renderStorageNotice();renderProgress();status.textContent=t('importSuccess')+' · '+merged.added+' '+t('analyticsExercises')+' · '+t('importUpdated')+' '+merged.updated;}catch{status.textContent=t('importInvalid')}};
+$('exportHistory').onclick=()=>{const blob=new Blob([exportBackup()],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pulse-history-'+localDay()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 return {render:renderProgress};
 }

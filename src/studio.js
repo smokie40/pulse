@@ -18,18 +18,16 @@ import {tempoProfile} from './progression';
 import {skillIds} from './focused-plan';
 import {recommend,personalizedPlan} from './recommendation';
 import {assessSkill} from './skills';
-import {loadHistory,writeStorage} from './storage.js';
+import {createStudioStorage} from './studio/persistence.js';
 import {translate} from './i18n';
 const engine=new PulseEngine();
-const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??f}catch{return f}};
-const storageFailures=new Set();let historyRepair=false;
-const save=(k,v)=>{let ok=false;try{ok=writeStorage(localStorage,k,v)}catch{}if(ok)storageFailures.delete(k);else storageFailures.add(k);renderStorageNotice();return ok;};
-function renderStorageNotice(){const el=document.getElementById('storageNotice');if(!el)return;el.hidden=!storageFailures.size&&!historyRepair;el.textContent=storageFailures.size?t('storageFailed'):historyRepair?t('storageRepair'):'';}
-const practice=createPracticeState(read('pulse-settings',{}));
+const storage=createStudioStorage({getStorage:()=>localStorage,onStatus:()=>renderStorageNotice()});
+function renderStorageNotice(){const el=document.getElementById('storageNotice');if(!el)return;const status=storage.status();el.hidden=!status;el.textContent=status?t(status):'';}
+const practice=createPracticeState(storage.readSettings());
 let verified=false;
 const runtime={active:false,starting:false,runVerified:false,requestedBpm:null,session:null};
 function config(){return practice.config(plans.active?.items[plans.active.index]?.morphSequence)}
-function persist(){save('pulse-settings',practice.persistedConfig(!!plans.active,plans.active?.items[plans.active.index]?.morphSequence));save('pulse-language',lang);if(!plans.active)practice.rememberFree()}
+function persist(){storage.saveSettings(practice.persistedConfig(!!plans.active,plans.active?.items[plans.active.index]?.morphSequence));storage.saveLanguage(lang);if(!plans.active)practice.rememberFree()}
 const tr=k=>translate(lang,k);
 
 const $=id=>document.getElementById(id);
@@ -48,7 +46,7 @@ function barSub(bar){return barSpec(config(),bar).sub;}
 $('libraryBtn').onclick=()=>{if(!runtime.active&&!runtime.starting&&!microphone.busy)showPage('library')};
 $('exerciseLibrary').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b||b.disabled)return;leavePlan();practice.patch({mode:b.dataset.mode});showPage('setup')};
 $('repeatPractice').onclick=()=>{if(!runtime.session)return;if(plans.active&&runtime.session.planRef===plans.active&&!runtime.session.completed){loadPlanStep(false);return;}leavePlan();practice.apply(runtime.session.cfg);showPage('setup');};$('otherExercise').onclick=()=>showPage('library');$('adjustPractice').onclick=()=>{leavePlan();if(runtime.session)practice.apply(runtime.session.cfg);showPage('setup')};
-let lang=read('pulse-language','ru')==='en'?'en':'ru';
+let lang=storage.readLanguage()==='en'?'en':'ru';
 function leavePlan(){plans.leave();}
 const t=k=>k===''?'':translations[lang][k]??tr(k);
 const patternNames=()=>rudiments.map(r=>tr(r.name));
@@ -109,24 +107,23 @@ $('setupClick').onclick=()=>{if(plans.active||runtime.starting)return;practice.p
 document.addEventListener('keydown',e=>{if(e.code==='Space' && !e.repeat && $('overlay').hidden && !['INPUT','BUTTON','SELECT','TEXTAREA','A'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault(); runtime.active?stop():navigation.page==='setup'&&start()}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
 window.addEventListener('resize',()=>{if(!runtime.active) render()});
-const loadedHistory=loadHistory(read('pulse-history',[]));historyRepair=loadedHistory.invalid;
-let planLength=15,historyData=loadedHistory.history;
-const savedFocus=read('pulse-training-focus',{});
+let planLength=15;
+const savedFocus=storage.readFocus();
 let focusSkill=skillIds.includes(savedFocus.skill)?savedFocus.skill:'timing';
 let manualFocus=savedFocus.manualFocus===true;
-function suggestion(){return recommend(historyData,focusRudiment,focusSub,localDay(),focusSkill);}
+function suggestion(){return recommend(storage.history,focusRudiment,focusSub,localDay(),focusSkill);}
 function currentFocus(){return manualFocus?focusSkill:suggestion().skill;}
 let focusBpm=Number.isFinite(savedFocus.bpm)?Math.max(30,Math.min(300,savedFocus.bpm)):practice.values.bpm;
 let focusSub=subdivisions.includes(savedFocus.sub)?savedFocus.sub:4,focusRudiment=stickings.includes(savedFocus.rudiment)?savedFocus.rudiment:'RL';
 if([10,15,20,30].includes(savedFocus.length))planLength=savedFocus.length;
-let onboardingSkipped=!!savedFocus.onboardingSkipped||historyData.length>0;
-const plans=createPlanJourney({initialCheckpoint:read('pulse-pending-plan',null),saveCheckpoint:value=>save('pulse-pending-plan',value),restoreFreePractice:practice.restoreFree});
+let onboardingSkipped=!!savedFocus.onboardingSkipped||storage.history.length>0;
+const plans=createPlanJourney({initialCheckpoint:storage.readCheckpoint(),saveCheckpoint:storage.saveCheckpoint,restoreFreePractice:practice.restoreFree});
 function discardPlan(){plans.discard();}
 const navigation=createNavigation({plans,present:createScreenPresenter({$,doc:document,scrollTo:(x,y)=>window.scrollTo(x,y),getBusy:()=>microphone.busy||runtime.starting||microphone.connecting,render}),loadPlanStep});
 const {showPage,openGuide,returnFromGuide}=navigation;
 function finishWelcome(){onboardingSkipped=true;saveFocus();}
-function startProbe(context=null){const ctx=context??(navigation.guidePurpose==='probe'?navigation.guideProbeContext:null)??{rudiment:focusRudiment,sub:focusSub};const fromProgress=navigation.page==='progress'||(navigation.page==='lab'&&navigation.guideReturnProgress);if(!verified||!engine.mic){openGuide('probe',ctx);return;}dialog(t('probeTitle'),'<p>'+patternNames()[stickings.indexOf(ctx.rudiment)]+' · '+t('notes')[subdivisions.indexOf(ctx.sub)]+'</p><p>'+t('diagStartHint')+'</p><label for="diagSeed">'+t('diagSeed')+' · BPM</label><input id="diagSeed" type="number" min="30" max="300" value="'+Math.max(30,Math.min(300,Math.round(tempoProfile(historyData,ctx.rudiment,ctx.sub).working??practice.free.bpm??80)))+'"><p>'+t('probeInstructions')+'</p><button id="diagBegin" class="primary">'+t('entryStart')+'</button>');$('diagBegin').onclick=()=>{const val=Number($('diagSeed').value);if(!Number.isFinite(val)||val<30||val>300){$('diagSeed').focus();return;}closeDialog();navigation.clearGuide();finishWelcome();plans.beginProbe(val,ctx,currentFocus(),fromProgress);loadPlanStep(false);};}
-function saveFocus(){save('pulse-training-focus',{skill:focusSkill,length:planLength,bpm:focusBpm,sub:focusSub,rudiment:focusRudiment,onboardingSkipped,manualFocus});}
+function startProbe(context=null){const ctx=context??(navigation.guidePurpose==='probe'?navigation.guideProbeContext:null)??{rudiment:focusRudiment,sub:focusSub};const fromProgress=navigation.page==='progress'||(navigation.page==='lab'&&navigation.guideReturnProgress);if(!verified||!engine.mic){openGuide('probe',ctx);return;}dialog(t('probeTitle'),'<p>'+patternNames()[stickings.indexOf(ctx.rudiment)]+' · '+t('notes')[subdivisions.indexOf(ctx.sub)]+'</p><p>'+t('diagStartHint')+'</p><label for="diagSeed">'+t('diagSeed')+' · BPM</label><input id="diagSeed" type="number" min="30" max="300" value="'+Math.max(30,Math.min(300,Math.round(tempoProfile(storage.history,ctx.rudiment,ctx.sub).working??practice.free.bpm??80)))+'"><p>'+t('probeInstructions')+'</p><button id="diagBegin" class="primary">'+t('entryStart')+'</button>');$('diagBegin').onclick=()=>{const val=Number($('diagSeed').value);if(!Number.isFinite(val)||val<30||val>300){$('diagSeed').focus();return;}closeDialog();navigation.clearGuide();finishWelcome();plans.beginProbe(val,ctx,currentFocus(),fromProgress);loadPlanStep(false);};}
+function saveFocus(){storage.saveFocus({skill:focusSkill,length:planLength,bpm:focusBpm,sub:focusSub,rudiment:focusRudiment,onboardingSkipped,manualFocus});}
 // Illustrations show musical structure, never measured user data.
 // Illustrative notation, not a simulated measurement. White dots = strokes, orange ticks = click.
 // Illustrative musical notation only; measured charts use actual session data.
@@ -134,11 +131,11 @@ function skillArt(k){return musicArt(k);}
 function musicArt(kind,opts={}){return renderMusicArt(t,kind,opts);}
 function routeArt(x,pending=false){return renderRouteArt(t,x,pending);}
 function notation(n,now=-1,bar=0,offset=bar*practice.values.beats*n){const {beats,pattern,mode}=practice.values;return renderNotation({beats,sticking:stickings[pattern],mode,width:innerWidth},n,now,bar,offset);}
-function planItems(skill=currentFocus()){return personalizedPlan(historyData,skill,planLength,focusRudiment,focusSub,focusBpm,!!(verified&&engine.mic));}
-function profile(){return tempoProfile(historyData,focusRudiment,focusSub)}
+function planItems(skill=currentFocus()){return personalizedPlan(storage.history,skill,planLength,focusRudiment,focusSub,focusBpm,!!(verified&&engine.mic));}
+function profile(){return tempoProfile(storage.history,focusRudiment,focusSub)}
 function checkedTempo(){return profile().working}
 function drillCue(x){return renderDrillCue(t,x);}
-function renderTraining(){renderTrainingView({$,t,historyData,focusRudiment,focusSub,planRun:plans.active,manualFocus,focusSkill,trainingDetail:navigation.trainingDetail,engine,verified,focusBpm,checkpoint:plans.checkpoint,planLength,micConnecting:microphone.connecting,calBusy:microphone.busy,stickings,subdivisions,patternNames,routeArt,skillArt,suggestion,planItems,checkedTempo,profile});}
+function renderTraining(){renderTrainingView({$,t,historyData:storage.history,focusRudiment,focusSub,planRun:plans.active,manualFocus,focusSkill,trainingDetail:navigation.trainingDetail,engine,verified,focusBpm,checkpoint:plans.checkpoint,planLength,micConnecting:microphone.connecting,calBusy:microphone.busy,stickings,subdivisions,patternNames,routeArt,skillArt,suggestion,planItems,checkedTempo,profile});}
 function selectGoal(skill,manual=true){
  const proceed=()=>{if(plans.checkpoint&&plans.checkpoint.skill!==skill)discardPlan();focusSkill=skill;manualFocus=manual;finishWelcome();showPage('training',true);};
  if(plans.checkpoint&&plans.checkpoint.skill!==skill){dialog(t('replaceTitle'),'<p>'+t('replaceDescription')+'</p><button id="replaceConfirm" class="primary">'+t('replaceConfirm')+'</button><button id="replaceCancel" class="text-action">'+t('keepPlan')+'</button>');$('replaceConfirm').onclick=()=>{closeDialog();proceed()};$('replaceCancel').onclick=closeDialog;}
@@ -162,12 +159,12 @@ $('probeAction').onclick=()=>{if(!plans.active)openGuide('probe')};
 $('guideContinue').onclick=()=>{if(!verified||!engine.mic||microphone.busy)return;if(navigation.guidePurpose==='probe')startProbe();else returnFromGuide()};
 $('guideSkip').onclick=()=>{if(microphone.busy||microphone.connecting)return;finishWelcome();returnFromGuide()};
 $('trainingBtn').onclick=()=>showPage('training');$('progressBtn').onclick=()=>showPage('progress');$('labBtn').onclick=navigation.showLab;$('progressPractice').onclick=()=>showPage('library');
-function saveSession(){const {record,completed,diagnosticNext}=buildSessionRecord(runtime.session,{notes:engine.notes,extraTimes:engine.extraTimes,stoppedAt:engine.stoppedAt});runtime.session.completed=completed;if(runtime.session.planRef?.diagnostic)runtime.session.diagnosticNext=diagnosticNext;runtime.session.record=record;historyData.unshift(record);save('pulse-history',historyData);plans.recordCompletion(runtime.session);}
+function saveSession(){const {record,completed,diagnosticNext}=buildSessionRecord(runtime.session,{notes:engine.notes,extraTimes:engine.extraTimes,stoppedAt:engine.stoppedAt});runtime.session.completed=completed;if(runtime.session.planRef?.diagnostic)runtime.session.diagnosticNext=diagnosticNext;runtime.session.record=record;storage.appendRecord(record);plans.recordCompletion(runtime.session);}
 function nextControl(){return plans.nextControl(runtime.session);}
-const progressView=createProgress({$,t,getState:()=>({historyData,lang,active:runtime.active,starting:runtime.starting,calBusy:microphone.busy}),initialRudiment:focusRudiment,initialSub:focusSub,stickings,subdivisions,patternNames,exercises,save,replaceHistory:value=>{historyData=value;historyRepair=false;},renderStorageNotice,startProbe});
+const progressView=createProgress({$,t,getState:()=>({historyData:storage.history,lang,active:runtime.active,starting:runtime.starting,calBusy:microphone.busy}),initialRudiment:focusRudiment,initialSub:focusSub,stickings,subdivisions,patternNames,exercises,importBackup:storage.importBackup,exportBackup:storage.exportBackup,renderStorageNotice,startProbe});
 function renderProgress(){progressView.render();}
-function renderResult(){renderResultsView({$,t,tr,session:runtime.session,planRun:plans.active,checkpoint:plans.checkpoint,historyData,lang,exercises,patternNames,stickings,subdivisions,routeArt,nextControl,suggestion});}
-function reviewAccents(pass){const rec=runtime.session?.record;if(rec?.skillOutcome!=='selfCheck')return;rec.skillSelfCheck=pass;rec.skillOutcome=assessSkill(rec);save('pulse-history',historyData);renderResult();}
+function renderResult(){renderResultsView({$,t,tr,session:runtime.session,planRun:plans.active,checkpoint:plans.checkpoint,historyData:storage.history,lang,exercises,patternNames,stickings,subdivisions,routeArt,nextControl,suggestion});}
+function reviewAccents(pass){const rec=runtime.session?.record;if(rec?.skillOutcome!=='selfCheck')return;rec.skillSelfCheck=pass;rec.skillOutcome=assessSkill(rec);storage.saveHistory();renderResult();}
 $('reviewYes').onclick=()=>reviewAccents(true);$('reviewNo').onclick=()=>reviewAccents(false);
 const probeResult=document.createElement('p');probeResult.id='probeResult';probeResult.className='subtle';probeResult.hidden=true;$('repeatPractice').before(probeResult);
 $('returnPlan').onclick=()=>navigation.backFromPractice(true);

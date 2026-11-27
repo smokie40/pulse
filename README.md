@@ -172,3 +172,7 @@ Centralized practice configuration, temporary drill preparation, persisted free-
 ## v1.0.0-rc.18
 
 Screen transitions and microphone-guide return context have one navigation owner. DOM screen visibility, active tabs and navigation locks are handled by a separate presenter. Preserves plan checkpoint restoration and probe return routing. Added navigation regression tests. No intentional visual, scoring, audio or storage changes.
+
+## v1.0.0-rc.19
+
+Studio persistence owns existing storage keys, history loading, session append, backup import/export and storage failure status. Failed session saves retain in-memory records; failed imports leave history unchanged. The progress view delegates persistence through explicit operations. Existing key names, backup schema, repair and deduplication rules retained. Added persistence regression tests.
