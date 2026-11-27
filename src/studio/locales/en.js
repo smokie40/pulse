@@ -114,6 +114,8 @@ export default {
   "micOff": "Disconnected",
   "micOn": "Connected",
   "inputLevel": "Input signal",
+  "padImport": "Load capture",
+  "padImportError": "Could not restore training. Check the file and previous sound, volume and tempo settings.",
   "padLearnPhase": "Learning: silence, click, normal and quiet strokes.",
   "padValidatePhase": "Validation: click alone, fast strokes and strokes together with clicks.",
   "padRecorded": "Captured",

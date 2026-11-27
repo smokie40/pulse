@@ -1,7 +1,7 @@
 import {test,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {learnPadProfile,countProfile,spectralFrames} from './pad-profile';
+import {learnPadProfile,countProfile,spectralFrames,restoreTraining} from './pad-profile';
 import {detect} from './calibration';
 const source=readFileSync(new URL('../public/hit-detector.js',import.meta.url),'utf8');
 const expected={noise:0,leak:0,normal:10,quiet:10,fast:20,mixed:10};
@@ -47,4 +47,13 @@ test('signed spectral contrast separates quieter pad hits from much louder click
  const p=learnPadProfile(training);expect(p).not.toBeNull();expect(p.weights.some(w=>w<0)).toBe(true);
  for(const c of training)expect(countProfile(c,p)).toBe(c.expected);
  expect(countProfile(captureBands('leak',0,click,.45,16),p)).toBe(0);
+});
+
+test('import reuses only complete training captures matching current click settings',()=>{
+ const settings={sound:'woodblock',volume:100,accentVolume:100,beatVolume:100,subVolume:100,bpm:120,sub:4,clickSub:true};
+ const trainingCaptures=['noise','leak','normal','quiet'].map((step,i)=>({step,expected:i<2?0:10,frames:Array.from({length:[1500,2500,5000,5000][i]},(_,j)=>[j*.002,0,0,0,1,[0,0,0,0,0,0]]),profileCount:100}));
+ const doc={version:'pad-profile-1',settings,trainingCaptures,verified:true,profile:{weights:[1,0,0,0,0,0]}};
+ const restored=restoreTraining(JSON.stringify(doc),settings);expect(restored.map(c=>c.step)).toEqual(['noise','leak','normal','quiet']);expect(restored[0].profileCount).toBeUndefined();
+ expect(()=>restoreTraining(JSON.stringify(doc),{...settings,volume:50})).toThrow();
+ expect(()=>restoreTraining(JSON.stringify({...doc,trainingCaptures:trainingCaptures.slice(0,3)}),settings)).toThrow();
 });

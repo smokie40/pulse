@@ -65,3 +65,26 @@ export function learnPadProfile(captures:readonly Capture[],preferred=50):PadPro
  }
  return search(signed,true);
 }
+
+// Reuse training features only, never a previously asserted verification or profile.
+export function restoreTraining(raw:string,current:Record<string,unknown>):Capture[]{
+ if(raw.length>12_000_000)throw Error('large diagnostic');
+ const d=JSON.parse(raw);
+ if(d?.version!=='pad-profile-1'||!Array.isArray(d.trainingCaptures)||!d.settings)throw Error('invalid diagnostic');
+ for(const key of ['sound','volume','accentVolume','beatVolume','subVolume','bpm','sub','clickSub']){
+  if(d.settings[key]===undefined||d.settings[key]!==current[key])throw Error('different audio settings');
+ }
+ return trainingSteps.map((step,i)=>{
+  const c=d.trainingCaptures.find((x:Capture)=>x?.step===step),expected=i<2?0:10;
+  if(!c||c.expected!==expected||!Array.isArray(c.frames)||c.frames.length>10000)throw Error('invalid capture');
+  let prev=-Infinity;
+  for(const f of c.frames){
+   if(!Array.isArray(f)||f.length!==6||!f.slice(0,5).every((v:unknown)=>typeof v==='number'&&Number.isFinite(v)&&v>=0)||f[0]<=prev||!Array.isArray(f[5])||f[5].length!==6||!f[5].every((v:unknown)=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=10))throw Error('invalid features');
+   prev=f[0];
+  }
+  if(!spectralFrames(c))throw Error('incomplete capture');
+  const duration=c.frames.at(-1)[0]-c.frames[0][0];
+  if(duration<[2.5,4.3,9,9][i]||duration>[4,6,11,11][i])throw Error('incomplete duration');
+  return {step,expected,frames:c.frames};
+ });
+}
