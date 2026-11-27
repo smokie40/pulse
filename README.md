@@ -118,3 +118,7 @@ Unified musical work surface: open recommendation area, direct resume and separa
 ## v1.0.0-rc.5
 
 Semantic musical diagrams distinguish speed from subdivision; plan previews use consistent click/stroke graphics. Shorter entry copy, compact free-practice layout, progressive disclosure of analytics, evidence-only result histograms and interval accuracy. Raw hit times are not persisted; the current result contains aggregate timing bins. Existing detection, scoring, plan and storage modules remain unchanged.
+
+## v1.0.0-rc.6
+
+Larger semantic diagrams, measured home working tempo with context, compact guided setup, direct click and count-in controls for free practice, clearer live score and next-set preview, measured charts below immediate result actions. Silent intervals retain no rhythmic visual cues. No detector, scoring, or training algorithm changes.
