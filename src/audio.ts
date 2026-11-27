@@ -8,7 +8,7 @@ import {makeLatencyProbe,estimateLatency,TRIALS,SPACING,LEAD,MAX_DELAY_MS,type L
 export class PulseEngine{
  private liveStats=new LiveStats();
  private micRevision=0;
- private latency:LatencyEstimate|null=null;private latencyTask:AbortController|null=null;
+ private latency:LatencyEstimate|null=null;private latencyTask:AbortController|null=null;private latencyModule:Promise<void>|null=null;
  get timingCalibration(){return this.mic?this.latency:null;}
  invalidateLatency(){this.latency=null;this.latencyTask?.abort();}
  effectiveOffset(manual:number){return this.timingCalibration?.offsetMs??manual;}
@@ -19,7 +19,7 @@ export class PulseEngine{
  ctx:AudioContext|null=null; gain:GainNode|null=null; stream:MediaStream|null=null; detector:AudioWorkletNode|null=null; source:MediaStreamAudioSourceNode|null=null; sink:GainNode|null=null;
  notes:Note[]=[]; extra=0; extraTimes:number[]=[]; stages:Stage[]=[]; adaptiveBpm=120; active=false; mic=false; measured=false; startTime=0; endTime=0; stoppedAt=0; cfg:Config|null=null;
  private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='woodblock'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
- async init(){if(!this.ctx||this.ctx.state==='closed'){this.invalidateLatency();this.ctx=new AudioContext({latencyHint:'interactive'});this.ctx.addEventListener('sinkchange',()=>this.invalidateLatency());this.clickBuffers.clear();this.gain=this.ctx.createGain();this.gain.connect(this.ctx.destination);}await this.ctx.resume();}
+ async init(){if(!this.ctx||this.ctx.state==='closed'){this.invalidateLatency();this.latencyModule=null;this.ctx=new AudioContext({latencyHint:'interactive'});this.ctx.addEventListener('sinkchange',()=>this.invalidateLatency());this.clickBuffers.clear();this.gain=this.ctx.createGain();this.gain.connect(this.ctx.destination);}await this.ctx.resume();}
  async enableMic(sensitivity:number){
   if(this.mic)return;const revision=++this.micRevision;await this.init();if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
@@ -28,11 +28,11 @@ export class PulseEngine{
   if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   this.source=this.ctx!.createMediaStreamSource(stream);this.detector=new AudioWorkletNode(this.ctx!,'pulse-detector');this.sink=this.ctx!.createGain();this.sink.gain.value=0;
   this.detector.port.postMessage({sensitivity,frequencies:[...frequencies(this.sound)]});this.source.connect(this.detector);this.detector.connect(this.sink);this.sink.connect(this.ctx!.destination);
-  this.detector.port.onmessage=(e:MessageEvent<{kind:string;time:number;peak:number;rms:number;frames:Frame[];captured?:boolean}>)=>{if(e.data.kind==='capture-end'){this.captureDone?.();return;}if(e.data.kind==='meter'){this.meterRms=e.data.rms;this.meterPeak=e.data.peak;return;}if(e.data.kind==='frames'){this.captureFrames?.push(...e.data.frames);return;}if(e.data.kind!=='hit')return;this.micEvents++;if(e.data.captured&&this.captureFrames!==null){this.captureHits++;this.diagnosticLiveCount=this.captureHits;}if(this.testing){this.testEvents++;return;}if(!this.active||this.paused||!this.cfg)return;const t=e.data.time-this.cfg.offset/1000;if(t<this.startTime||t>=this.endTime)return;const matched=matchHit(this.notes,t);if(matched)this.liveStats.matched(matched);else{this.extra++;this.extraTimes.push(t);}};
-  this.stream=stream;this.mic=true;const track=stream.getAudioTracks()[0];track?.addEventListener('mute',()=>{if(this.stream===stream)this.invalidateLatency();});navigator.mediaDevices?.addEventListener('devicechange',this.onDeviceChange);}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
+  this.detector.port.onmessage=(e:MessageEvent<{kind:string;time:number;peak:number;rms:number;frames:Frame[];captured?:boolean}>)=>{if(e.data.kind==='capture-end'){this.captureDone?.();return;}if(e.data.kind==='meter'){this.meterRms=e.data.rms;this.meterPeak=e.data.peak;return;}if(e.data.kind==='frames'){this.captureFrames?.push(...e.data.frames);return;}if(e.data.kind!=='hit')return;this.micEvents++;if(e.data.captured&&this.captureFrames!==null){this.captureHits++;this.diagnosticLiveCount=this.captureHits;}if(this.testing){this.testEvents++;return;}if(!this.active||this.paused||!this.cfg)return;const t=e.data.time-this.cfg.offset/1000;if(t<this.startTime-Math.min(.16,(this.notes[0]?.interval??0)*.47)||t>=this.endTime)return;const matched=matchHit(this.notes,t);if(matched)this.liveStats.matched(matched);else{this.extra++;this.extraTimes.push(t);}};
+  this.stream=stream;this.mic=true;const track=stream.getAudioTracks()[0];track?.addEventListener('mute',()=>{if(this.stream===stream)this.invalidateLatency();});navigator.mediaDevices?.addEventListener?.('devicechange',this.onDeviceChange);}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
  }
  private onDeviceChange=()=>this.invalidateLatency();
- disableMic(){this.invalidateLatency();if(typeof navigator!=='undefined')navigator.mediaDevices?.removeEventListener('devicechange',this.onDeviceChange);this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
+ disableMic(){this.invalidateLatency();if(typeof navigator!=='undefined')navigator.mediaDevices?.removeEventListener?.('devicechange',this.onDeviceChange);this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
  setPadProfile(profile:PadProfile|null){this.detector?.port.postMessage(profile?{padProfile:profile,sensitivity:profile.sensitivity}:{padProfile:null});}
  setSensitivity(v:number){this.detector?.port.postMessage({sensitivity:v});}
  configureSound(c:Config){
@@ -71,7 +71,7 @@ export class PulseEngine{
   try{
    this.stop();await this.init();ctx=this.ctx;source=this.source;
    if(!ctx||!source||!this.sink||signal.aborted||document.hidden||ctx.state!=='running')return null;
-   await ctx.audioWorklet.addModule(new URL('latency-capture.js?v=1',document.baseURI).href);
+   if(!this.latencyModule)this.latencyModule=ctx.audioWorklet.addModule(new URL('latency-capture.js?v=1',document.baseURI).href).catch(e=>{this.latencyModule=null;throw e;});await this.latencyModule;
    if(signal.aborted||!this.mic||this.ctx!==ctx||this.source!==source)return null;
    const rate=ctx.sampleRate,probe=makeLatencyProbe(rate),first=Math.ceil((ctx.currentTime+LEAD)*rate);
    const starts=Array.from({length:TRIALS},(_,i)=>first+Math.round(i*SPACING*rate));
@@ -83,6 +83,7 @@ export class PulseEngine{
     timeout=window.setTimeout(()=>{signal.removeEventListener('abort',abort);reject(new Error('Loopback timed out'));},9000);
     node!.port.onmessage=e=>{signal.removeEventListener('abort',abort);if(e.data.kind==='loopback'&&e.data.startFrame===begin&&e.data.samples instanceof Float32Array&&e.data.samples.length===end-begin)resolve(e.data.samples);else reject(new Error('Invalid loopback capture'));};
    });
+   void capture.catch(()=>{}); // a scheduling exception must not leave an unhandled rejection
    source.connect(node);node.connect(this.sink);
    const buffer=ctx.createBuffer(1,probe.length,rate);buffer.getChannelData(0).set(probe);
    probeGain=ctx.createGain();probeGain.gain.value=Math.min(.75,c.volume/100*.65);probeGain.connect(ctx.destination);

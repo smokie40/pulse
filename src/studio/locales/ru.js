@@ -405,6 +405,7 @@ export default {
   "routeHit": "Твои удары",
   "resumeStage": "Этап",
   "remainingHome": "Осталось",
+  "timingUnchecked": "Удары распознаются · задержка не проверена",
   "analysisReady": "Анализ ударов готов",
   "analysisUnchecked": "Микрофон подключён · требуется проверка",
   "analysisOff": "Анализ ударов выключен",

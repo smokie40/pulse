@@ -69,7 +69,7 @@ async function start(){
    $('beatLights').style.visibility=silent?'hidden':'visible';document.querySelector('.time-left').style.visibility=silent?'hidden':'visible';$('progressBar').parentElement.style.visibility=silent?'hidden':'visible';
    const locked=!!session.planRef||counting||silent||mode==='adaptive'||mode==='ladder';
    for(const id of ['liveMinus','livePlus','liveTempoRange'])$(id).disabled=locked||snap.paused;
-   $('liveTempoHint').textContent=t(mode==='adaptive'||mode==='ladder'?'autoTempo':session.planRef?'guidedTempo':'');$('playing').classList.toggle('tempo-locked',locked);$('liveStageTitle').textContent=session.planRef?(session.planRef.probe?t('probeTitle'):t('stageLabel')+' '+(session.planIndex+1)+' / '+session.planRef.items.length+' · '+t(session.planRef.items[session.planIndex].name)):t('practice');$('liveMicStatus').textContent=t(snap.measured?(runtime.runVerified?'analysisReady':'analysisUnchecked'):'analysisOff');
+   $('liveTempoHint').textContent=t(mode==='adaptive'||mode==='ladder'?'autoTempo':session.planRef?'guidedTempo':'');$('playing').classList.toggle('tempo-locked',locked);$('liveStageTitle').textContent=session.planRef?(session.planRef.probe?t('probeTitle'):t('stageLabel')+' '+(session.planIndex+1)+' / '+session.planRef.items.length+' · '+t(session.planRef.items[session.planIndex].name)):t('practice');$('liveMicStatus').textContent=t(snap.measured?(runtime.runVerified?'analysisReady':verified?'timingUnchecked':'analysisUnchecked'):'analysisOff');
    const actual=cur?.bpm??session.initial;
    // A queued note may match an older target before a different queued note sounds.
    // Keep the user's target for the entire run; use actual notes only for evidence.

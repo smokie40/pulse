@@ -405,6 +405,7 @@ export default {
   "routeHit": "Your strokes",
   "resumeStage": "Stage",
   "remainingHome": "Remaining",
+  "timingUnchecked": "Hits recognized · latency not checked",
   "analysisReady": "Hit analysis ready",
   "analysisUnchecked": "Mic connected · check needed",
   "analysisOff": "Hit analysis off",

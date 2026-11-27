@@ -38,6 +38,7 @@ export function cleanRecord(x){
   if(Array.isArray(x.skillEvidence.bySub)){if(x.skillEvidence.bySub.length>8)throw Error('invalidEvidence');e.bySub=x.skillEvidence.bySub.map(stats);}
   if(e.overall)r.skillEvidence=e;
  }
+ if(r.timingCalibrated===false){r.recognitionVerified=false;if(r.diagnosticResult!==undefined)r.diagnosticResult=false;}
  if(r.paused||r.volumeChanged){r.recognitionVerified=false;if(r.diagnosticResult!==undefined)r.diagnosticResult=false;if(r.controlTest||r.skillId||r.tempoProbe)r.completed=false;}
  // A legacy record can be retained as practice without being treated as verified control evidence.
  if(r.skillOutcome&&(!r.skillId||!r.skillLevel||!r.skillBaseRudiment||!r.skillBaseSub||!r.skillEvidence||!r.completed||!r.recognitionVerified||r.manualTempoChanged))delete r.skillOutcome;
