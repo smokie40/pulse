@@ -160,3 +160,7 @@ Feature-level extraction: progress owns its filters and history I/O interface, t
 ## v1.0.0-rc.15
 
 Playback controller owns start, frame loop, stop and final aggregation. Runtime state is explicit; the pure session record builder preserves evidence fields and returns completion/diagnostic decisions without mutating the input. Modal focus and audio/mode settings controllers are separate. Removed obsolete sound handler. Existing practice variables still live in the composition controller; CSS cascade and detector remain unchanged. Added session record and settings dialog regression tests.
+
+## v1.0.0-rc.16
+
+Training route lifecycle is isolated in a dedicated controller: active route, persisted checkpoint, adaptive fallback, completion guards, follow-up control drill and diagnostic transitions. Session identity and free-practice restoration are preserved. Added route lifecycle regression tests. UI, audio engine, detector and CSS unchanged.

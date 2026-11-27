@@ -10,15 +10,14 @@ import {translations} from './studio-i18n.js';
 import {notesIcon,renderNotation,renderMusicArt,renderRouteArt} from './studio-notation.js';
 import {practiceFields,localDay} from './studio-state.js';
 import {PulseEngine} from './audio';
-import {restorePlan,checkpointAfter,planMatches} from './journey.js';
+import {createPlanJourney} from './studio/plan-journey.js';
 import {defaults,barSpec,rudiments} from './training';
 import {normalizeSettings} from './settings';
-import {tempoProfile,controlAfterSpeed} from './progression';
+import {tempoProfile} from './progression';
 import {skillIds} from './focused-plan';
 import {recommend,personalizedPlan} from './recommendation';
 import {assessSkill} from './skills';
 import {loadHistory,writeStorage} from './storage.js';
-import {newDiagnostic,diagnosticDrill} from './diagnostic.js';
 import {translate} from './i18n';
 const engine=new PulseEngine();
 const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||'null')??f}catch{return f}};
@@ -29,8 +28,8 @@ const prior=normalizeSettings(read('pulse-settings',{}));
 let sound=prior.sound,accentVolume=prior.accentVolume,beatVolume=prior.beatVolume,subVolume=prior.subVolume,offset=prior.offset,audibleBars=prior.audibleBars,silentBars=prior.silentBars,ladderStep=prior.ladderStep,ladderMax=prior.ladderMax;
 let verified=false;
 const runtime={active:false,starting:false,runVerified:false,requestedBpm:null,session:null};
-function config(){return {...defaults,bpm,beats,sub,minutes,countIn,mode,rudiment:stickings[pattern],volume,clickSub,sound,accentVolume,beatVolume,subVolume,offset,sensitivity,audibleBars,silentBars,ladderStep,ladderMax:Math.max(bpm,ladderMax),morphSequence:planRun?.items[planRun.index]?.morphSequence}}
-function persist(){const c=config();save('pulse-settings',planRun?{...c,...freePractice}:c);save('pulse-language',lang);if(!planRun)freePractice=practiceFields(c)}
+function config(){return {...defaults,bpm,beats,sub,minutes,countIn,mode,rudiment:stickings[pattern],volume,clickSub,sound,accentVolume,beatVolume,subVolume,offset,sensitivity,audibleBars,silentBars,ladderStep,ladderMax:Math.max(bpm,ladderMax),morphSequence:plans.active?.items[plans.active.index]?.morphSequence}}
+function persist(){const c=config();save('pulse-settings',plans.active?{...c,...freePractice}:c);save('pulse-language',lang);if(!plans.active)freePractice=practiceFields(c)}
 const tr=k=>translate(lang,k);
 
 const $=id=>document.getElementById(id);
@@ -47,7 +46,7 @@ let mode=exercises.some(e=>e.id===prior.mode)?prior.mode:'steady', page='trainin
 function exercise(){return exercises.find(e=>e.id===mode)}
 function renderLibrary(){ $('exerciseLibrary').innerHTML=exercises.map(e=>'<button class="exercise-tile choice-tile" data-mode="'+e.id+'"><span class="exercise-copy choice-copy"><strong>'+e[lang][0]+'</strong><span class="choice-caption">'+t('shortMode_'+e.id)+'</span><span class="tile-arrow choice-arrow" aria-hidden="true">›</span></span>'+musicArt(e.id)+'</button>').join('');}
 function showPage(p,detail=false){
- if(p==='training'){guidePurpose=null;leavePlan();trainingDetail=detail;if(detail&&checkpoint)planRun=checkpoint;}
+ if(p==='training'){guidePurpose=null;leavePlan();trainingDetail=detail;if(detail&&plans.checkpoint)plans.resume();}
  else if(['library','progress','skills'].includes(p))leavePlan();
  if(p!=='lab'&&p!=='training')guidePurpose=null;
  page=p;document.body.classList.toggle('performing',p==='playing');for(const id of ['training','skills','progress','lab','library','setup','playing','results'])$(id).hidden=id!==p;
@@ -59,14 +58,14 @@ function showPage(p,detail=false){
 function barSub(bar){return barSpec(config(),bar).sub;}
 $('libraryBtn').onclick=()=>{if(!runtime.active&&!runtime.starting&&!microphone.busy)showPage('library')};
 $('exerciseLibrary').onclick=e=>{const b=e.target.closest('[data-mode]');if(!b||b.disabled)return;leavePlan();mode=b.dataset.mode;showPage('setup')};
-$('repeatPractice').onclick=()=>{if(!runtime.session)return;if(planRun&&runtime.session.planRef===planRun&&!runtime.session.completed){loadPlanStep(false);return;}leavePlan();applyPractice(practiceFields(runtime.session.cfg));showPage('setup');};$('otherExercise').onclick=()=>showPage('library');$('adjustPractice').onclick=()=>{leavePlan();if(runtime.session)applyPractice(practiceFields(runtime.session.cfg));showPage('setup')};
+$('repeatPractice').onclick=()=>{if(!runtime.session)return;if(plans.active&&runtime.session.planRef===plans.active&&!runtime.session.completed){loadPlanStep(false);return;}leavePlan();applyPractice(practiceFields(runtime.session.cfg));showPage('setup');};$('otherExercise').onclick=()=>showPage('library');$('adjustPractice').onclick=()=>{leavePlan();if(runtime.session)applyPractice(practiceFields(runtime.session.cfg));showPage('setup')};
 let lang=read('pulse-language','ru')==='en'?'en':'ru',sub=prior.sub,pattern=0,minutes=prior.minutes,beats=prior.beats,countIn=prior.countIn,volume=prior.volume,clickSub=prior.clickSub,bpm=prior.bpm;
 const subdivisions=[1,2,3,4,5,6,8];
 const stickings=rudiments.map(r=>r.id);
 pattern=Math.max(0,stickings.indexOf(prior.rudiment));
 let freePractice=practiceFields({...prior,mode});
 function applyPractice(c){bpm=c.bpm;beats=c.beats;sub=c.sub;minutes=c.minutes;countIn=c.countIn;mode=c.mode;pattern=Math.max(0,stickings.indexOf(c.rudiment));clickSub=c.clickSub;audibleBars=c.audibleBars;silentBars=c.silentBars;ladderStep=c.ladderStep;ladderMax=c.ladderMax;}
-function leavePlan(){if(planRun){planRun=null;applyPractice(freePractice);}}
+function leavePlan(){plans.leave();}
 const t=k=>k===''?'':translations[lang][k]??tr(k);
 const patternNames=()=>rudiments.map(r=>tr(r.name));
 
@@ -91,7 +90,7 @@ function renderBase(){
   document.querySelectorAll('[data-t=title]').forEach(el=>el.textContent=exercise()[lang][0]);document.querySelector('[data-t=intro]').textContent=exercise()[lang][1];
   $('choices').hidden=mode==='burst'||mode==='morph';$('modePreview').hidden=mode==='steady';
   if(mode!=='steady')$('modePreview').innerHTML=(mode==='ladder'?routeArt(config()):musicArt(mode,config()))+'<p>'+(mode==='ghost'?(lang==='ru'?audibleBars+' такт(а) со звуком · '+silentBars+' без звука':audibleBars+' audible · '+silentBars+' silent bars'):mode==='ladder'?'+'+ladderStep+' BPM / 4 '+(lang==='ru'?'такта':'bars')+' → '+Math.max(bpm,ladderMax)+' BPM':t({ghost:'modeGhost',burst:'modeBurst',morph:'modeMorph',ladder:'modeLadder',accent:'modeAccent',adaptive:'modeAdaptive'}[mode]))+'</p>';
-  $('strokeCount').textContent=barSub(0)+(lang==='ru'?' уд./доля':' / beat');$('setupClick').textContent=t(clickSub?'clickEveryStroke':'clickOnBeat');$('setupCount').textContent=t('countShort')+' · '+countText();$('setupClick').setAttribute('aria-pressed',String(clickSub));$('setupClick').disabled=!!planRun||runtime.starting;$('setupCount').disabled=!!planRun||runtime.starting;
+  $('strokeCount').textContent=barSub(0)+(lang==='ru'?' уд./доля':' / beat');$('setupClick').textContent=t(clickSub?'clickEveryStroke':'clickOnBeat');$('setupCount').textContent=t('countShort')+' · '+countText();$('setupClick').setAttribute('aria-pressed',String(clickSub));$('setupClick').disabled=!!plans.active||runtime.starting;$('setupCount').disabled=!!plans.active||runtime.starting;
   if(page==='library')renderLibrary();if(page==='results')renderResult();if(page==='training')renderTraining();if(page==='progress')renderProgress();if(page==='lab')renderLab();
   document.querySelector('.legend').textContent=t('legend');
   setBpm(bpm,false);
@@ -121,12 +120,12 @@ $('bpm').addEventListener('keydown',e=>{if(e.key==='Enter') e.target.blur()});
 
 const modal=createDialog($);const dialog=modal.open,closeDialog=modal.close;
 $('start').onclick=start; $('stop').onclick=stop;
-$('setupClick').onclick=()=>{if(planRun||runtime.starting)return;clickSub=!clickSub;render();};$('setupCount').onclick=()=>{if(planRun||runtime.starting)return;dialog(t('countIn'),[0,1,2].map(n=>'<button class="option '+(countIn===n?'selected':'')+'" data-count-in="'+n+'">'+t(n===0?'noCount':n===1?'oneBar':'twoBars')+'</button>').join(''));$('dialogContent').querySelectorAll('[data-count-in]').forEach(b=>b.onclick=()=>{countIn=Number(b.dataset.countIn);closeDialog();render();});};
+$('setupClick').onclick=()=>{if(plans.active||runtime.starting)return;clickSub=!clickSub;render();};$('setupCount').onclick=()=>{if(plans.active||runtime.starting)return;dialog(t('countIn'),[0,1,2].map(n=>'<button class="option '+(countIn===n?'selected':'')+'" data-count-in="'+n+'">'+t(n===0?'noCount':n===1?'oneBar':'twoBars')+'</button>').join(''));$('dialogContent').querySelectorAll('[data-count-in]').forEach(b=>b.onclick=()=>{countIn=Number(b.dataset.countIn);closeDialog();render();});};
 document.addEventListener('keydown',e=>{if(e.code==='Space' && !e.repeat && $('overlay').hidden && !['INPUT','BUTTON','SELECT','TEXTAREA','A'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault(); runtime.active?stop():page==='setup'&&start()}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
 window.addEventListener('resize',()=>{if(!runtime.active) render()});
 const loadedHistory=loadHistory(read('pulse-history',[]));historyRepair=loadedHistory.invalid;
-let planLength=15,planRun=null,historyData=loadedHistory.history;
+let planLength=15,historyData=loadedHistory.history;
 let trainingDetail=false,guideReturnDetail=false,guideReturnSetup=false,guideReturnProgress=false,guideProbeContext=null;
 const savedFocus=read('pulse-training-focus',{});
 let focusSkill=skillIds.includes(savedFocus.skill)?savedFocus.skill:'timing';
@@ -138,13 +137,12 @@ let focusSub=subdivisions.includes(savedFocus.sub)?savedFocus.sub:4,focusRudimen
 if([10,15,20,30].includes(savedFocus.length))planLength=savedFocus.length;
 let onboardingSkipped=!!savedFocus.onboardingSkipped||historyData.length>0;
 let guidePurpose=null;
-let checkpoint=restorePlan(read('pulse-pending-plan',null));
-function storeCheckpoint(value){checkpoint=value;save('pulse-pending-plan',value);}
-function discardPlan(){leavePlan();storeCheckpoint(null);}
-function openGuide(purpose,context=null){guideReturnProgress=page==='progress';guideProbeContext=context;guideReturnSetup=page==='setup'&&purpose!=='probe';guideReturnDetail=page==='training'&&trainingDetail||!!planRun;leavePlan();guidePurpose=purpose;showPage('lab');}
-function returnFromGuide(){const setup=guideReturnSetup,progress=guideReturnProgress;guidePurpose=null;guideReturnSetup=false;guideReturnProgress=false;guideProbeContext=null;if(progress){showPage('progress');return;}if(setup){if(checkpoint&&guideReturnDetail){planRun=checkpoint;loadPlanStep(false);}else showPage('setup');}else showPage('training',guideReturnDetail);}
+const plans=createPlanJourney({initialCheckpoint:read('pulse-pending-plan',null),saveCheckpoint:value=>save('pulse-pending-plan',value),restoreFreePractice:()=>applyPractice(freePractice)});
+function discardPlan(){plans.discard();}
+function openGuide(purpose,context=null){guideReturnProgress=page==='progress';guideProbeContext=context;guideReturnSetup=page==='setup'&&purpose!=='probe';guideReturnDetail=page==='training'&&trainingDetail||!!plans.active;leavePlan();guidePurpose=purpose;showPage('lab');}
+function returnFromGuide(){const setup=guideReturnSetup,progress=guideReturnProgress;guidePurpose=null;guideReturnSetup=false;guideReturnProgress=false;guideProbeContext=null;if(progress){showPage('progress');return;}if(setup){if(plans.checkpoint&&guideReturnDetail){plans.resume();loadPlanStep(false);}else showPage('setup');}else showPage('training',guideReturnDetail);}
 function finishWelcome(){onboardingSkipped=true;saveFocus();}
-function startProbe(context=null){const ctx=context??(guidePurpose==='probe'?guideProbeContext:null)??{rudiment:focusRudiment,sub:focusSub};const fromProgress=page==='progress'||(page==='lab'&&guideReturnProgress);if(!verified||!engine.mic){openGuide('probe',ctx);return;}dialog(t('probeTitle'),'<p>'+patternNames()[stickings.indexOf(ctx.rudiment)]+' · '+t('notes')[subdivisions.indexOf(ctx.sub)]+'</p><p>'+t('diagStartHint')+'</p><label for="diagSeed">'+t('diagSeed')+' · BPM</label><input id="diagSeed" type="number" min="30" max="300" value="'+Math.max(30,Math.min(300,Math.round(tempoProfile(historyData,ctx.rudiment,ctx.sub).working??freePractice.bpm??80)))+'"><p>'+t('probeInstructions')+'</p><button id="diagBegin" class="primary">'+t('entryStart')+'</button>');$('diagBegin').onclick=()=>{const val=Number($('diagSeed').value);if(!Number.isFinite(val)||val<30||val>300){$('diagSeed').focus();return;}closeDialog();guidePurpose=null;finishWelcome();const diagnostic=newDiagnostic(val,ctx.rudiment,ctx.sub);planRun={probe:true,skill:currentFocus(),index:0,items:[diagnosticDrill(diagnostic)],diagnostic,fromProgress};loadPlanStep(false);};}
+function startProbe(context=null){const ctx=context??(guidePurpose==='probe'?guideProbeContext:null)??{rudiment:focusRudiment,sub:focusSub};const fromProgress=page==='progress'||(page==='lab'&&guideReturnProgress);if(!verified||!engine.mic){openGuide('probe',ctx);return;}dialog(t('probeTitle'),'<p>'+patternNames()[stickings.indexOf(ctx.rudiment)]+' · '+t('notes')[subdivisions.indexOf(ctx.sub)]+'</p><p>'+t('diagStartHint')+'</p><label for="diagSeed">'+t('diagSeed')+' · BPM</label><input id="diagSeed" type="number" min="30" max="300" value="'+Math.max(30,Math.min(300,Math.round(tempoProfile(historyData,ctx.rudiment,ctx.sub).working??freePractice.bpm??80)))+'"><p>'+t('probeInstructions')+'</p><button id="diagBegin" class="primary">'+t('entryStart')+'</button>');$('diagBegin').onclick=()=>{const val=Number($('diagSeed').value);if(!Number.isFinite(val)||val<30||val>300){$('diagSeed').focus();return;}closeDialog();guidePurpose=null;finishWelcome();plans.beginProbe(val,ctx,currentFocus(),fromProgress);loadPlanStep(false);};}
 function saveFocus(){save('pulse-training-focus',{skill:focusSkill,length:planLength,bpm:focusBpm,sub:focusSub,rudiment:focusRudiment,onboardingSkipped,manualFocus});}
 // Illustrations show musical structure, never measured user data.
 // Illustrative notation, not a simulated measurement. White dots = strokes, orange ticks = click.
@@ -157,55 +155,48 @@ function planItems(skill=currentFocus()){return personalizedPlan(historyData,ski
 function profile(){return tempoProfile(historyData,focusRudiment,focusSub)}
 function checkedTempo(){return profile().working}
 function drillCue(x){return renderDrillCue(t,x);}
-function renderTraining(){renderTrainingView({$,t,historyData,focusRudiment,focusSub,planRun,manualFocus,focusSkill,trainingDetail,engine,verified,focusBpm,checkpoint,planLength,micConnecting:microphone.connecting,calBusy:microphone.busy,stickings,subdivisions,patternNames,routeArt,skillArt,suggestion,planItems,checkedTempo,profile});}
+function renderTraining(){renderTrainingView({$,t,historyData,focusRudiment,focusSub,planRun:plans.active,manualFocus,focusSkill,trainingDetail,engine,verified,focusBpm,checkpoint:plans.checkpoint,planLength,micConnecting:microphone.connecting,calBusy:microphone.busy,stickings,subdivisions,patternNames,routeArt,skillArt,suggestion,planItems,checkedTempo,profile});}
 function selectGoal(skill,manual=true){
- const proceed=()=>{if(checkpoint&&checkpoint.skill!==skill)discardPlan();focusSkill=skill;manualFocus=manual;finishWelcome();showPage('training',true);};
- if(checkpoint&&checkpoint.skill!==skill){dialog(t('replaceTitle'),'<p>'+t('replaceDescription')+'</p><button id="replaceConfirm" class="primary">'+t('replaceConfirm')+'</button><button id="replaceCancel" class="text-action">'+t('keepPlan')+'</button>');$('replaceConfirm').onclick=()=>{closeDialog();proceed()};$('replaceCancel').onclick=closeDialog;}
+ const proceed=()=>{if(plans.checkpoint&&plans.checkpoint.skill!==skill)discardPlan();focusSkill=skill;manualFocus=manual;finishWelcome();showPage('training',true);};
+ if(plans.checkpoint&&plans.checkpoint.skill!==skill){dialog(t('replaceTitle'),'<p>'+t('replaceDescription')+'</p><button id="replaceConfirm" class="primary">'+t('replaceConfirm')+'</button><button id="replaceCancel" class="text-action">'+t('keepPlan')+'</button>');$('replaceConfirm').onclick=()=>{closeDialog();proceed()};$('replaceCancel').onclick=closeDialog;}
  else proceed();
 }
-function loadPlanStep(auto=false){let x=planRun.items[planRun.index];if(!planRun.probe&&x.mode==='adaptive'&&!(verified&&engine.mic)){x={...x,mode:'ladder',name:'ladderWork',reason:'ladderCue'};planRun.items[planRun.index]=x;storeCheckpoint(planRun);}mode=x.mode;minutes=x.minutes;sub=x.sub;beats=4;pattern=Math.max(0,stickings.indexOf(x.rudiment));countIn=1;clickSub=x.clickSub??false;audibleBars=x.audibleBars??2;silentBars=x.silentBars??2;ladderStep=x.ladderStep??5;ladderMax=x.ladderMax??Math.min(300,x.bpm+20);setBpm(x.bpm);showPage('setup');if(auto)void start();}
-$('planPattern').onchange=()=>{if(planRun)return;focusRudiment=$('planPattern').value;saveFocus();renderTraining()};$('planSub').onchange=()=>{if(planRun)return;focusSub=Number($('planSub').value);saveFocus();renderTraining()};
-$('beginPlan').onclick=()=>{if(!planRun){const skill=currentFocus();onboardingSkipped=true;planRun={items:planItems(skill),index:0,skill,manual:manualFocus};manualFocus=false;saveFocus();storeCheckpoint(planRun);}loadPlanStep(false)};
+function loadPlanStep(auto=false){const x=plans.prepare(!!(verified&&engine.mic));mode=x.mode;minutes=x.minutes;sub=x.sub;beats=4;pattern=Math.max(0,stickings.indexOf(x.rudiment));countIn=1;clickSub=x.clickSub??false;audibleBars=x.audibleBars??2;silentBars=x.silentBars??2;ladderStep=x.ladderStep??5;ladderMax=x.ladderMax??Math.min(300,x.bpm+20);setBpm(x.bpm);showPage('setup');if(auto)void start();}
+$('planPattern').onchange=()=>{if(plans.active)return;focusRudiment=$('planPattern').value;saveFocus();renderTraining()};$('planSub').onchange=()=>{if(plans.active)return;focusSub=Number($('planSub').value);saveFocus();renderTraining()};
+$('beginPlan').onclick=()=>{if(!plans.active){const skill=currentFocus();onboardingSkipped=true;plans.begin(planItems(skill),skill,manualFocus);manualFocus=false;saveFocus();plans.store(plans.active);}loadPlanStep(false)};
 $('autoFocus').onclick=()=>{manualFocus=false;saveFocus();renderTraining()};
 $('cancelPlan').onclick=()=>{dialog(t('cancelPlan'),'<p>'+t('cancelDescription')+'</p><button class="primary" id="confirmDiscard">'+t('cancelPlan')+'</button><button class="text-action" id="keepCurrent">'+t('keepPlan')+'</button>');$('confirmDiscard').onclick=()=>{closeDialog();discardPlan();showPage('training')};$('keepCurrent').onclick=closeDialog;};
 $('chooseDirection').onclick=$('focusTitleBtn').onclick=$('planBack').onclick=()=>showPage('training');$('planMic').onclick=()=>openGuide('plan');
-$('starterTempo').onclick=()=>{if(planRun)return;dialog(t('starterTempo'),'<p>'+t('starterTempoHint')+'</p><input id="starterInput" type="number" min="30" max="300" value="'+focusBpm+'" aria-label="BPM"><button id="starterApply" class="primary">'+t('applyTempo')+'</button>');$('starterApply').onclick=()=>{const n=Number($('starterInput').value);if(!Number.isFinite(n)||n<30||n>300)return;focusBpm=Math.round(n);saveFocus();closeDialog();renderTraining()};};
+$('starterTempo').onclick=()=>{if(plans.active)return;dialog(t('starterTempo'),'<p>'+t('starterTempoHint')+'</p><input id="starterInput" type="number" min="30" max="300" value="'+focusBpm+'" aria-label="BPM"><button id="starterApply" class="primary">'+t('applyTempo')+'</button>');$('starterApply').onclick=()=>{const n=Number($('starterInput').value);if(!Number.isFinite(n)||n<30||n>300)return;focusBpm=Math.round(n);saveFocus();closeDialog();renderTraining()};};
 $('planLength').onclick=()=>{dialog(t('durationShort'),[10,15,20,30].map(n=>'<button class="option" data-plan="'+n+'">'+n+' '+t('min')+'</button>').join(''));$('dialogContent').querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>{planLength=+b.dataset.plan;saveFocus();renderTraining();closeDialog()})};
 $('skillPath').onclick=e=>{const b=e.target.closest('[data-skill]');if(b)selectGoal(b.dataset.skill)};
-$('welcomeStart').onclick=()=>{if(checkpoint){leavePlan();planRun=checkpoint;loadPlanStep(false);}else selectGoal(suggestion().skill,false)};
+$('welcomeStart').onclick=()=>{if(plans.checkpoint){leavePlan();plans.resume();loadPlanStep(false);}else selectGoal(suggestion().skill,false)};
 $('homeViewPlan').onclick=()=>showPage('training',true);
 $('homeCancel').onclick=()=>$('cancelPlan').onclick();
 $('homeMic').onclick=()=>openGuide('plan');
 $('homeProbe').onclick=()=>{if(verified&&engine.mic)startProbe();else openGuide('probe');};
-$('probeAction').onclick=()=>{if(!planRun)openGuide('probe')};
+$('probeAction').onclick=()=>{if(!plans.active)openGuide('probe')};
 $('guideContinue').onclick=()=>{if(!verified||!engine.mic||microphone.busy)return;if(guidePurpose==='probe')startProbe();else returnFromGuide()};
 $('guideSkip').onclick=()=>{if(microphone.busy||microphone.connecting)return;finishWelcome();returnFromGuide()};
 $('trainingBtn').onclick=()=>showPage('training');$('progressBtn').onclick=()=>showPage('progress');$('labBtn').onclick=()=>{guidePurpose=null;showPage('lab')};$('progressPractice').onclick=()=>showPage('library');
-function saveSession(){const {record,completed,diagnosticNext}=buildSessionRecord(runtime.session,{notes:engine.notes,extraTimes:engine.extraTimes,stoppedAt:engine.stoppedAt});runtime.session.completed=completed;if(runtime.session.planRef?.diagnostic)runtime.session.diagnosticNext=diagnosticNext;const c=runtime.session.cfg,planned=runtime.session.planRef?.items[runtime.session.planIndex];runtime.session.record=record;historyData.unshift(record);save('pulse-history',historyData);if(runtime.session.completed&&planRun&&!planRun.probe&&runtime.session.planRef===planRun&&runtime.session.planIndex===planRun.index&&planMatches(planned,c))storeCheckpoint(checkpointAfter(planRun,nextControl()));
-}
-function nextControl(){
- if(!planRun||planRun.skill!=='speed'||runtime.session.planRef!==planRun||runtime.session.planIndex!==planRun.index||!runtime.session.completed||!runtime.session.record)return null;
- const item=planRun.items[planRun.index],next=planRun.items[planRun.index+1];
- if(!next||next.name!=='control'||!['adaptive','ladder'].includes(item.mode))return null;
- if(next.confirmation)return {drill:next,reason:'controlConfirm'};
- return controlAfterSpeed(next,runtime.session.record);
-}
+function saveSession(){const {record,completed,diagnosticNext}=buildSessionRecord(runtime.session,{notes:engine.notes,extraTimes:engine.extraTimes,stoppedAt:engine.stoppedAt});runtime.session.completed=completed;if(runtime.session.planRef?.diagnostic)runtime.session.diagnosticNext=diagnosticNext;runtime.session.record=record;historyData.unshift(record);save('pulse-history',historyData);plans.recordCompletion(runtime.session);}
+function nextControl(){return plans.nextControl(runtime.session);}
 const progressView=createProgress({$,t,getState:()=>({historyData,lang,active:runtime.active,starting:runtime.starting,calBusy:microphone.busy}),initialRudiment:focusRudiment,initialSub:focusSub,stickings,subdivisions,patternNames,exercises,save,replaceHistory:value=>{historyData=value;historyRepair=false;},renderStorageNotice,startProbe});
 function renderProgress(){progressView.render();}
-function renderResult(){renderResultsView({$,t,tr,session:runtime.session,planRun,checkpoint,historyData,lang,exercises,patternNames,stickings,subdivisions,routeArt,nextControl,suggestion});}
+function renderResult(){renderResultsView({$,t,tr,session:runtime.session,planRun:plans.active,checkpoint:plans.checkpoint,historyData,lang,exercises,patternNames,stickings,subdivisions,routeArt,nextControl,suggestion});}
 function reviewAccents(pass){const rec=runtime.session?.record;if(rec?.skillOutcome!=='selfCheck')return;rec.skillSelfCheck=pass;rec.skillOutcome=assessSkill(rec);save('pulse-history',historyData);renderResult();}
 $('reviewYes').onclick=()=>reviewAccents(true);$('reviewNo').onclick=()=>reviewAccents(false);
 const probeResult=document.createElement('p');probeResult.id='probeResult';probeResult.className='subtle';probeResult.hidden=true;$('repeatPractice').before(probeResult);
-$('returnPlan').onclick=()=>{if(planRun?.probe){const fromProgress=planRun.fromProgress;leavePlan();showPage(fromProgress?'progress':'training');}else showPage('training',true)};
-const nextPlan=document.createElement('button');nextPlan.id='nextPlan';nextPlan.className='primary';nextPlan.hidden=true;$('repeatPractice').before(nextPlan);nextPlan.onclick=()=>{if(!planRun||!runtime.session?.completed||runtime.session.planRef!==planRun||runtime.session.planIndex!==planRun.index)return;if(planRun.diagnostic){const next=runtime.session.diagnosticNext;if(next&&next.phase!=='done'){planRun.diagnostic=next;planRun.items.push(diagnosticDrill(next));planRun.index++;loadPlanStep(false);}else{const fromProgress=planRun.fromProgress;leavePlan();if(fromProgress)showPage('progress');else showPage('training',!checkpoint);}return;}leavePlan();planRun=checkpoint;if(!planRun){showPage('training')}else loadPlanStep(false)};
+$('returnPlan').onclick=()=>{if(plans.active?.probe){const fromProgress=plans.active.fromProgress;leavePlan();showPage(fromProgress?'progress':'training');}else showPage('training',true)};
+const nextPlan=document.createElement('button');nextPlan.id='nextPlan';nextPlan.className='primary';nextPlan.hidden=true;$('repeatPractice').before(nextPlan);nextPlan.onclick=()=>{const result=plans.advance(runtime.session);if(!result)return;if(result.kind==='step')loadPlanStep(false);else if(result.kind==='diagnosticDone'){if(result.fromProgress)showPage('progress');else showPage('training',!plans.checkpoint);}else showPage('training');};
 // Shared engine: detector, capture, scoring and click synthesis are unchanged.
 let sensitivity=prior.sensitivity;
-const microphone=createMicrophone({$,t,tr,engine,getState:()=>({page,active:runtime.active,guidePurpose,guideReturnSetup,verified,volume,accentVolume,beatVolume,subVolume,sensitivity,sound,planRun,mode}),setSensitivity:v=>{sensitivity=v;},setVolume:v=>{volume=v;},setVerified:v=>{verified=v;},setRunVerified:v=>{runtime.runVerified=v;},config,persist,render,stop,openGuide});
+const microphone=createMicrophone({$,t,tr,engine,getState:()=>({page,active:runtime.active,guidePurpose,guideReturnSetup,verified,volume,accentVolume,beatVolume,subVolume,sensitivity,sound,planRun:plans.active,mode}),setSensitivity:v=>{sensitivity=v;},setVolume:v=>{volume=v;},setVerified:v=>{verified=v;},setRunVerified:v=>{runtime.runVerified=v;},config,persist,render,stop,openGuide});
 function renderLab(){microphone.render();}
 function resetCal(){microphone.reset();}
-function render(){renderBase();const guided=page==='setup'&&!!planRun;const item=guided?planRun.items[planRun.index]:null;$('setup').classList.toggle('guided-setup',guided);$('stagePrep').hidden=!guided;$('stagePrep').textContent=guided?(planRun.probe?t('probeTitle')+' · '+(planRun.index+1):t('stageLabel')+' '+(planRun.index+1)+' / '+planRun.items.length)+' · '+t(item.name):'';$('stageCue').hidden=!guided;$('stageCue').textContent=guided?drillCue(item):'';document.querySelector('#setup [data-t=intro]').hidden=guided;$('setupModeSettings').hidden=guided||!['ghost','ladder','adaptive'].includes(mode);$('setupModeSettings').disabled=runtime.starting;$('start').querySelector('span').textContent=t(!guided&&mode==='adaptive'&&!(verified&&engine.mic)?'checkMicToStart':guided?'startSet':'startPractice');$('stageBack').hidden=false;$('stageBack').textContent='‹ '+t(guided?'stageBack':'backExercises');$('setupMic').setAttribute('title',t('configureMic'));for(const id of ['bpm','minus','plus','tempoRange','prevPattern','nextPattern','patternBtn','durationBtn','timeSignature'])$(id).disabled=guided||runtime.starting;$('choices').querySelectorAll('button').forEach(b=>b.disabled=guided||runtime.starting);$('settingsBtn').disabled=runtime.active||runtime.starting||guided||microphone.busy;$('soundBtn').disabled=runtime.active||runtime.starting||microphone.busy;$('setupMic').textContent=t(engine.mic?(verified?'analysisReady':'analysisUnchecked'):'analysisOff')+' · '+t('configureMic');$('setupMic').disabled=microphone.connecting||microphone.busy||runtime.starting;$('setupMic').classList.toggle('positive',!!(engine.mic&&verified));$('stageBack').disabled=runtime.starting||microphone.connecting;}
-$('timeSignature').onclick=()=>{if(planRun||runtime.starting||page!=='setup')return;dialog(t('beats'),[2,3,4,5,6,7].map(n=>'<button class="option '+(beats===n?'selected':'')+'" data-meter="'+n+'">'+n+'/4</button>').join(''));$('dialogContent').querySelectorAll('[data-meter]').forEach(b=>b.onclick=()=>{beats=+b.dataset.meter;render();closeDialog()});};
-$('stageBack').onclick=()=>{if(planRun?.probe){const fromProgress=planRun.fromProgress;leavePlan();showPage(fromProgress?'progress':'training');}else showPage(planRun?'training':'library',!!planRun);};
+function render(){renderBase();const guided=page==='setup'&&!!plans.active;const item=guided?plans.active.items[plans.active.index]:null;$('setup').classList.toggle('guided-setup',guided);$('stagePrep').hidden=!guided;$('stagePrep').textContent=guided?(plans.active.probe?t('probeTitle')+' · '+(plans.active.index+1):t('stageLabel')+' '+(plans.active.index+1)+' / '+plans.active.items.length)+' · '+t(item.name):'';$('stageCue').hidden=!guided;$('stageCue').textContent=guided?drillCue(item):'';document.querySelector('#setup [data-t=intro]').hidden=guided;$('setupModeSettings').hidden=guided||!['ghost','ladder','adaptive'].includes(mode);$('setupModeSettings').disabled=runtime.starting;$('start').querySelector('span').textContent=t(!guided&&mode==='adaptive'&&!(verified&&engine.mic)?'checkMicToStart':guided?'startSet':'startPractice');$('stageBack').hidden=false;$('stageBack').textContent='‹ '+t(guided?'stageBack':'backExercises');$('setupMic').setAttribute('title',t('configureMic'));for(const id of ['bpm','minus','plus','tempoRange','prevPattern','nextPattern','patternBtn','durationBtn','timeSignature'])$(id).disabled=guided||runtime.starting;$('choices').querySelectorAll('button').forEach(b=>b.disabled=guided||runtime.starting);$('settingsBtn').disabled=runtime.active||runtime.starting||guided||microphone.busy;$('soundBtn').disabled=runtime.active||runtime.starting||microphone.busy;$('setupMic').textContent=t(engine.mic?(verified?'analysisReady':'analysisUnchecked'):'analysisOff')+' · '+t('configureMic');$('setupMic').disabled=microphone.connecting||microphone.busy||runtime.starting;$('setupMic').classList.toggle('positive',!!(engine.mic&&verified));$('stageBack').disabled=runtime.starting||microphone.connecting;}
+$('timeSignature').onclick=()=>{if(plans.active||runtime.starting||page!=='setup')return;dialog(t('beats'),[2,3,4,5,6,7].map(n=>'<button class="option '+(beats===n?'selected':'')+'" data-meter="'+n+'">'+n+'/4</button>').join(''));$('dialogContent').querySelectorAll('[data-meter]').forEach(b=>b.onclick=()=>{beats=+b.dataset.meter;render();closeDialog()});};
+$('stageBack').onclick=()=>{if(plans.active?.probe){const fromProgress=plans.active.fromProgress;leavePlan();showPage(fromProgress?'progress':'training');}else showPage(plans.active?'training':'library',!!plans.active);};
 function patchPractice(patch){
  if(Object.hasOwn(patch,'bpm'))bpm=patch.bpm;
  if(Object.hasOwn(patch,'beats'))beats=patch.beats;
@@ -227,8 +218,8 @@ function patchPractice(patch){
  if(Object.hasOwn(patch,'ladderStep'))ladderStep=patch.ladderStep;
  if(Object.hasOwn(patch,'ladderMax'))ladderMax=patch.ladderMax;
 }
-const playback=createPlayback({$,t,engine,runtime,getContext:()=>({page,planRun,verified,micBusy:microphone.busy,micConnecting:microphone.connecting}),config,setBpm,setActualBpm:value=>{bpm=value;},showPage,loadPlanStep,openGuide,setGuideReturnProgress:value=>{guideReturnProgress=value;},saveSession,render,subdivisions});
+const playback=createPlayback({$,t,engine,runtime,getContext:()=>({page,planRun:plans.active,verified,micBusy:microphone.busy,micConnecting:microphone.connecting}),config,setBpm,setActualBpm:value=>{bpm=value;},showPage,loadPlanStep,openGuide,setGuideReturnProgress:value=>{guideReturnProgress=value;},saveSession,render,subdivisions});
 function start(){return playback.start();}
 function stop(){playback.stop();}
-bindSettingsDialogs({$,t,tr,dialog,closeDialog,config,patchPractice,getContext:()=>({active:runtime.active,starting:runtime.starting,planRun,micBusy:microphone.busy}),engine,persist,render,resetCal,previewError:()=>microphone.previewError()});
+bindSettingsDialogs({$,t,tr,dialog,closeDialog,config,patchPractice,getContext:()=>({active:runtime.active,starting:runtime.starting,planRun:plans.active,micBusy:microphone.busy}),engine,persist,render,resetCal,previewError:()=>microphone.previewError()});
 showPage('training');
