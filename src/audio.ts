@@ -21,7 +21,7 @@ export class PulseEngine{
  interrupted=false;
  ctx:AudioContext|null=null; gain:GainNode|null=null; stream:MediaStream|null=null; detector:AudioWorkletNode|null=null; source:MediaStreamAudioSourceNode|null=null; sink:GainNode|null=null;
  notes:Note[]=[]; extra=0; extraTimes:number[]=[]; stages:Stage[]=[]; adaptiveBpm=120; active=false; mic=false; measured=false; startTime=0; endTime=0; stoppedAt=0; cfg:Config|null=null;
- private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Set<AudioBufferSourceNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
+ private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Map<AudioBufferSourceNode,GainNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
  async init(){if(!this.ctx||this.ctx.state==='closed'){if(this.mic)this.disableMic();const ctx=this.ctx=new AudioContext({latencyHint:'interactive'});this.workletReady=null;this.clickBuffers.clear();this.gain=ctx.createGain();this.gain.connect(ctx.destination);ctx.addEventListener('statechange',()=>{if(this.ctx===ctx&&ctx.state!=='running'&&(this.active||this.captureController))this.cancelPending();});}await this.ctx.resume();}
  // An interrupted session is not eligible as completed control evidence.
  cancelPending(){this.startRevision++;this.previewRevision++;if(!this.mic)this.micRevision++;this.captureController?.abort();if(this.active)this.interrupted=true;this.stop();}
@@ -71,7 +71,7 @@ export class PulseEngine{
   const ctx=this.ctx!,kind:ClickKind=accent?'accent':beat?'beat':'sub';
   let buffer=this.clickBuffers.get(kind);
   if(!buffer){const wave=makeClick(ctx.sampleRate,kind,this.sound);buffer=ctx.createBuffer(1,wave.length,ctx.sampleRate);buffer.getChannelData(0).set(wave);this.clickBuffers.set(kind,buffer);}
-  const source=ctx.createBufferSource();source.buffer=buffer;const level=ctx.createGain();level.gain.value=this.levels[accent?0:beat?1:2]/100;source.connect(level);level.connect(this.gain!);this.voices.add(source);
+  const source=ctx.createBufferSource();source.buffer=buffer;const level=ctx.createGain();level.gain.value=this.levels[accent?0:beat?1:2]/100;source.connect(level);level.connect(this.gain!);this.voices.set(source,level);
   source.onended=()=>{this.voices.delete(source);source.disconnect();level.disconnect();};source.start(t);
  }
  async testLeakage(volume:number,sensitivity:number):Promise<number>{
@@ -111,7 +111,7 @@ export class PulseEngine{
   if(!this.measured&&this.notes.length>2048)this.notes.splice(0,this.notes.length-512);
   if(this.ctx.currentTime>=this.endTime+.18)this.stop();
  }
- stop(){this.previewRevision++;if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const o of this.voices){try{o.stop();}catch{}}this.voices.clear();}
+ stop(){this.previewRevision++;if(this.active)this.stoppedAt=Math.min(this.ctx!.currentTime,this.endTime);this.active=false;window.clearInterval(this.timer);for(const [source,level] of this.voices){source.onended=null;try{source.stop();}catch{}source.disconnect();level.disconnect();}this.voices.clear();}
  // Raw samples are no longer needed after the result/skill evidence has been built.
  releaseSessionData(){if(this.active)return;this.notes=[];this.extraTimes=[];this.stages=[];this.extra=0;this.liveStats.reset();}
  snapshot(includeDetails=true){const now=this.active?this.ctx!.currentTime:this.stoppedAt;let index=this.notes.length-1;while(index>=0&&this.notes[index].time>now)index--;const current=this.notes[index];
