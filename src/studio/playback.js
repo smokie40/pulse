@@ -1,6 +1,6 @@
 import {createLiveNotation} from '../studio-notation.js';
 import {timingDistribution} from '../studio-charts.js';
-import {fmt} from '../studio-state.js';
+import {fmt,fmtElapsed} from '../studio-state.js';
 import {planMatches} from '../journey.js';
 import {measuredWindows} from '../progression';
 import {periods} from '../report';
@@ -79,7 +79,7 @@ async function start(){
    if(counting)$('countdown').textContent=snap.countBeat>0?(snap.countBeat-1)%beats+1:'—';
    else if(cur&&(cur.global!==lastVisual||lastCompact!==(innerWidth<=800))){if(!silent){$('barLabel').textContent=t('bar')+' '+(cur.bar+1);liveNotation.update({beats,sticking:rudiment,mode,width:innerWidth},cur.sub,cur.step,cur.bar,cur.global-cur.step);}lastVisual=cur.global;lastCompact=innerWidth<=800;}
    if(cur&&actual!==session.last){session.last=actual;session.points.push({time:Math.max(0,cur.time-engine.startTime),bpm:actual});}
-   $('remaining').textContent=minutes?fmt(minutes*60-snap.elapsed):fmt(snap.elapsed);$('progressBar').style.width=minutes?Math.min(100,100*snap.elapsed/(minutes*60))+'%':'0%';
+   $('remaining').textContent=minutes?fmt(minutes*60-snap.elapsed):fmtElapsed(snap.elapsed);$('progressBar').style.width=minutes?Math.min(100,100*snap.elapsed/(minutes*60))+'%':'0%';
    const feedback=liveFeedback(snap,runtime.runVerified);$('liveAccuracy').hidden=silent||counting||snap.paused;$('liveHitCount').hidden=silent||counting||snap.paused||feedback.count===null;setText('liveAccuracy',feedback.accuracy===null?t(feedback.key):feedback.accuracy+'% · '+t(feedback.key));setText('liveHitCount',feedback.count===null?'':t('liveDetected')+' '+feedback.count);
    raf=requestAnimationFrame(frame);
   }frame();

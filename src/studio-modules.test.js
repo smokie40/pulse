@@ -2,7 +2,7 @@ import {test,expect} from 'vitest';
 import {translations} from './studio-i18n.js';
 import {notesIcon,renderNotation,renderMusicArt,renderRouteArt} from './studio-notation.js';
 import {chartWidth,renderTempoChart,renderActivityChart,renderComparisonChart,timingDistribution,renderDistributionChart,renderSegmentChart} from './studio-charts.js';
-import {practiceFields,localDay,fmt} from './studio-state.js';
+import {practiceFields,localDay,fmt,fmtElapsed} from './studio-state.js';
 const t=k=>translations.ru[k]??k;
 test('studio locales have matching keys and retain RC11 labels',()=>{expect(Object.keys(translations.ru).sort()).toEqual(Object.keys(translations.en).sort());expect(t('checkMicToStart')).toBe('Проверить микрофон');expect(t('analyticsPassed')).toBe('Расчётный рабочий темп')});
 test('notation and musical diagrams accept explicit input without DOM globals',()=>{for(const beats of [2,4,7])for(const width of [390,1440])for(const n of [1,2,3,4,5,6,8]){const svg=renderNotation({beats,sticking:'RLRRLRLL',mode:'accent',width},n,0,1,0);expect(svg).toContain('class="staff"');expect(svg).not.toMatch(/NaN|undefined/);expect(notesIcon(n)).toContain('viewBox="0 0 80 40"')}for(const kind of ['timing','pulse','speed','flexibility','dynamics','endurance','steady','ghost','burst','morph','ladder','adaptive','accent'])expect(renderMusicArt(t,kind)).toContain('viewBox="0 0 200 66"');expect(renderRouteArt(t,{mode:'ladder',bpm:80,ladderMax:100,ladderStep:5})).not.toMatch(/NaN|undefined/)});
@@ -10,3 +10,5 @@ test('charts display provided evidence only; empty reports remain empty',()=>{co
 test('practice state fields exclude transient audio and session fields',()=>{expect(practiceFields({bpm:120,beats:4,sub:4,minutes:0,countIn:1,mode:'steady',rudiment:'RL',clickSub:false,audibleBars:2,silentBars:2,ladderStep:5,ladderMax:180,verified:true,volume:70})).not.toHaveProperty('verified');expect(localDay(new Date(2026,10,27,12))).toBe('2026-11-27');expect(fmt(80)).toBe('01:20')});
 
 test('chart coordinate system stays readable on narrow devices',()=>{expect([320,390,768,1440].map(chartWidth)).toEqual([296,366,660,660]);});
+
+test('elapsed clock counts completed seconds; remaining clock rounds up',()=>{for(const [seconds,elapsed,remaining] of [[0,'00:00','00:00'],[.01,'00:00','00:01'],[2.4999773242630385,'00:02','00:03'],[2.999,'00:02','00:03'],[3,'00:03','00:03'],[59.99,'00:59','01:00'],[60.01,'01:00','01:01']]){expect(fmtElapsed(seconds)).toBe(elapsed);expect(fmt(seconds)).toBe(remaining);}});
