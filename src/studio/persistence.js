@@ -6,8 +6,11 @@ const keys={settings:'pulse-settings',language:'pulse-language',focus:'pulse-tra
 export function createStudioStorage({getStorage,onStatus=()=>{}}){
  const failures=new Set();
  function read(key,fallback){try{return JSON.parse(getStorage().getItem(key)||'null')??fallback;}catch{return fallback;}}
- const loaded=loadHistory(read(keys.history,[]));
- let history=loaded.history,historyRepair=loaded.invalid;
+ let unreadableHistory=false;
+ let rawHistory=[];
+ try{const raw=getStorage().getItem(keys.history);if(raw!=null)rawHistory=JSON.parse(raw);}catch{unreadableHistory=true;}
+ const loaded=loadHistory(rawHistory);
+ let history=loaded.history,historyRepair=loaded.invalid||unreadableHistory;
  function status(){return failures.size?'storageFailed':historyRepair?'storageRepair':'';}
  function write(key,value){
   let ok=false;try{ok=writeStorage(getStorage(),key,value);}catch{}

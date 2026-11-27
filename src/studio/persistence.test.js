@@ -26,3 +26,10 @@ test('backup import is atomic, deduplicated and clears the repair warning on suc
 test('restricted browser storage does not prevent startup',()=>{
  const storage=createStudioStorage({getStorage(){throw Error('denied');}});expect(storage.readSettings()).toEqual({});expect(storage.history).toEqual([]);expect(storage.saveLanguage('en')).toBe(false);expect(storage.status()).toBe('storageFailed');
 });
+
+test('invalid history JSON is surfaced rather than silently treated as first use',()=>{
+ const storage=createStudioStorage({getStorage:()=>({getItem:key=>key==='pulse-history'?'{broken':null,setItem(){}})});
+ expect(storage.history).toEqual([]);expect(storage.status()).toBe('storageRepair');
+ expect(storage.importBackup(JSON.stringify({schema:1,history:[record]}))).toEqual({added:1,updated:0});
+ expect(storage.status()).toBe('');
+});

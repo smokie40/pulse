@@ -13,10 +13,11 @@ async function start(){
  try{
   const {planRun,verified}=getContext();if(planRun?.probe&&(!verified||!engine.mic)){const context={rudiment:planRun.diagnostic.rudiment,sub:planRun.diagnostic.sub};const fromProgress=planRun.fromProgress;openGuide('probe',context);setGuideReturnProgress(fromProgress);return;}
   if(planRun&&!planRun.probe&&config().mode==='adaptive'&&!(verified&&engine.mic)){loadPlanStep(false);}
-  if(planRun&&!planMatches(planRun.items[planRun.index],config()))throw new Error(t('planMismatch'));
-  if(config().mode==='adaptive'&&!(verified&&engine.mic)){openGuide('adaptive');return;}
+  const cfg=config();
+  if(planRun&&!planMatches(planRun.items[planRun.index],cfg))throw new Error(t('planMismatch'));
+  if(cfg.mode==='adaptive'&&!(verified&&engine.mic)){openGuide('adaptive');return;}
   runtime.runVerified=verified&&engine.mic;
-  const cfg=config();const planned=planRun?.items[planRun.index];if(planned?.ladderMax!==undefined){cfg.ladderStep=planned.ladderStep;cfg.ladderMax=Math.max(cfg.bpm,planned.ladderMax);}await engine.start(cfg);
+  await engine.start(cfg);
   if(document.hidden){engine.stop();return;}
   runtime.active=true;runtime.requestedBpm=null;const {bpm,beats,minutes,mode,rudiment}=cfg;const session=runtime.session={initial:bpm,last:bpm,elapsed:0,points:[{time:0,bpm}],cfg,stats:null,verified:runtime.runVerified,planRef:planRun,planIndex:planRun?.index};
   showPage('playing');$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;

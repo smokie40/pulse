@@ -180,3 +180,7 @@ Studio persistence owns existing storage keys, history loading, session append, 
 ## v1.0.0-rc.20
 
 Completed studio composition refactor: training focus, training events, setup and session results have independent modules. Removed redundant identical CSS declarations without reordering the remaining cascade. Retired the parallel React UI and dependencies; legacy.html redirects to the maintained studio, using the existing data keys. Musical note-style logic remains tested and shared with the active renderer. Split all 34 existing browser tests into feature suites, added legacy URL and training-focus regressions. No intentional change to visual design, audio engine, detector, scoring or training algorithms.
+
+## v1.0.0-rc.21
+
+Final audit fixes: validate restored plan labels, rudiments, tempo bounds and optional evidence parameters; enforce ladder/adaptive step and ceiling in the guided exercise match; use one resolved configuration for playback and control certification; surface unreadable history JSON. Added regression coverage. No intentional change to audio, scoring formulas or visual design.
