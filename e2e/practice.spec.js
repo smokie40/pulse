@@ -55,8 +55,12 @@ test('free practice supports live tempo buttons and range without resetting the 
 
 
 test('six recorded clicks can be auditioned and selection survives reload',async({page})=>{
- const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./');await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();
- for(const sound of ['woodblock','studioStick','rimshot','claves','softBlock','electronic']){await page.locator('[data-sound="'+sound+'"]').click();await expect(page.locator('[data-sound="'+sound+'"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#soundPreviewError')).toHaveText('');}
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{window.clickStarts=0;const original=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){window.clickStarts++;return original.apply(this,args);};});
+ await page.goto('./');await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();
+ for(const sound of ['woodblock','studioStick','rimshot','claves','softBlock','electronic']){
+  const before=await page.evaluate(()=>window.clickStarts);await page.locator('[data-sound="'+sound+'"]').click();await expect(page.locator('[data-sound="'+sound+'"]')).toHaveAttribute('aria-pressed','true');await expect.poll(()=>page.evaluate(()=>window.clickStarts)).toBeGreaterThanOrEqual(before+3);await expect(page.locator('#soundPreviewError')).toHaveText('');
+ }
  await page.keyboard.press('Escape');expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-settings')).sound)).toBe('electronic');
  await page.reload();await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();await expect(page.locator('[data-sound="electronic"]')).toHaveClass(/selected/);expect(errors).toEqual([]);
 });
