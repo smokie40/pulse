@@ -240,19 +240,19 @@ const skillGlyph={timing:'steady',pulse:'ghost',speed:'ladder',flexibility:'morp
 // Illustrations show musical structure, never measured user data.
 // Illustrative notation, not a simulated measurement. White dots = strokes, orange ticks = click.
 function musicArt(kind,opts={}){
- const white='#d7d9da',orange='#ff7840',grid='#515458',parts=[];
+ const white='#d7d9da',orange='#ff7840',grid='#55585c',parts=[];
  const line=(x,y1,y2,c=grid,dash=false)=>'<path d="M'+x+' '+y1+' V'+y2+'" stroke="'+c+'" stroke-width="1"'+(dash?' stroke-dasharray="2 3"':'')+'/>';
  const note=(x,y=46,r=2.9)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+white+'"/>';
- const text=(x,y,str,anchor='start')=>'<text x="'+x+'" y="'+y+'" fill="#c3c5c7" font-size="11.5" text-anchor="'+anchor+'">'+str+'</text>';
+ const text=(x,y,str,anchor='start')=>'<text x="'+x+'" y="'+y+'" fill="#c3c5c7" font-size="10" font-weight="500" text-anchor="'+anchor+'">'+str+'</text>';
  const click=(x,y=8,h=17)=>'<rect x="'+(x-1.5)+'" y="'+y+'" width="3" height="'+h+'" rx="1" fill="'+orange+'"/>';
  const sub=opts.sub??4;
- if(kind==='timing'){parts.push(text(2,19,t('artUneven')),text(2,51,t('artEven')));for(let i=0;i<6;i++){const x=68+i*24;parts.push(line(x,5,60,grid,true),note(x+[0,-7,5,-5,7,-4][i],16,2.9),note(x,48,2.9));}parts.push('<path d="M2 32 H195" stroke="#333639"/>');}
- else if(kind==='pulse'||kind==='ghost'){const audible=opts.audibleBars??2,silent=opts.silentBars??2,total=audible+silent,beats=total*4,w=184/beats,n=opts.sub??2;for(let i=0;i<beats;i++){const x=8+i*w;if(i<audible*4){parts.push(click(x+1.5));if(opts.clickSub)for(let j=1;j<n;j++)parts.push(click(x+j*w/n+1.5,14,11));}for(let j=0;j<n;j++)parts.push(note(x+j*w/n+1.5,46,Math.min(2.6,w/n*.32)));}parts.push(line(8+audible*4*w,5,59,grid,true),text(8,63,t('artClick')),text(192,63,t('artSilent'),'end'));}
- else if(kind==='speed'){[80,100,120].forEach((bpm,i)=>{const y=13+i*22;parts.push(text(2,y+3,bpm+' BPM'));for(let j=0;j<8;j++)parts.push(note(61+j*18*80/bpm,y,2.9));});}
+ if(kind==='timing'){parts.push(text(8,19,t('artUneven')),text(8,51,t('artEven')));for(let i=0;i<6;i++){const x=68+i*24;parts.push(line(x,5,60,grid,true),note(x+[0,-7,5,-5,7,-4][i],16,2.9),note(x,48,2.9));}parts.push('<path d="M8 32 H192" stroke="#333639"/>');}
+ else if(kind==='pulse'||kind==='ghost'){const audible=opts.audibleBars??1,silent=opts.silentBars??1,perBar=opts.beats??4,beats=(audible+silent)*perBar,w=184/beats,n=opts.sub??2;for(let i=0;i<beats;i++){const x=8+i*w;if(i<audible*perBar){parts.push(click(x+1.5,10,17));if(opts.clickSub)for(let j=1;j<n;j++)parts.push(click(x+j*w/n+1.5,16,11));}for(let j=0;j<n;j++)parts.push(note(x+j*w/n+1.5,45,Math.min(2.9,w/n*.34)));}parts.push(line(8+audible*perBar*w,6,54,grid,true),text(8,63,t('artClick')),text(192,63,t('artSilent'),'end'));}
+ else if(kind==='speed'){[80,100,120].forEach((bpm,i)=>{const y=13+i*22;parts.push(text(8,y+3,bpm+' BPM'));for(let j=0;j<8;j++)parts.push(note(61+j*18*80/bpm,y,2.9));});}
  else if(kind==='burst'||kind==='flexibility'||kind==='morph'){const groups=kind==='burst'?[2,2,4,4]:opts.morphSequence??[2,3,4,6],w=184/groups.length;groups.forEach((n,b)=>{let x=8+b*w;parts.push(text(x+w/2,10,String(n),'middle'),click(x+1.5,17,13));if(b)parts.push(line(x,14,56,grid,true));for(let j=0;j<n;j++)parts.push(note(x+j*w/n+1.5,45,2.9));});parts.push(text(100,63,t('artFixedTempo'),'middle'));}
  else if(kind==='dynamics'||kind==='accent'){// One representative beat from each of four consecutive bars. Accent position advances each bar.
- const n=opts.sub??4,total=4*n,w=184/total;for(let i=0;i<total;i++){const x=8+(i+.5)*w,bar=Math.floor(i/n),accent=i%n===bar%n,hh=accent?31:12;if(i>0&&i%n===0)parts.push(line(8+i*w,5,57,grid,true));parts.push('<rect x="'+(x-1.5)+'" y="'+(53-hh)+'" width="3" height="'+hh+'" rx="1" fill="'+white+'"/>');if(accent)parts.push('<path d="M'+(x-3.5)+' 10 l7 3 -7 3" stroke="'+white+'" stroke-width="1.5" fill="none"/>');}}
- else if(kind==='endurance'){for(let i=0;i<20;i++){const x=8+i*9.65;parts.push(line(x,5,38,grid,true),note(x,23,2.6));}parts.push('<path d="M8 43 V49 H192 V43" fill="none" stroke="#aaaaaa" stroke-width="1.3"/>',text(8,62,t('artStart')),text(192,62,t('artEnd'),'end'));}
+ const n=opts.sub??4,total=4*n,w=184/total;for(let i=0;i<total;i++){const x=8+(i+.5)*w,bar=Math.floor(i/n),accent=i%n===bar%n,hh=accent?28:12;if(i>0&&i%n===0)parts.push(line(8+i*w,5,57,grid,true));parts.push('<rect x="'+(x-1.4)+'" y="'+(53-hh)+'" width="2.8" height="'+hh+'" rx="1" fill="'+white+'"/>');if(accent)parts.push('<path d="M'+(x-3.5)+' 10 l7 3 -7 3" stroke="'+white+'" stroke-width="1.4" fill="none"/>');}}
+ else if(kind==='endurance'){for(let i=0;i<20;i++){const x=8+i*9.65;parts.push(line(x,9,43,grid,true),note(x,26,2.8));}parts.push('<path d="M8 44 V50 H192 V44" fill="none" stroke="#aaaaaa" stroke-width="1.3"/>',text(8,62,t('artStart')),text(192,62,t('artEnd'),'end'));}
  else if(kind==='steady'){const n=4*sub,w=184/n;for(let i=0;i<n;i++){const x=8+(i+.5)*w;if(i%sub===0||opts.clickSub)parts.push(click(x,i%sub===0?8:14,i%sub===0?17:11));parts.push(note(x,46,Math.min(2.9,w*.33)));}}
  else return glyph(kind);
  return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true">'+parts.join('')+'</svg>';
@@ -297,7 +297,7 @@ function renderHome(){
  $('homeArt').hidden=!checkpoint;
  $('welcomeStart').textContent=t(checkpoint?'continuePlan':'viewPlan');
  $('homeArt').hidden=true;$('homeViewPlan').hidden=!checkpoint;$('homeCancel').hidden=!checkpoint;const ready=!!(engine.mic&&verified);$('homeMicStatus').textContent=t(ready?'analysisReady':engine.mic?'analysisUnchecked':'analysisOff');$('homeMicStatus').classList.toggle('positive',ready);$('homeMic').textContent=t(ready?'checkMic':'configureMic');$('homeMic').disabled=micConnecting||calBusy;const work=checkedTempo();$('homeProbe').textContent=t(work===null?'homeCheckTempo':'homeRecheckTempo');$('homeTempoValue').hidden=work===null;$('homeTempoValue').textContent=work===null?'':work+' BPM';$('homeTempoContext').hidden=work===null;$('homeTempoContext').textContent=patternNames()[stickings.indexOf(focusRudiment)]+' · '+t('notes')[subdivisions.indexOf(focusSub)]+(work===null?'':' · '+t(profile().confirmedWorking?'tempoConfirmedShort':'tempoEstimatedShort'));
- $('skillPath').innerHTML=skillIds.map(k=>'<button class="home-skill" data-skill="'+k+'">'+skillArt(k)+'<span class="home-skill-copy"><strong>'+t('skill_'+k)+'</strong><small>'+t('shortGoal_'+k)+'</small></span>'+homeSkillStatus(k)+'<span class="home-arrow" aria-hidden="true">›</span></button>').join('');
+ $('skillPath').innerHTML=skillIds.map(k=>'<button class="home-skill" data-skill="'+k+'">'+skillArt(k)+'<span class="home-skill-copy"><strong>'+t('skill_'+k)+'</strong><small>'+t('shortGoal_'+k)+'</small><span class="home-arrow" aria-hidden="true">›</span></span>'+homeSkillStatus(k)+'</button>').join('');
 }
 function selectGoal(skill,manual=true){
  const proceed=()=>{if(checkpoint&&checkpoint.skill!==skill)discardPlan();focusSkill=skill;manualFocus=manual;finishWelcome();showPage('training',true);};

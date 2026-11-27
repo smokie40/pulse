@@ -126,3 +126,5 @@ Larger semantic diagrams, measured home working tempo with context, compact guid
 ## v1.0.0-rc.7
 
 Optical polish: 1080px shared workspace, larger headings and musical labels, consistent spacing and fewer separators, visible keyboard focus, explicit microphone icon, clearer accent grouping, responsive layout. No changes to detection, scoring, training, or storage logic.
+
+RC7 optical follow-up: balanced diagram typography and weights, simplified illustrative pulse, title-aligned arrows, neutral keyboard focus and a visible tempo-check action. Workspace scale and training logic unchanged.

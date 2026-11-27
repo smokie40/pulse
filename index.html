@@ -144,7 +144,7 @@
 .top .main-nav{gap:32px}
 .top .main-nav button{position:relative;font-size:16px;line-height:1.3;padding:12px 2px;min-height:44px}
 .top .main-nav button:focus{outline:none}
-.top .main-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.top .main-nav button:focus-visible{outline:1px solid #c5c7ca;outline-offset:-2px;border-radius:3px}
 .top .main-nav button[aria-current=page]:after{content:"";position:absolute;left:2px;right:2px;bottom:5px;height:2px;background:var(--accent)}
 .top .icon-btn{width:42px;height:42px}
 .top .icon-btn svg{width:23px;height:23px;stroke-width:1.6}
@@ -204,7 +204,7 @@
 @media(max-width:800px){
  .top .main-nav button{position:relative}
  .top .main-nav button:focus:not(:focus-visible){outline:none}
- .top .main-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+ .top .main-nav button:focus-visible{outline:1px solid #c5c7ca;outline-offset:-2px;border-radius:3px}
  .top .main-nav button[aria-current=page]:after{content:"";position:absolute;left:0;right:0;bottom:1px;height:1px;background:var(--accent)}
  .top .main-nav{min-width:0;gap:clamp(8px,2vw,16px)}
  .top .main-nav button{min-width:0}
@@ -214,6 +214,27 @@
 }
 
 .top .main-nav #libraryBtn{position:relative;inset:auto;transform:none}
+
+/* RC7 optical finishing pass. No changes to the workspace width or layout. */
+.top .main-nav button:focus:not(:focus-visible){outline:none}
+.top .main-nav button:focus-visible{outline:1px solid #c5c7ca;outline-offset:-2px;border-radius:3px}
+.home-skill .home-arrow{position:absolute;right:1px;top:0;line-height:1.2}
+.home-skill-copy{position:relative}
+.home-skill .glyph{display:block}
+.home-diagnostic #homeProbe{border:1px solid #a65332;border-radius:4px;padding:9px 14px;min-height:40px;text-align:center}
+.home-diagnostic #homeProbe:hover{border-color:var(--accent);background:#201b18}
+.home-diagnostic #homeProbe:focus-visible{outline-offset:3px}
+@media(min-width:801px){
+ .home-skill .glyph{max-width:290px}
+ .home-skill strong,.exercise-tile strong{font-weight:670}
+ .home-skill small,.exercise-tile p{font-size:14px;line-height:1.4;color:#b4b6b8}
+ .home-skill small{margin-top:6px}
+ .home-skill .home-skill-status small{font-size:12px}
+ .home-skill-copy{min-width:0}
+ .home-diagnostic #homeProbe{min-width:174px}
+ .exercise-tile .glyph{justify-self:start}
+}
+@media(max-width:460px){.home-diagnostic #homeProbe{min-width:0;padding:7px 9px;max-width:48%;font-size:12px}.home-skill .home-arrow{display:none}}
 </style>
 </head>
 <body>
