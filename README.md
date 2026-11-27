@@ -188,3 +188,7 @@ Final audit fixes: validate restored plan labels, rudiments, tempo bounds and op
 ## v1.0.0-rc.22
 
 UX audit corrections: one back arrow, unbroken guided stroke count on narrow screens, larger mobile navigation and close targets, readable sticking sequences, and no redundant fixed-tempo range in history. Added browser regression coverage. Visual baseline checked on RC21 production assets at 1440, 768, 390 and 320 px; real microphone and measured-result review remain separate.
+
+## v1.0.0-rc.23
+
+Unified plan header and controls, compact narrow-screen setup, responsive SVG chart geometry, measured-result hierarchy, clear calibration targets and observed counts, and explicit pass/fail stage indicators. Existing training and detector algorithms are unchanged. Added responsive regression checks. Physical pad calibration remains a real-device validation task.

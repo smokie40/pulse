@@ -102,3 +102,98 @@
  .dialog [data-pattern="4"]{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
  .dialog [data-pattern="4"] strong{justify-self:end}
 }
+
+/* RC23: plan, instrument, measured reports and calibration share the open workspace. */
+#dailyPlan .plan-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,340px);align-items:end;gap:24px;padding:4px 0 18px;border-bottom:1px solid var(--line)}
+#dailyPlan .focus-hero{text-align:left}
+#dailyPlan .focus-hero .kicker{margin:0 0 6px}
+#dailyPlan .focus-hero h1{font-size:clamp(32px,4vw,48px);margin:0}
+#dailyPlan .focus-hero p{margin:7px 0;font-size:14px;line-height:1.4}
+#dailyPlan #autoFocus{min-height:36px;padding:5px 0}
+#dailyPlan .plan-controls{display:grid;gap:8px;min-width:0}
+#dailyPlan .duration-control{margin:0;justify-self:start;min-height:40px}
+#dailyPlan .plan-context{margin:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,.55fr);gap:10px}
+#dailyPlan .plan-context select{width:100%;min-height:40px}
+#dailyPlan #starterTempo{margin:0;justify-self:start;text-align:left;min-height:36px}
+#training #dailyPlan .daily-steps{margin:18px 0 0;gap:12px}
+#dailyPlan .route-card{min-width:0;padding:12px 10px 14px}
+#dailyPlan .route-card .glyph{height:68px;margin:8px 0 4px}
+#dailyPlan .route-card h2{margin:5px 0 9px}
+#dailyPlan .route-card p{margin-top:8px}
+#dailyPlan .route-legend{margin:10px 0}
+#dailyPlan .plan-footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,340px);gap:24px;align-items:start;border-top:1px solid var(--line);padding:16px 0 0;margin:12px 0 0;text-align:left}
+#dailyPlan .plan-launch{grid-column:2;grid-row:1}
+#dailyPlan .plan-launch #beginPlan{margin:0;width:100%;max-width:none;min-height:48px}
+#dailyPlan #planBasis{margin:8px 0 0;text-align:left}
+#dailyPlan .plan-status{grid-column:1;grid-row:1;min-width:0}
+#dailyPlan #planMic{margin:0;min-height:36px;padding:4px 0;text-align:left}
+#dailyPlan #planNotice{margin:3px 0 6px;text-align:left}
+#dailyPlan .training-actions{margin:0;gap:8px;flex-direction:row;justify-content:flex-start;flex-wrap:wrap}
+#dailyPlan .training-actions button{padding:5px 0;min-height:36px;text-align:left}
+#results .result-heading p{line-height:1.5}
+#results #resultAnalysis .result-detail{padding:8px 0 14px}
+#results #resultAnalysis .result-detail>div{padding:0 16px 0 0}
+#results #resultAnalysis .result-detail>div+div{padding:0 0 0 16px}
+#results #resultAnalysis .result-detail strong{font-size:clamp(28px,4vw,40px)}
+#results #resultCharts:not(:empty){margin:8px 0 16px}
+#results .result-actions{border-top:1px solid var(--line);padding-top:16px}
+#results .result-actions .text-action{min-height:40px}
+#lab .cal-track button{min-height:54px;padding:8px 4px;font-size:12px;line-height:1.3}
+#lab .cal-track button:disabled{opacity:.65}
+#lab .cal-track button.current{opacity:1}
+#lab .cal-track button.done{color:#8bd5aa}
+#lab .cal-track button.failed{color:#ff9b75}
+#lab .cal-current{padding:12px 0;min-height:0}
+#lab .cal-current strong{font-variant-numeric:tabular-nums;font-size:42px}
+#lab .cal-current p{max-width:440px;margin:8px auto;line-height:1.5}
+#lab #calMessage{min-height:0;line-height:1.5}
+#lab #calMessage:empty{display:none}
+#lab #calReset,#lab #exportCal{min-height:40px}
+#lab #calStart{min-height:48px}
+#lab #micToggle{min-height:40px}
+#lab .cal-current .cal-count-label{display:block;color:var(--muted);font-size:12px;margin:4px 0}
+@media(max-width:800px){
+ #dailyPlan .plan-head{grid-template-columns:minmax(0,1fr);gap:12px}
+ #dailyPlan .plan-footer{grid-template-columns:minmax(0,1fr);gap:12px}
+ #dailyPlan .plan-launch,#dailyPlan .plan-status{grid-column:1;grid-row:auto}
+ #dailyPlan .plan-status{border-top:1px solid var(--line);padding-top:8px}
+ #dailyPlan .plan-context{grid-template-columns:minmax(0,1fr) minmax(90px,.55fr)}
+ #dailyPlan .focus-hero h1{font-size:34px}
+ #dailyPlan .route-card{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0}
+ #dailyPlan .route-card.current{border-top-color:var(--accent)}
+ #dailyPlan .route-card.done{border-top-color:#8bd5aa}
+ #dailyPlan .route-card .glyph{height:55px}
+ #dailyPlan .route-card h2{margin:0}
+ #dailyPlan .route-card p{margin:0}
+ #training #dailyPlan .daily-steps{gap:6px}
+ #lab .cal-track button{font-size:12px}
+}
+@media(max-width:480px){
+ #dailyPlan .route-card{grid-template-columns:62px minmax(0,1fr) 65px;padding:9px 2px;gap:5px 8px}
+ #dailyPlan .route-card .glyph{height:40px;margin:0}
+ #dailyPlan .route-card h2{font-size:15px;line-height:1.25}
+ #dailyPlan .route-card .route-pattern{font-size:12px}
+ #dailyPlan .route-card p{font-size:12px;line-height:1.35}
+ #dailyPlan .plan-footer{margin-top:8px;padding-top:12px}
+ #setup .setup-back{margin-bottom:4px;min-height:32px}
+ #setup .setup-intro h1{font-size:27px}
+ #setup .setup-intro p{font-size:13px;line-height:1.4}
+ #setup .setup-intro{margin-bottom:8px}
+ #setup .setup-parameters{gap:6px;padding:8px 0}
+ #setup .tempo{gap:8px;margin-bottom:4px}
+ #setup .bpm-box input{font-size:54px}
+ #setup .tempo-slider{margin-bottom:2px}
+ #setup .sub-choice{min-height:48px;padding:3px 2px}
+ #setup .sub-choice svg{height:26px}
+ #setup .score{padding:9px 0 5px}
+ #setup .score .staff-container svg{max-height:202px}
+ #setup .action-area{margin-top:4px;padding-top:8px}
+ #results .result-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}
+ #results .result-summary .result-time{padding-right:10px}
+ #results .result-summary .result-detail{padding:0 0 0 10px;border:0;border-left:1px solid var(--line)}
+ #results .result-summary:has(#resultEndMetric:not([hidden])){grid-template-columns:1fr}
+ #results .result-summary:has(#resultEndMetric:not([hidden])) .result-detail{border-left:0;border-top:1px solid var(--line);padding:10px 0 0;margin-top:10px}
+ #results .result-summary strong{font-size:30px}
+ #lab .cal-track button{min-height:52px}
+ #lab .cal-current strong{font-size:38px}
+}

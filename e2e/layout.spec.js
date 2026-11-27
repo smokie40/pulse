@@ -35,3 +35,6 @@ test('small screens keep setup navigation, guided stroke labels and sticking dia
   const nav=await page.locator('#trainingBtn').boundingBox();expect(nav.height).toBeGreaterThanOrEqual(40);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
  }
 });
+
+
+test('plan and preparation remain readable in both languages on narrow screens',async({page})=>{for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.goto('./');for(const lang of ['ru','en']){await page.locator('#'+lang).click();await page.locator('[data-skill="speed"]').click();await expect(page.locator('.plan-head #planLength')).toBeVisible();await expect(page.locator('.plan-footer #beginPlan')).toBeVisible();await expect(page.locator('#chooseDirection')).toBeHidden();expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);await page.locator('#planBack').click();}await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await expect(page.locator('#start')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);}});

@@ -13,3 +13,6 @@ test('history shows a fixed tempo once and a real tempo change as a range',async
  await page.addInitScript(()=>localStorage.setItem('pulse-history',JSON.stringify([{date:new Date().toISOString(),mode:'steady',bpm:100,last:100,seconds:60,stats:null,rudiment:'RL',sub:4},{date:new Date(Date.now()-1000).toISOString(),mode:'ladder',bpm:80,last:100,seconds:60,stats:null,rudiment:'RL',sub:4}])));await page.goto('./');await page.locator('#progressBtn').click();
  await expect(page.locator('#historyRows .history-row').nth(0)).toContainText('100 BPM');await expect(page.locator('#historyRows .history-row').nth(0)).not.toContainText('→');await expect(page.locator('#historyRows .history-row').nth(1)).toContainText('80 → 100 BPM');
 });
+
+
+test('mobile analytics use a compact viewBox with readable axis labels',async({page})=>{await page.setViewportSize({width:390,height:844});await page.goto('./');await page.locator('#progressBtn').click();const svg=page.locator('#activityGraph svg');await expect(svg).toHaveAttribute('viewBox','0 0 366 90');expect(await svg.locator('text').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(12);});
