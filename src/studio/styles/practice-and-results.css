@@ -203,11 +203,37 @@
 #dailyPlan .focus-hero #autoFocus{display:inline-block;margin-top:2px}
 #lab .cal-track .cal-stage-result{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;margin-top:3px}
 
-/* Playback controls: pause is reversible; stop remains independently available. */
-#playing .play-actions{display:flex;align-items:center;gap:8px;flex:none}
-#playing .pause-control{border:1px solid var(--line);border-radius:6px;padding:10px 16px;min-height:48px;color:var(--ink);font-size:15px;white-space:nowrap;font-weight:650}
-#playing .pause-control:hover{border-color:var(--muted)}
-#playing.is-paused .pause-control{background:var(--accent);border-color:var(--accent);color:#171411}
-#playing .pause-status{color:var(--accent);font-size:14px;line-height:1.4;text-align:center;margin:0 0 12px}
+/* Performance tools remain visually subordinate to the transport and score. */
+#playing .play-tools{display:flex;align-items:center;gap:16px;flex:none}
+#playing .live-volume{display:grid;grid-template-columns:1fr auto;column-gap:8px;row-gap:4px;color:var(--muted);font-size:12px;min-width:132px}
+#playing .live-volume input{grid-column:1;grid-row:2;width:112px;min-width:0;accent-color:var(--accent)}
+#playing .live-volume output{grid-row:2;grid-column:2;align-self:center;font-variant-numeric:tabular-nums;color:var(--ink)}
+#playing .play-tool{width:44px;height:44px;border:1px solid var(--line);border-radius:6px;display:grid;place-items:center;color:var(--ink)}
+#playing .play-tool svg{width:22px;height:22px}
+#playing .play-tool[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
+#playing .live-feedback{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px 16px;min-height:40px}
+#playing #liveAccuracy{margin:0;font-size:15px;line-height:1.35}
+#playing .live-hit-count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+#playing .play-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);gap:10px;max-width:620px;margin:18px auto 0}
+#playing .play-actions button{min-width:0;min-height:62px;padding:10px 8px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:650;color:var(--ink);white-space:normal;line-height:1.2}
+#playing .play-actions button span:first-child{font-size:22px;line-height:1}
+#playing .play-actions .pause-control{background:var(--accent);border-color:var(--accent);color:#171411}
+#playing .play-actions .stop{color:var(--accent)}
+#playing .play-actions button:hover{border-color:var(--muted)}
+#playing .play-actions button:disabled{opacity:.5}
+#playing .pause-status{color:var(--accent);font-size:16px;line-height:1.4;text-align:center;margin:0 0 12px}
 #playing.is-paused .beat-lights i.on{opacity:.45}
-@media(max-width:600px){#playing .play-head{flex-wrap:wrap;gap:8px}#playing .play-actions{width:100%;justify-content:flex-end}#playing .pause-control{min-height:44px;padding:8px 12px;font-size:13px}#playing .play-actions .stop{min-height:44px}}
+#playing .play-shortcuts,#playing .play-device-note{color:var(--muted);font-size:12px;line-height:1.4;text-align:center;margin:10px 0 0}
+#playing .play-device-note{margin-top:3px}
+@media(max-width:600px){
+ #playing .play-head{flex-wrap:wrap;gap:8px}
+ #playing .play-tools{width:100%;justify-content:space-between;gap:8px}
+ #playing .live-volume{grid-template-columns:auto minmax(80px,1fr) 38px;align-items:center;flex:1;gap:8px}
+ #playing .live-volume input{grid-column:2;grid-row:1;width:100%}
+ #playing .live-volume output{grid-row:1;grid-column:3}
+ #playing .play-actions{gap:6px;margin-top:12px}
+ #playing .play-actions button{min-height:58px;flex-direction:column;gap:4px;font-size:12px;padding:6px 3px}
+ #playing .play-actions button span:first-child{font-size:19px}
+ #playing .play-shortcuts{display:none}
+ #playing .live-feedback{min-height:36px}
+}
