@@ -252,3 +252,6 @@
 #playing #liveMinus{grid-column:1;grid-row:1;justify-self:center}
 #playing #livePlus{grid-column:3;grid-row:1;justify-self:center}
 #playing #liveTempoRange{grid-column:1/-1;grid-row:2}
+
+#lab #calPhase{max-width:500px;line-height:1.4}
+#lab .cal-track .cal-stage-result{font-size:11px}

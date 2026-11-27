@@ -148,7 +148,7 @@ export default {
   ],
   "stageInstructions": [
     "Stay quiet for 3 seconds.",
-    "Do not play. Eight clicks will sound.",
+    "Do not play. Sixteen clicks will sound, in normal and fast groups.",
     "Play exactly 10 normal strokes.",
     "Play exactly 10 quiet strokes.",
     "Play exactly 20 fast strokes.",

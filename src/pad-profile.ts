@@ -4,7 +4,7 @@ import {detect,type Capture,type Frame} from './calibration';
 export const PAD_BANDS=[250,500,1000,2000,4000,8000] as const;
 export type PadProfile={weights:number[];noise:number;sensitivity:number};
 export const trainingSteps=['noise','leak','normal','quiet'] as const;
-export function spectralFrames(c:Capture){return c.frames.length>=100&&c.frames.every(f=>f[5]?.length===PAD_BANDS.length&&f[5].every(v=>Number.isFinite(v)&&v>=0));}
+export function spectralFrames(c:Capture){return c.frames.length>=100&&c.frames.every(f=>{const bands=f[5];return bands?.length===PAD_BANDS.length&&bands.every(v=>Number.isFinite(v)&&v>=0);});}
 export function bandEnergy(bands:readonly number[],weights:readonly number[]){let e=0;for(let i=0;i<weights.length;i++)e+=bands[i]*weights[i];return e;}
 export function profileFrames(frames:readonly Frame[],profile:Pick<PadProfile,'weights'|'noise'>):Frame[]{
  return frames.map(f=>[f[0],bandEnergy(f[5]!,profile.weights),f[2],profile.noise,1,f[5]]);

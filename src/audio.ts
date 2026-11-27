@@ -27,7 +27,7 @@ export class PulseEngine{
   this.stream=stream;this.mic=true;}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
  }
  disableMic(){this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
- setPadProfile(profile:PadProfile|null){this.detector?.port.postMessage({padProfile:profile});}
+ setPadProfile(profile:PadProfile|null){this.detector?.port.postMessage(profile?{padProfile:profile,sensitivity:profile.sensitivity}:{padProfile:null});}
  setSensitivity(v:number){this.detector?.port.postMessage({sensitivity:v});}
  configureSound(c:Config){
   if(this.sound!==c.sound){this.sound=c.sound;this.clickBuffers.clear();this.detector?.port.postMessage({frequencies:[...frequencies(this.sound)]});}
@@ -43,7 +43,7 @@ export class PulseEngine{
    if(!this.mic||!this.stream?.getAudioTracks().some(t=>t.readyState==='live')||document.hidden)throw new Error('Diagnostic interrupted');
    this.captureFrames=[];this.captureHits=0;this.diagnosticLiveCount=0;this.detector!.port.postMessage({capture:true});
    const start=this.ctx!.currentTime+.5;
-   if(step==='leak'||step==='mixed'){const count=step==='leak'?8:10;for(let i=0;i<count;i++)this.click(start+i*(step==='leak'?.5:.67),i%4===0,step==='mixed'||i%2===0);}
+   if(step==='leak'){for(let i=0;i<8;i++)this.click(start+i*.32,i%4===0,i%2===0);const dense=Math.max(.025,Math.min(.12,60/c.bpm/(c.clickSub?c.sub:1)));for(let i=0;i<8;i++)this.click(start+2.8+i*dense,i%4===0,i%2===0);}else if(step==='mixed'){for(let i=0;i<10;i++)this.click(start+i*.67,i%4===0,true);}
    await new Promise<void>(resolve=>window.setTimeout(resolve,seconds*1000));
    await new Promise<void>((resolve,reject)=>{
     const timeout=window.setTimeout(()=>{this.captureDone=null;reject(new Error('Diagnostic capture timed out'));},1000);
