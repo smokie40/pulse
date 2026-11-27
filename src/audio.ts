@@ -89,7 +89,7 @@ export class PulseEngine{
    probeGain=ctx.createGain();probeGain.gain.value=Math.min(.75,c.volume/100*.65);probeGain.connect(ctx.destination);
    for(const start of starts){const v=ctx.createBufferSource();v.buffer=buffer;v.connect(probeGain);voices.push(v);v.start(start/rate);}
    const samples=await capture;
-   if(signal.aborted||document.hidden||!this.mic||this.ctx!==ctx||this.source!==source||ctx.state!=='running')return null;
+   if(signal.aborted||document.hidden||!this.mic||this.ctx!==ctx||this.source!==source||ctx.state!=='running'||!this.stream?.getAudioTracks().some(t=>t.readyState==='live'))return null;
    const measured=estimateLatency(samples,probe,starts.map(s=>s-begin),rate);
    this.latency=measured;return measured;
   }catch{return null;}finally{
