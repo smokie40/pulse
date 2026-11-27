@@ -148,3 +148,7 @@ Shared tempo-evidence contract and historical working-tempo calculation, includi
 ## v1.0.0-rc.12
 
 Behavior-preserving structural refactor. Studio locale catalog is resolved once, notation and musical illustrations accept explicit state, measured SVG reports are isolated, practice-field/formatting helpers are shared, and the stylesheet is moved out of HTML with the cascade preserved. Render stages are explicit functions rather than late overrides. The controller still owns navigation, microphone lifecycle and session state; those are not rewritten in this change. The classic page remains available. No change to the detector, visual baseline or measurement rules.
+
+## v1.0.0-rc.13
+
+Incremental live timing statistics with late-hit invalidation, bounded recent-note lookup, stable per-bar notation with moving current-note highlight, cancellation of obsolete microphone connection requests, hidden-page start guard and calibration reset on back-forward cache restoration. Final metrics retain the existing formulas. No hit-detector changes. Tests compare incremental/full statistics including long sessions and verify live SVG reuse.

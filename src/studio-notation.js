@@ -10,7 +10,7 @@ export function notesIcon(n){
   return `<svg viewBox="0 0 80 40" aria-hidden="true">${a}</svg>`;
 }
 
-export function renderNotation({beats,sticking,mode,width:viewportWidth},n,now=-1,bar=0,offset=bar*beats*n){
+export function renderNotation({beats,sticking,mode,width:viewportWidth},n,now=-1,bar=0,offset=bar*beats*n,live=false){
   const perRow=viewportWidth<=800?Math.min(2,beats):beats;
   const width=viewportWidth<=800?440:Math.max(880,beats*n*22);
   const height=Math.ceil(beats/perRow)*127;
@@ -26,9 +26,11 @@ export function renderNotation({beats,sticking,mode,width:viewportWidth},n,now=-
     for(let j=0;j<n;j++){
       const x=xs[j],k=b*n+j,is=k===now,ink=is?'#ff7840':now>=0&&k<now?'#85888c':'#eeedea';
       const hand=sticking[(offset+k)%sticking.length];
+      if(live)out+=`<g data-note-index="${k}">`;
       if(mode==='accent'&&j===bar%n)out+=`<text x="${x}" y="23" fill="${ink}" font-size="20" text-anchor="middle">›</text>`;
-      if(is)out+=`<rect x="${x-dist*.43}" y="25" width="${dist*.86}" height="97" rx="5" fill="#35251e"/><path d="M${x} 22v-5" stroke="#ff7840" stroke-width="3" stroke-linecap="round"/>`;
+      if(is||live)out+=`<rect ${live?'data-note-highlight="" visibility="hidden" ':''}x="${x-dist*.43}" y="25" width="${dist*.86}" height="97" rx="5" fill="#35251e"/><path ${live?'data-note-highlight="" visibility="hidden" ':''}d="M${x} 22v-5" stroke="#ff7840" stroke-width="3" stroke-linecap="round"/>`;
       out+=`<ellipse cx="${x}" cy="${sy}" rx="7" ry="4.8" transform="rotate(-20 ${x} ${sy})" fill="${ink}"/><path d="M${x+5.5} ${sy-1}V${top}" stroke="${ink}" stroke-width="1.7"/><text x="${x}" y="103" fill="${is?'#ff7840':now>=0&&k<now?'#85888c':'#c9c9c7'}" font-size="24" font-weight="650" text-anchor="middle">${hand}</text><text x="${x}" y="120" fill="#77797d" font-size="10" text-anchor="middle">${j===0?b+1:n===4?['','e','&amp;','a'][j]:n===2?'&amp;':'·'}</text>`;
+      if(live)out+='</g>';
     }
     for(let i=0;i<beams;i++)out+=`<path d="M${xs[0]+5.5} ${top+i*6}H${xs[n-1]+5.5}" stroke="#eeedea" stroke-width="3.6"/>`;
     if([3,5,6].includes(n))out+=`<text x="${(xs[0]+xs[n-1])/2}" y="30" fill="#b0b0b0" font-size="11" text-anchor="middle">${n}</text>`;
@@ -82,3 +84,20 @@ export function renderMusicArt(t,kind,opts={}){
  return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true">'+parts.join('')+'</svg>';
 }
 export function renderRouteArt(t,x,pending=false){if(pending)return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true"><path d="M10 50 H42 V40 H74 V28 H106 V16" fill="none" stroke="#ff7840" stroke-width="2.5"/><path d="M118 16 L138 35 H190" fill="none" stroke="#a8a9aa" stroke-width="2" stroke-dasharray="4 4"/></svg>';if(x.mode==='ladder'&&x.ladderMax!==undefined){const values=Array.from({length:5},(_,i)=>Math.min(x.ladderMax,x.bpm+i*(x.ladderStep??5))),y=v=>52-36*(v-x.bpm)/Math.max(1,x.ladderMax-x.bpm);return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true"><path d="M8 '+y(values[0])+values.map((v,i)=>' H'+(8+i*40)+' V'+y(v)).join('')+' H192" stroke="#ff7840" stroke-width="2" fill="none"/></svg>';}return renderMusicArt(t,x.mode,x);}
+
+// Update only the former/current note and any skipped notes when a frame arrives late.
+export function createLiveNotation(container){
+ let key='',last=-1,nodes=[];
+ function update(context,n,step,bar,offset){
+  const nextKey=[context.beats,context.sticking,context.mode,context.width<=800,n,bar,offset].join(':');
+  if(nextKey!==key){container.innerHTML=renderNotation(context,n,-1,bar,offset,true);nodes=[...container.querySelectorAll('[data-note-index]')];key=nextKey;last=-1;}
+  if(step===last)return;
+  const from=Math.max(0,Math.min(last,step)),to=Math.min(nodes.length-1,Math.max(last,step));
+  for(let i=from;i<=to;i++){
+   const node=nodes[i];node.classList.toggle('note-current',i===step);node.classList.toggle('note-past',i<step);
+   for(const highlight of node.querySelectorAll('[data-note-highlight]'))highlight.setAttribute('visibility',i===step?'visible':'hidden');
+  }
+  last=step;
+ }
+ return {update};
+}

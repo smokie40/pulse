@@ -1,5 +1,5 @@
 import {translations} from './studio-i18n.js';
-import {notesIcon,renderNotation,renderMusicArt,renderRouteArt} from './studio-notation.js';
+import {notesIcon,renderNotation,renderMusicArt,renderRouteArt,createLiveNotation} from './studio-notation.js';
 import {renderTempoChart,renderActivityChart,renderComparisonChart,timingDistribution,renderDistributionChart,renderSegmentChart} from './studio-charts.js';
 import {practiceFields,localDay,fmt} from './studio-state.js';
 import {PulseEngine} from './audio';
@@ -126,7 +126,7 @@ $('settingsBtn').onclick=()=>{dialog(t('settings'),`<label>${t('beats')}</label>
 
 function renderResultSummary(){if(!session)return;const m=session; $('resultExercise').textContent=(exercises.find(e=>e.id===m.cfg.mode)?.[lang][0]??'PULSE')+' · '+(patternNames()[stickings.indexOf(m.cfg.rudiment)]??m.cfg.rudiment)+' · '+(['burst','morph'].includes(m.cfg.mode)?t('variableNotes'):t('notes')[subdivisions.indexOf(m.cfg.sub)])+' · '+m.cfg.beats+'/4';$('resultTime').textContent=fmt(m.elapsed);$('resultStart').innerHTML=m.initial+' <small>BPM</small>';$('resultEnd').innerHTML=m.last+' <small>BPM</small>'; const w=700,h=100,values=m.points.map(p=>p.bpm),lo=Math.min(...values)-5,hi=Math.max(...values)+5,den=Math.max(1,m.elapsed);const y=v=>84-(v-lo)/(hi-lo)*58;let d='M 44 '+y(m.initial);for(const p of m.points.slice(1)){const x=44+Math.min(1,p.time/den)*640;d+=' H '+x+' V '+y(p.bpm)}d+=' H 684';$('resultGraph').innerHTML='<svg viewBox="0 0 700 100" role="img" aria-label="'+t('tempoHistory')+'"><text x="8" y="13" fill="#a8a9aa" font-size="11">'+t('tempoHistory')+'</text>'+[lo+5,Math.round((lo+hi)/2),hi-5].filter((v,i,a)=>a.indexOf(v)===i).map(v=>'<path d="M44 '+y(v)+' H684" stroke="#383b40" stroke-dasharray="3 4"/><text x="36" y="'+(y(v)+4)+'" text-anchor="end" fill="#a8a9aa" font-size="10">'+v+'</text>').join('')+'<path d="'+d+'" fill="none" stroke="#ff7840" stroke-width="2.4"/><text x="44" y="96" fill="#85888c" font-size="10">00:00</text><text x="684" y="96" text-anchor="end" fill="#85888c" font-size="10">'+fmt(m.elapsed)+'</text></svg>';}
 async function start(){
- if(active||starting||calBusy||micConnecting||page!=='setup')return;
+ if(active||starting||calBusy||micConnecting||page!=='setup'||document.hidden)return;
  starting=true;for(const id of ['trainingBtn','progressBtn','libraryBtn','labBtn','soundBtn','settingsBtn'])$(id).disabled=true;setBpm($('bpm').value);$('start').disabled=true;$('practiceError').textContent='';
  try{
   if(planRun?.probe&&(!verified||!engine.mic)){const context={rudiment:planRun.diagnostic.rudiment,sub:planRun.diagnostic.sub};const fromProgress=planRun.fromProgress;openGuide('probe',context);guideReturnProgress=fromProgress;return;}
@@ -135,11 +135,12 @@ async function start(){
   if(mode==='adaptive'&&!(verified&&engine.mic)){openGuide('adaptive');return;}
   runVerified=verified&&engine.mic;
   const cfg=config();const planned=planRun?.items[planRun.index];if(planned?.ladderMax!==undefined){cfg.ladderStep=planned.ladderStep;cfg.ladderMax=Math.max(cfg.bpm,planned.ladderMax);}await engine.start(cfg);
+  if(document.hidden){engine.stop();return;}
   active=true;requestedBpm=null;session={initial:bpm,last:bpm,elapsed:0,points:[{time:0,bpm}],cfg,stats:null,verified:runVerified,planRef:planRun,planIndex:planRun?.index};
   showPage('playing');$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;
   $('beatLights').innerHTML=Array.from({length:beats},(_,i)=>'<i>'+(i+1)+'</i>').join('');
   $('timerLabel').dataset.t=minutes?'remaining':'elapsed';$('timerLabel').textContent=t(minutes?'remaining':'elapsed');$('liveProgress').hidden=!minutes;
-  let lastVisual=-1;
+  const liveNotation=createLiveNotation($('liveStaff'));let lastVisual=-1,lastCompact=null;
   function frame(){
    if(!active)return;const snap=engine.snapshot(),cur=snap.current;
    if(!snap.active){stop();return;}
@@ -155,7 +156,7 @@ async function start(){
    const target=requestedBpm??actual;$('liveTempoRange').value=target;$('liveTempoRange').style.setProperty('--fill',((target-30)/270*100)+'%');
    Array.from($('beatLights').children).forEach((el,i)=>el.classList.toggle('on',!silent&&(counting?snap.countBeat>0&&i===(snap.countBeat-1)%beats:!!cur&&i===Math.floor(cur.step/cur.sub))));
    if(counting)$('countdown').textContent=snap.countBeat>0?(snap.countBeat-1)%beats+1:'—';
-   else if(cur&&cur.global!==lastVisual){if(!silent){$('barLabel').textContent=t('bar')+' '+(cur.bar+1);$('liveStaff').innerHTML=notation(cur.sub,cur.step,cur.bar,cur.global-cur.step);}lastVisual=cur.global;}
+   else if(cur&&(cur.global!==lastVisual||lastCompact!==(innerWidth<=800))){if(!silent){$('barLabel').textContent=t('bar')+' '+(cur.bar+1);liveNotation.update({beats,sticking:stickings[pattern],mode,width:innerWidth},cur.sub,cur.step,cur.bar,cur.global-cur.step);}lastVisual=cur.global;lastCompact=innerWidth<=800;}
    if(cur&&actual!==session.last){session.last=actual;session.points.push({time:Math.max(0,cur.time-engine.startTime),bpm:actual});}
    $('remaining').textContent=minutes?fmt(minutes*60-snap.elapsed):fmt(snap.elapsed);$('progressBar').style.width=minutes?Math.min(100,100*snap.elapsed/(minutes*60))+'%':'0%';
    const st=snap.stats;$('liveAccuracy').hidden=silent||counting||!snap.measured;$('liveAccuracy').textContent=snap.measured&&st.expected>=12&&st.hits>=st.expected*.5?st.accuracy+'% · '+t(runVerified?'accuracy':'uncheckedAccuracy'):t('collecting');
@@ -343,7 +344,8 @@ $('labVol').oninput=e=>{volume=+e.target.value;engine.configureSound(config());p
 $('previewClick').onclick=async()=>{try{await engine.preview(config())}catch{calError='previewError';renderLab()}};
 $('exportCal').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:'0.7.0',settings:config(),captures:calResults.filter(Boolean)})],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='pulse-diagnostic.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 setInterval(updateMeter,100);
-window.addEventListener('pagehide',()=>{if(active)stop();engine.stop();engine.disableMic()});
+window.addEventListener('pagehide',()=>{if(active)stop();engine.stop();engine.disableMic();verified=false;runVerified=false;});
+window.addEventListener('pageshow',e=>{if(e.persisted)resetCal();});
 // The histogram counts every matched eligible stroke in the same cutoff as the final summary.
 // Only aggregate bins are kept in the live result; no raw hit times are added to history.
 function renderAnalysis(){
