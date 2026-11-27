@@ -44,7 +44,7 @@ function exercise(){return exercises.find(e=>e.id===mode)}
 function glyph(id){let art='';const orange='#ff7840',grey='#72757a';if(id==='ladder'||id==='adaptive'){const pts=id==='ladder'?'M12 53 H48 V43 H84 V32 H120 V21 H156 V10 H188':'M12 51 H48 V33 H84 V43 H120 V23 H156 V12 H188';art='<path d="'+pts+'" fill="none" stroke="'+orange+'" stroke-width="2.5" stroke-linejoin="round"/>';}
 else {const groups=id==='morph'?[2,3,4,6]:id==='burst'?[2,2,4,4]:[4,4,4,4];let index=0;for(let b=0;b<4;b++){const n=groups[b];for(let j=0;j<n;j++){const x=12+b*46+(j+.5)*38/n;const mute=id==='ghost'&&b>=2;const a=id==='accent'?j===b:j===0;const h=a?35:21;art+='<rect x="'+x+'" y="'+(33-h/2)+'" width="3.5" height="'+h+'" rx="1.7" fill="'+(mute?'#383b3f':a?orange:grey)+'"/>';index++;}if(b<3)art+='<path d="M'+(57+b*46)+' 12V54" stroke="#34363a" stroke-dasharray="2 4"/>';}}
 return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true">'+art+'</svg>'}
-function renderLibrary(){ $('exerciseLibrary').innerHTML=exercises.map(e=>'<button class="exercise-tile choice-tile" data-mode="'+e.id+'">'+musicArt(e.id)+'<span class="exercise-copy choice-copy"><strong>'+e[lang][0]+'</strong><span class="choice-caption">'+t('shortMode_'+e.id)+'</span><span class="tile-arrow choice-arrow" aria-hidden="true">›</span></span></button>').join('');}
+function renderLibrary(){ $('exerciseLibrary').innerHTML=exercises.map(e=>'<button class="exercise-tile choice-tile" data-mode="'+e.id+'"><span class="exercise-copy choice-copy"><strong>'+e[lang][0]+'</strong><span class="choice-caption">'+t('shortMode_'+e.id)+'</span><span class="tile-arrow choice-arrow" aria-hidden="true">›</span></span>'+musicArt(e.id)+'</button>').join('');}
 function showPage(p,detail=false){
  if(p==='training'){guidePurpose=null;leavePlan();trainingDetail=detail;if(detail&&checkpoint)planRun=checkpoint;}
  else if(['library','progress','skills'].includes(p))leavePlan();
@@ -270,7 +270,7 @@ function musicArt(kind,opts={}){
   for(let i=0;i<total;i++){const x=8+(i+.5)*w,bar=Math.floor(i/n),accent=i%n===bar%n;if(i>0&&i%n===0)parts.push(line(8+i*w,19,50));parts.push(note(x,39,Math.min(accent?4.15:2.35,w*.37)));if(accent)parts.push('<path d="M'+(x-3.5)+' 16 l7 3 -7 3" stroke="'+white+'" stroke-width="1.4" stroke-linejoin="round" fill="none"/>');}
  }
  else if(kind==='endurance'){
-  for(let i=0;i<20;i++){const x=8+i*9.65;if(i%4===0)parts.push(line(x,10,40));parts.push(note(x,28));}
+  for(let i=0;i<20;i++){const x=8+i*9.65;parts.push(note(x,28));}
   parts.push('<path d="M8 43 V49 H192 V43" fill="none" stroke="#919498" stroke-width="1.1"/>',label(8,62,t('artStart')),label(192,62,t('artEnd'),'end'));
  }
  else if(kind==='steady'){
@@ -324,7 +324,7 @@ function renderHome(){
  $('homeArt').hidden=!checkpoint;
  $('welcomeStart').textContent=t(checkpoint?'continuePlan':'viewPlan');
  $('homeArt').hidden=true;$('homeViewPlan').hidden=!checkpoint;$('homeCancel').hidden=!checkpoint;const ready=!!(engine.mic&&verified);$('homeMicStatus').textContent=t(ready?'analysisReady':engine.mic?'analysisUnchecked':'analysisOff');$('homeMicStatus').classList.toggle('positive',ready);$('homeMic').textContent=t(ready?'checkMic':'configureMic');$('homeMic').disabled=micConnecting||calBusy;const work=checkedTempo();$('homeProbe').textContent=t(work===null?'homeCheckTempo':'homeRecheckTempo');$('homeTempoValue').hidden=work===null;$('homeTempoValue').textContent=work===null?'':work+' BPM';$('homeTempoContext').hidden=work===null;$('homeTempoContext').textContent=patternNames()[stickings.indexOf(focusRudiment)]+' · '+t('notes')[subdivisions.indexOf(focusSub)]+(work===null?'':' · '+t(profile().confirmedWorking?'tempoConfirmedShort':'tempoEstimatedShort'));
- $('skillPath').innerHTML=skillIds.map(k=>'<button class="home-skill choice-tile" data-skill="'+k+'">'+skillArt(k)+'<span class="home-skill-copy choice-copy"><strong>'+t('skill_'+k)+'</strong><span class="choice-caption">'+t('shortGoal_'+k)+'</span><span class="home-arrow choice-arrow" aria-hidden="true">›</span></span>'+homeSkillStatus(k)+'</button>').join('');
+ $('skillPath').innerHTML=skillIds.map(k=>'<button class="home-skill choice-tile" data-skill="'+k+'"><span class="home-skill-copy choice-copy"><strong>'+t('skill_'+k)+'</strong><span class="choice-caption">'+t('shortGoal_'+k)+'</span><span class="home-arrow choice-arrow" aria-hidden="true">›</span></span>'+skillArt(k)+homeSkillStatus(k)+'</button>').join('');
 }
 function selectGoal(skill,manual=true){
  const proceed=()=>{if(checkpoint&&checkpoint.skill!==skill)discardPlan();focusSkill=skill;manualFocus=manual;finishWelcome();showPage('training',true);};

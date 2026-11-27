@@ -132,3 +132,7 @@ RC7 optical follow-up: balanced diagram typography and weights, simplified illus
 ## v1.0.0-rc.8
 
 Unified goal and exercise selection surfaces: shared responsive grid, diagram dimensions, typography, subtle borders and hover targets; full-width adaptive mode with the same diagram scale. Compact training entry and clearer diagram semantics. New browser checks compare rendered dimensions across tabs at desktop, tablet and phone widths. Detector, scoring, training engine and storage are unchanged.
+
+## v1.0.0-rc.9
+
+Open score-inspired selection surfaces: title and short caption precede musical diagrams; internal vertical rules and shared horizontal rules define the choices without card fills or enclosing borders. Both tabs retain identical responsive diagram scale, typography and click targets. Adaptive mode remains a separate full-width row. No detection, scoring, storage or training algorithm changes.
