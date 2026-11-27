@@ -168,3 +168,7 @@ Training route lifecycle is isolated in a dedicated controller: active route, pe
 ## v1.0.0-rc.17
 
 Centralized practice configuration, temporary drill preparation, persisted free-practice parameters and restoration in a dedicated state owner. Audio and calibration preferences remain shared across guided and free practice; fractional diagnostic durations are preserved. Controller and settings handlers use snapshots and explicit patches. Added state regression tests. No intentional UI, detector, scoring, or storage-schema changes.
+
+## v1.0.0-rc.18
+
+Screen transitions and microphone-guide return context have one navigation owner. DOM screen visibility, active tabs and navigation locks are handled by a separate presenter. Preserves plan checkpoint restoration and probe return routing. Added navigation regression tests. No intentional visual, scoring, audio or storage changes.
