@@ -16,15 +16,20 @@ function wait(ms:number,signal:AbortSignal){return new Promise<void>((resolve,re
 export class PulseEngine{
  private liveStats=new LiveStats();
  private micRevision=0;
- private startRevision=0; private captureController:AbortController|null=null;
+ private startRevision=0; private startController:AbortController|null=null; private captureController:AbortController|null=null;
  private workletReady:Promise<void>|null=null;
  interrupted=false;
  ctx:AudioContext|null=null; gain:GainNode|null=null; stream:MediaStream|null=null; detector:AudioWorkletNode|null=null; source:MediaStreamAudioSourceNode|null=null; sink:GainNode|null=null;
  notes:Note[]=[]; extra=0; extraTimes:number[]=[]; stages:Stage[]=[]; adaptiveBpm=120; active=false; mic=false; measured=false; startTime=0; endTime=0; stoppedAt=0; cfg:Config|null=null;
  private timer:number|undefined; private next=0; private countStart=0; private countNext=0; private countIndex=0; private bar=0; private step=0; private global=0; private voices=new Map<AudioBufferSourceNode,GainNode>(); private clickBuffers=new Map<ClickKind,AudioBuffer>(); micEvents=0; private testing=false; private testEvents=0; private previewRevision=0; private sound:ClickSound='soft'; private levels=[100,100,100]; meterRms=0; meterPeak=0; private captureFrames:Frame[]|null=null; private diagnostic=false; private captureHits=0; diagnosticLiveCount=0; private captureDone:(()=>void)|null=null;
- async init(){if(!this.ctx||this.ctx.state==='closed'){if(this.mic)this.disableMic();const ctx=this.ctx=new AudioContext({latencyHint:'interactive'});this.workletReady=null;this.clickBuffers.clear();this.gain=ctx.createGain();this.gain.connect(ctx.destination);ctx.addEventListener('statechange',()=>{if(this.ctx===ctx&&ctx.state!=='running'&&(this.active||this.captureController))this.cancelPending();});}await this.ctx.resume();}
+ async init(signal?:AbortSignal){if(!this.ctx||this.ctx.state==='closed'){if(this.mic)this.disableMic();const ctx=this.ctx=new AudioContext({latencyHint:'interactive'});this.workletReady=null;this.clickBuffers.clear();this.gain=ctx.createGain();this.gain.connect(ctx.destination);ctx.addEventListener('statechange',()=>{if(this.ctx===ctx&&ctx.state!=='running'&&(this.active||this.captureController))this.cancelPending();});}const ctx=this.ctx;await new Promise<void>((resolve,reject)=>{
+  if(signal?.aborted){reject(abortError());return;}let settled=false;
+  const finish=(error?:unknown)=>{if(settled)return;settled=true;window.clearTimeout(timeout);signal?.removeEventListener('abort',cancel);if(error)reject(error);else resolve();};
+  const cancel=()=>finish(abortError());const timeout=window.setTimeout(()=>finish(new Error('AudioContext resume timed out')),4000);signal?.addEventListener('abort',cancel,{once:true});
+  try{ctx.resume().then(()=>finish(),error=>finish(error));}catch(error){finish(error);}
+ });if(ctx.state!=='running')throw new Error('AudioContext is not running');}
  // An interrupted session is not eligible as completed control evidence.
- cancelPending(){this.startRevision++;this.previewRevision++;if(!this.mic)this.micRevision++;this.captureController?.abort();if(this.active)this.interrupted=true;this.stop();}
+ cancelPending(){this.startRevision++;this.startController?.abort();this.previewRevision++;if(!this.mic)this.micRevision++;this.captureController?.abort();if(this.active)this.interrupted=true;this.stop();}
  async enableMic(sensitivity:number){
   if(this.mic)return;const revision=++this.micRevision;await this.init();if(revision!==this.micRevision)throw new Error('Microphone request cancelled');
   if(!navigator.mediaDevices?.getUserMedia||!this.ctx!.audioWorklet)throw new Error('Микрофон требует HTTPS и поддержки AudioWorklet.');
@@ -47,7 +52,7 @@ export class PulseEngine{
   if(!this.mic||this.active||this.testing||this.captureController)throw new Error('Diagnostic unavailable');
   const controller=new AbortController();this.captureController=controller;const signal=controller.signal;this.diagnostic=true;
   try{
-   await this.init();if(signal.aborted)throw abortError();
+   await this.init(signal);if(signal.aborted)throw abortError();
    this.stop();this.configureSound(c);this.setSensitivity(c.sensitivity);
    await wait(1500,signal);
    if(!this.mic||!this.stream?.getAudioTracks().some(t=>t.readyState==='live')||document.hidden)throw abortError();
@@ -86,7 +91,7 @@ export class PulseEngine{
    return this.testEvents;
   }finally{this.testing=false;}
  }
- async start(c:Config){if(this.captureController||this.testing)throw new Error('Audio busy');const revision=++this.startRevision;this.previewRevision++;await this.init();if(revision!==this.startRevision||document.hidden||this.ctx?.state!=='running')throw abortError();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.interrupted=false;this.configureSound(c);this.cfg={...c};this.notes=[];this.liveStats.reset();this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
+ async start(c:Config){if(this.captureController||this.testing)throw new Error('Audio busy');const revision=++this.startRevision;this.startController?.abort();const controller=new AbortController();this.startController=controller;this.previewRevision++;try{await this.init(controller.signal);}finally{if(this.startController===controller)this.startController=null;}if(revision!==this.startRevision||document.hidden||this.ctx?.state!=='running')throw abortError();if(c.mode==='adaptive'&&!this.mic)throw new Error('Adaptive speed требует включённого микрофона.');this.stop();this.interrupted=false;this.configureSound(c);this.cfg={...c};this.notes=[];this.liveStats.reset();this.extra=0;this.extraTimes=[];this.stages=[];this.adaptiveBpm=c.bpm;this.measured=this.mic;this.bar=0;this.step=0;this.global=0;this.gain!.gain.value=c.volume/100*.45;this.setSensitivity(c.sensitivity);
   this.countStart=this.ctx!.currentTime+.15;this.countNext=this.countStart;this.countIndex=0;this.startTime=this.countStart+c.countIn*c.beats*60/c.bpm;this.next=this.startTime;this.endTime=this.startTime+(c.minutes>0?c.minutes*60:86400);this.stoppedAt=this.startTime;this.active=true;this.schedule();if(this.active)this.timer=window.setInterval(()=>this.schedule(),25);}
  // Apply manual tempo to future notes only; already scheduled clicks are never moved.
  setLiveTempo(value:number):boolean{if(!this.active||!this.ctx||!this.cfg||this.ctx.currentTime<this.startTime||this.cfg.mode==='adaptive'||this.cfg.mode==='ladder')return false;this.cfg.bpm=Math.max(30,Math.min(300,Math.round(value)));return true;}

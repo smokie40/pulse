@@ -43,3 +43,9 @@ test('unmeasured hour-long scheduler retains only a bounded display buffer',asyn
  for(let i=1;i<=3600*40;i++){clock.currentTime=i*.025;schedule();if(!engine.active)throw Error('unexpected interruption');}
  expect(engine.notes.length).toBeLessThanOrEqual(2048);expect(engine.snapshot().elapsed).toBeGreaterThan(3599);expect(engine.snapshot().current?.global).toBeGreaterThan(143000);engine.stop();
 });
+
+test('an unavailable AudioContext times out instead of locking the start button indefinitely',async()=>{
+ vi.useFakeTimers();const {engine,clock}=fixture();clock.resume.mockImplementationOnce(()=>new Promise<void>(()=>{}));
+ const pending=engine.start({...defaults,countIn:0});const rejected=expect(pending).rejects.toThrow('resume timed out');await vi.advanceTimersByTimeAsync(4000);await rejected;expect(engine.active).toBe(false);
+ await engine.start({...defaults,countIn:0});expect(engine.active).toBe(true);engine.stop();
+});

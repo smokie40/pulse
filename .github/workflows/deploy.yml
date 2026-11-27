@@ -28,6 +28,12 @@ jobs:
             if grep -q 'packages.microsoft.com' "$file"; then sudo mv "$file" "$file.disabled"; fi
           done
       - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Provide a virtual audio output on the headless runner
+        run: |
+          sudo apt-get install -y pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=pulse_ci
+          pactl set-default-sink pulse_ci
       - run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3
         with:
