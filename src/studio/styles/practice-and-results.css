@@ -240,3 +240,10 @@
 
 #playing .live-volume input:disabled{opacity:.45;cursor:default}
 #playing .play-actions .pause-control:hover:not(:disabled){background:#ff8c59;color:#171411}
+
+/* Generous range hit area without increasing the visible track thickness. */
+#playing #liveTempoRange{height:32px;background:transparent;cursor:pointer}
+#playing #liveTempoRange::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:linear-gradient(to right,var(--accent) 0 var(--fill,18.5%),#35373a var(--fill,18.5%) 100%)}
+#playing #liveTempoRange::-webkit-slider-thumb{margin-top:-6px}
+#playing #liveTempoRange::-moz-range-track{height:4px;border-radius:999px;background:linear-gradient(to right,var(--accent) 0 var(--fill,18.5%),#35373a var(--fill,18.5%) 100%)}
+#playing #liveTempoRange:disabled{cursor:default}

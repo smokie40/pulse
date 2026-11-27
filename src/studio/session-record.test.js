@@ -16,3 +16,5 @@ test('a guided control with incorrect count-in cannot be certified as planned',(
 test('a paused control is preserved but cannot certify uninterrupted playing',()=>{const planRef={skill:'timing',items:[{...cfg,name:'control'}]};const out=buildSessionRecord({...base,planRef,planIndex:0,paused:true,verified:true});expect(out.completed).toBe(false);expect(out.record).toMatchObject({paused:true,completed:false,recognitionVerified:false,seconds:60});expect(buildSessionRecord({...base,paused:true,verified:true}).record).toMatchObject({paused:true,completed:true,recognitionVerified:false});});
 
 test('changing volume during a measured control prevents certification',()=>{const planRef={skill:'timing',items:[{...cfg,name:'control'}]};const out=buildSessionRecord({...base,planRef,planIndex:0,verified:true,volumeChanged:true});expect(out.record).toMatchObject({completed:false,recognitionVerified:false,volumeChanged:true});});
+
+test('manual tempo input is recorded even if changed back before a rendered note',()=>{expect(buildSessionRecord({...base,manualTempoChanged:true}).record.manualTempoChanged).toBe(true);});

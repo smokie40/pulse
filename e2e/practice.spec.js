@@ -37,8 +37,18 @@ test('live transport restarts in place and keeps current volume without saving a
  await page.locator('#liveVolume').evaluate(el=>{el.value='37';el.dispatchEvent(new Event('input',{bubbles:true}));});await expect(page.locator('#liveVolumeValue')).toHaveText('37%');
  await page.locator('#restartPlay').click();await expect(page.locator('#playing')).toBeVisible();await expect(page.locator('#remaining')).toHaveText('00:00');await expect(page.locator('#liveBpm')).toHaveText('140');await expect(page.locator('#liveVolumeValue')).toHaveText('37%');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-history')||'[]').length)).toBe(0);
- const score=await page.locator('#liveScore').boundingBox(),transport=await page.locator('.play-actions').boundingBox();expect(transport.y).toBeGreaterThanOrEqual(score.y+score.height-1);
+ await expect(page.locator('#liveScore')).toBeVisible();await expect(page.locator('#liveStaff .note-current')).toHaveCount(1);const score=await page.locator('#liveScore').boundingBox(),transport=await page.locator('.play-actions').boundingBox();expect(transport.y).toBeGreaterThanOrEqual(score.y+score.height-1);
  for(const id of ['restartPlay','pause','stop'])expect((await page.locator('#'+id).boundingBox()).height).toBeGreaterThanOrEqual(44);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(321);
  await expect(page.locator('#remaining')).toHaveText('00:02');await page.locator('#stop').click();await expect(page.locator('#results')).toBeVisible();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-history')).length)).toBe(1);expect(errors).toEqual([]);
+});
+
+
+test('free practice supports live tempo buttons and range without resetting the exercise',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('pulse-settings',JSON.stringify({bpm:140,countIn:0,minutes:0,sub:4,mode:'steady',rudiment:'RL'})));
+ await page.goto('./');await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#start').click();await expect(page.locator('#liveStaff .note-current')).toHaveCount(1);await expect(page.locator('#livePlus')).toBeEnabled();
+ await page.locator('#livePlus').click();await expect(page.locator('#liveBpm')).toHaveText('141');await page.locator('#liveMinus').click();await expect(page.locator('#liveBpm')).toHaveText('140');
+ const slider=page.locator('#liveTempoRange');await slider.focus();await page.keyboard.press('End');await expect(page.locator('#liveBpm')).toHaveText('300');await expect(slider).toHaveValue('300');await slider.evaluate(el=>{el.value='160';el.dispatchEvent(new Event('input',{bubbles:true}));});await expect(page.locator('#liveBpm')).toHaveText('160');await expect(slider).toHaveValue('160');
+ await expect(page.locator('#remaining')).toHaveText('00:03');await page.locator('#stop').click();await expect(page.locator('#results')).toBeVisible();
+ const rec=await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-history'))[0]);expect(rec.bpm).toBe(140);expect(rec.last).toBe(160);expect(rec.manualTempoChanged).toBe(true);expect(rec.seconds).toBeGreaterThanOrEqual(3);
 });
