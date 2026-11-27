@@ -204,3 +204,7 @@ Performance-only controls: bottom transport, restart (discards current unsaved a
 ## v1.0.0-rc.25
 
 Six ready-to-play CC0 recorded/produced WAV one-shots replace the previous default synthesized click choices. Trimmed and normalized locally; three levels use the same waveform, preserving the beat hierarchy. Sources and exact upstream blob IDs are in `public/clicks/SOURCES.md`. The old reference tone remains available for microphone compatibility. Sound changes reset calibration; sample-specific spectral peaks are sent to the existing detector, not a time gate. Woodblock, claves and electronic pass controlled modelled leakage tests; studio stick, rimshot and soft wood can trigger the detector in that model and require headphones/physical calibration before verified use. No claim of real-room rejection or subjective listening quality. RC24 technical work is still separate.
+
+## v1.0.0-rc.26
+
+Experimental device-specific pad recognition: six overlapping spectral energy bands, training on room noise/click/normal/quiet captures and a fixed weighted-band onset profile. Click-only is recaptured after training; fast and mixed stages are held out. Calibration is verified only if replay and fresh live checks agree. No time gate removes hits coincident with the metronome. Profiles are session-local and invalidated by sound/volume/sensitivity/device changes. No PCM recordings are stored or transmitted. Real-device testing is required; overlapping signals may be inseparable from a single microphone.
