@@ -1,5 +1,5 @@
 import type {Session} from './coach';
-import {quality,tempoProfile} from './progression';
+import {quality,tempoEvidence,tempoProfile} from './progression';
 import {skillProfile} from './skills';
 import {skillIds} from './focused-plan';
 export const practiceDay=(s:Session)=>s.practiceDay??s.date.slice(0,10);
@@ -23,19 +23,15 @@ export function comparableControls(history:Session[],rudiment:string,sub:number)
  return history.filter(s=>s.rudiment===rudiment&&s.sub===sub&&s.mode==='steady'&&s.beats===4&&s.clickSub===false&&s.completed&&s.recognitionVerified&&!s.manualTempoChanged&&s.seconds>=59.75&&(s.controlTest||s.diagnosticResult)&&quality(s.stats)!=='unknown'&&Number.isFinite(s.bpm)&&s.bpm>=30&&s.bpm<=300&&validDay(practiceDay(s))).sort((a,b)=>a.date.localeCompare(b.date));
 }
 export function tempoTimeline(history:Session[],rudiment:string,sub:number,today:string,days:number){
- const controls=comparableControls(history,rudiment,sub),range=dateRange(today,days),passed=new Map<number,Set<string>>();
- let current:number|null=null,confirmed:number|null=null,i=0;
+ const records=tempoEvidence(history,rudiment,sub).filter(s=>validDay(practiceDay(s))).sort((a,b)=>practiceDay(a).localeCompare(practiceDay(b))||a.date.localeCompare(b.date));
+ const range=dateRange(today,days),prefix:Session[]=[];
+ let profile=tempoProfile([],rudiment,sub),i=0;
  return range.map(day=>{
-  let measured=false;
-  while(i<controls.length&&practiceDay(controls[i])<=day){
-   const s=controls[i++];const d=practiceDay(s);
-   if(quality(s.stats)==='pass'){
-    current=s.bpm;
-    if(s.controlTest){const set=passed.get(s.bpm)??new Set<string>();set.add(d);passed.set(s.bpm,set);if(set.size>=2)confirmed=Math.max(confirmed??0,s.bpm);}
-    if(d===day)measured=true;
-   }
-  }
-  return {day,current,confirmed,measured};
+  const before=i;
+  while(i<records.length&&practiceDay(records[i])<=day)prefix.push(records[i++]);
+  const newEvidence=i!==before;
+  if(newEvidence)profile=tempoProfile(prefix,rudiment,sub);
+  return {day,current:profile.working,confirmed:profile.confirmed,measured:newEvidence&&practiceDay(records[i-1])===day&&profile.working!==null};
  });
 }
 export function timingComparisons(history:Session[],rudiment:string,sub:number,today:string,days:number){
@@ -51,5 +47,5 @@ export function timingComparisons(history:Session[],rudiment:string,sub:number,t
 export function progressOverview(history:Session[],rudiment:string,sub:number,today:string,days:number){
  const timeline=tempoTimeline(history,rudiment,sub,today,days);
  const first=timeline[0]?.confirmed,last=timeline.at(-1)?.confirmed;
- return {practice:practiceSummary(history,today,days),profile:tempoProfile(history,rudiment,sub),timeline,confirmedGain:first!=null&&last!=null?last-first:null,comparisons:timingComparisons(history,rudiment,sub,today,days),skills:skillIds.map(skill=>({skill,...skillProfile(history,skill,rudiment,sub),assessed:history.some(s=>s.skillId===skill&&s.skillBaseRudiment===rudiment&&s.skillBaseSub===sub&&s.completed&&s.recognitionVerified&&!s.manualTempoChanged&&(s.skillOutcome==='pass'||s.skillOutcome==='repeat'))}))};
+ return {practice:practiceSummary(history,today,days),profile:tempoProfile(history.filter(s=>validDay(practiceDay(s))&&practiceDay(s)<=today),rudiment,sub),timeline,confirmedGain:first!=null&&last!=null?last-first:null,comparisons:timingComparisons(history,rudiment,sub,today,days),skills:skillIds.map(skill=>({skill,...skillProfile(history,skill,rudiment,sub),assessed:history.some(s=>s.skillId===skill&&s.skillBaseRudiment===rudiment&&s.skillBaseSub===sub&&s.completed&&s.recognitionVerified&&!s.manualTempoChanged&&(s.skillOutcome==='pass'||s.skillOutcome==='repeat'))}))};
 }

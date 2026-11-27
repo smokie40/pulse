@@ -140,3 +140,7 @@ Open score-inspired selection surfaces: title and short caption precede musical 
 ## v1.0.0-rc.10
 
 RC9 UI baseline preserved at `baseline/rc9-ui`. Direct time-signature selection, separate mode settings, keyboard focus preservation, unified setup controls, sticky stop control, no empty progress bar for unlimited practice, consolidated result summary, actual BPM scale and distinct result actions. RC9 selection matrices, detector, scoring and training algorithms retained. Additional E2E tests cover setup and results.
+
+## v1.0.0-rc.11
+
+Shared tempo-evidence contract and historical working-tempo calculation, including negative controls; diagnostic windows adapt to the minimum stroke count, with shared verification thresholds; checked microphone required for adaptive practice; persisted configuration normalization and immediate calibration-state refresh. No changes to the hit-detector or RC9 visual composition. Existing history retained; stricter evidence rules can change previously displayed working tempos.

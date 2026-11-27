@@ -1,21 +1,24 @@
 // Bounded working-tempo assessment. Independent constant-tempo blocks.
+import {quality} from './progression';
 const MIN=30,MAX=300,SEARCH_LIMIT=10;
 const clamp=b=>Math.max(MIN,Math.min(MAX,Math.round(b)));
 export function newDiagnostic(start,rudiment='RL',sub=4){
  return {phase:'search',bpm:clamp(Number.isFinite(start)?start:80),rudiment,sub,low:null,high:null,searches:0,retries:0,checks:0,observations:[],result:null,reason:null};
 }
 export function diagnosticDrill(s){
- return {mode:'steady',name:s.phase==='verify'?'diagVerify':s.phase==='refine'?'diagRefine':'diagSearch',reason:s.phase==='verify'?'diagVerifyCue':'diagSearchCue',minutes:s.phase==='verify'?1:1/3,bpm:s.bpm,rudiment:s.rudiment,sub:s.sub,clickSub:false};
+ const verify=s.phase==='verify',minimum=verify?40:12;
+ const seconds=Math.max(verify?60:20,Math.ceil(minimum*60/(s.bpm*s.sub)));
+ return {mode:'steady',name:verify?'diagVerify':s.phase==='refine'?'diagRefine':'diagSearch',reason:verify?'diagVerifyCue':'diagSearchCue',minutes:seconds/60,bpm:s.bpm,rudiment:s.rudiment,sub:s.sub,clickSub:false};
 }
-export function diagnosticQuality(record){
- const st=record?.stats;
- if(!record?.completed||!record.recognitionVerified||record.manualTempoChanged||!st||st.expected<12||st.hits<st.expected*.5||!Number.isFinite(st.deviation))return 'unknown';
- return st.accuracy>=92&&st.deviation<=20?'pass':'fail';
+export function diagnosticQuality(record,phase='search'){
+ if(!record?.completed||!record.recognitionVerified||record.manualTempoChanged)return 'unknown';
+ const result=quality(record.stats,phase==='verify'?40:12);
+ return result==='unknown'?'unknown':result==='pass'?'pass':'fail';
 }
 export function advanceDiagnostic(state,record){
  if(state.phase==='done')return state;
  if(record?.bpm!==state.bpm||record?.sub!==state.sub||record?.rudiment!==state.rudiment||record?.mode!=='steady'||record?.beats!==4||record?.clickSub!==false)return {...state,phase:'done',reason:'unknown',result:null};
- const outcome=diagnosticQuality(record);
+ const outcome=diagnosticQuality(record,state.phase);
  const s={...state,observations:[...state.observations,{bpm:state.bpm,phase:state.phase,outcome}]};
  const finish=(reason,result=null)=>({...s,phase:'done',reason,result});
  const verify=bpm=>({...s,phase:'verify',bpm:clamp(bpm),retries:0});

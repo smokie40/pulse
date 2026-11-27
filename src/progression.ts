@@ -1,7 +1,7 @@
 import {summarize,type Note,type Stats} from './training';
 import type {Session,Drill} from './coach';
 export const quality=(s:Stats|null|undefined,minExpected=40):'pass'|'repeat'|'reduce'|'unknown'=>{
- if(!s||s.expected<minExpected||s.hits<s.expected*.5||s.deviation===null)return 'unknown';
+ if(!s||s.expected<minExpected||s.hits<s.expected*.5||s.deviation===null||!Number.isFinite(s.deviation)||!Number.isFinite(s.accuracy)||s.expected<=0)return 'unknown';
  if(s.accuracy>=92&&s.deviation<=20)return 'pass';
  return s.accuracy<75?'reduce':'repeat';
 };
@@ -25,14 +25,17 @@ export function candidateTempo(windows:TempoWindow[]):number|null{
  const safe=passed.filter(b=>b<=ceiling);return safe.length?Math.max(...safe):null;
 }
 export function controlAfterSpeed(next:Drill,record:Session):{drill:Drill;reason:string}{
- if(!record.completed||!record.recognitionVerified||record.manualTempoChanged||record.rudiment!==next.rudiment||record.sub!==next.sub)return {drill:next,reason:'controlUnmeasured'};
+ if(!record.completed||!record.recognitionVerified||record.manualTempoChanged||record.rudiment!==next.rudiment||record.sub!==next.sub||record.beats!==4||record.clickSub!==false)return {drill:next,reason:'controlUnmeasured'};
  const candidate=candidateTempo(record.tempoWindows??[]);
  if(candidate===null)return {drill:next,reason:'controlUnmeasured'};
  return {drill:{...next,bpm:candidate},reason:'controlMeasured'};
 }
+export function tempoEvidence(history:Session[],rudiment:string,sub:number){
+ return history.filter(s=>s.recognitionVerified&&s.completed===true&&!s.manualTempoChanged&&(!s.diagnosticStage||s.diagnosticResult===true)&&(!s.skillId||s.skillId==='timing'||s.skillId==='speed')&&s.rudiment===rudiment&&s.sub===sub&&s.beats===4&&s.clickSub===false&&Number.isFinite(s.bpm)&&s.bpm>=30&&s.bpm<=300&&((s.mode==='steady'&&s.seconds>=59.75&&quality(s.stats)!=='unknown')||((s.mode==='adaptive'||s.mode==='ladder')&&candidateTempo(s.tempoWindows??[])!==null)));
+}
 export function tempoProfile(history:Session[],rudiment:string,sub:number){
- const eligible=history.filter(s=>s.recognitionVerified&&s.completed===true&&!s.manualTempoChanged&&(!s.diagnosticStage||s.diagnosticResult===true)&&(!s.skillId||s.skillId==='timing'||s.skillId==='speed')&&s.rudiment===rudiment&&s.sub===sub).sort((a,b)=>b.date.localeCompare(a.date));
- const controls=eligible.filter(s=>s.controlTest&&s.mode==='steady'&&s.clickSub===false&&s.beats===4&&s.seconds>=59.75);
+ const eligible=tempoEvidence(history,rudiment,sub).sort((a,b)=>b.date.localeCompare(a.date));
+ const controls=eligible.filter(s=>s.controlTest&&s.mode==='steady');
  const byTempo=new Map<number,Set<string>>();for(const s of controls){if(quality(s.stats)!=='pass')continue;const days=byTempo.get(s.bpm)??new Set<string>();days.add(s.practiceDay??s.date.slice(0,10));byTempo.set(s.bpm,days);}
  const confirmed=[...byTempo].filter(([,days])=>days.size>=2).map(([b])=>b);
  const provisional=eligible.flatMap(s=>s.mode==='steady'&&s.beats===4&&s.clickSub===false&&s.seconds>=59.75&&quality(s.stats)==='pass'?[s.bpm]:s.mode==='adaptive'||s.mode==='ladder'?(candidateTempo(s.tempoWindows??[])===null?[]:[candidateTempo(s.tempoWindows??[])!]):[]);

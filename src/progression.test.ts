@@ -4,7 +4,7 @@ import type {Session,Drill} from './coach';
 import type {Note} from './training';
 const good={expected:48,hits:48,missed:0,extra:0,accuracy:100,deviation:8,bias:0};
 const bad={...good,accuracy:60,deviation:35};
-const base:Session={date:'2026-11-27T10:00:00Z',mode:'adaptive',bpm:80,seconds:120,stats:good,rudiment:'RL',sub:4,recognitionVerified:true,completed:true,tempoWindows:[{bpm:100,stats:good},{bpm:110,stats:bad}]};
+const base:Session={date:'2026-11-27T10:00:00Z',mode:'adaptive',bpm:80,seconds:120,stats:good,rudiment:'RL',sub:4,beats:4,clickSub:false,recognitionVerified:true,completed:true,tempoWindows:[{bpm:100,stats:good},{bpm:110,stats:bad}]};
 const drill:Drill={mode:'steady',name:'control',minutes:3,bpm:80,sub:4,rudiment:'RL',reason:'controlCue'};
 test('speed control uses passed block, not highest reached tempo',()=>expect(controlAfterSpeed(drill,base).drill.bpm).toBe(100));
 test('unverified or incomplete runs cannot raise control tempo',()=>{expect(controlAfterSpeed(drill,{...base,recognitionVerified:false}).drill.bpm).toBe(80);expect(controlAfterSpeed(drill,{...base,completed:false}).drill.bpm).toBe(80);expect(candidateTempo([{bpm:130,stats:bad}])).toBeNull()});
@@ -13,3 +13,6 @@ test('recent poor control reduces next working tempo',()=>{const a:Session={...b
 test('windows only include complete equal-tempo bars and count extra hits',()=>{const notes:Note[]=Array.from({length:64},(_,i)=>({time:i*.125,interval:.125,bar:Math.floor(i/16),step:i%16,global:i,sub:4,bpm:i<48?120:125,silent:false,accent:false,matched:5}));const w=measuredWindows(notes,[.3],8,4);expect(w).toHaveLength(1);expect(w[0].bpm).toBe(120);expect(w[0].stats.extra).toBe(1);expect(measuredWindows(notes,[],5.5,4)).toHaveLength(0)});
 
 test('three bars of quarter notes may establish a preliminary tempo',()=>{expect(candidateTempo([{bpm:90,stats:{...good,expected:12,hits:12}}])).toBe(90)});
+
+test('incomparable speed windows cannot raise the standard working tempo',()=>{expect(tempoProfile([{...base,beats:3}],'RL',4).working).toBeNull();expect(controlAfterSpeed(drill,{...base,clickSub:true}).drill.bpm).toBe(80)});
+test('unknown newer control cannot erase an earlier required reduction',()=>{const control={...base,mode:'steady' as const,bpm:100,clickSub:false,beats:4,controlTest:true};const fail={...control,bpm:90,stats:bad,date:'2026-11-28'};const unknown={...control,stats:{...good,expected:10,hits:2},date:'2026-11-29'};expect(tempoProfile([control,fail,unknown],'RL',4).working).toBe(85)});
