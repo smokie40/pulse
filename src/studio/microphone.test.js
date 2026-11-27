@@ -8,7 +8,7 @@ function fixture(){
  const $=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',innerHTML:'',children:[],hidden:false,disabled:false,classList:{toggle(){}}});return nodes.get(id);};
  let verified=false,sensitivity=50,profile=null;
  const state=()=>({page:'lab',guidePurpose:null,guideReturnSetup:false,verified,volume:55,sensitivity,sound:'woodblock',accentVolume:100,beatVolume:100,subVolume:100});
- const engine={mic:true,meterRms:0,diagnosticLiveCount:0,setSensitivity:vi.fn(),setPadProfile:vi.fn(p=>{profile=p;}),capture:vi.fn(async(step,seconds,expected)=>{
+ const engine={timingCalibration:null,measureLatency:vi.fn(async()=>({offsetMs:77,jitterMs:1,trials:7,correlation:.9})),mic:true,meterRms:0,diagnosticLiveCount:0,setSensitivity:vi.fn(),setPadProfile:vi.fn(p=>{profile=p;}),capture:vi.fn(async(step,seconds,expected)=>{
   const frames=Array.from({length:1500},(_,i)=>[i*.002,0,0,1e-9,1,Array(6).fill(1e-9)]);
   const n=step==='leak'?8:expected;
   for(let i=0;i<n;i++){const bands=step==='leak'?[1e-9,1e-9,.003,1e-9,1e-9,1e-9]:[.005,.001,.0001,1e-9,1e-9,1e-9];frames[100+i*50][5]=bands;}
@@ -25,7 +25,7 @@ test('pad profile requires a fresh click-only capture and two held-out tests bef
  expect($('calCurrent').innerHTML).toContain('id="calLive">0');expect($('exportCal').disabled).toBe(true);
  for(let i=0;i<4;i++)await $('calStart').onclick();
  expect(engine.setPadProfile).toHaveBeenCalledOnce();expect(verified()).toBe(false);expect($('calCounter').textContent).toBe('3 / 6');expect($('calCurrent').innerHTML).toContain('id="calLive">0');
- await $('calStart').onclick();await $('calStart').onclick();expect(verified()).toBe(false);
+ await $('calStart').onclick();expect(engine.measureLatency).toHaveBeenCalledOnce();await $('calStart').onclick();expect(verified()).toBe(false);
  await $('calStart').onclick();expect(verified()).toBe(true);expect(engine.capture.mock.calls.map(x=>x[0])).toEqual(['noise','leak','normal','quiet','leak','fast','mixed']);expect($('calCurrent').innerHTML).toContain('6 / 6');
  mic.reset();expect(verified()).toBe(false);expect(engine.setPadProfile).toHaveBeenLastCalledWith(null);
  }finally{vi.clearAllTimers();vi.useRealTimers();vi.unstubAllGlobals();}

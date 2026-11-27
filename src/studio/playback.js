@@ -53,17 +53,17 @@ async function start(){
   const cfg=config();
   if(planRun&&!planMatches(planRun.items[planRun.index],cfg))throw new Error(t('planMismatch'));
   if(cfg.mode==='adaptive'&&!(verified&&engine.mic)){openGuide('adaptive');return;}
-  runtime.runVerified=verified&&engine.mic;
   await engine.start(cfg);
+  runtime.runVerified=verified&&engine.mic&&!!engine.timingCalibration;
   if(document.hidden){engine.stop();return;}
-  runtime.active=true;runtime.requestedBpm=null;const {bpm,beats,minutes,mode,rudiment}=cfg;const session=runtime.session={initial:bpm,last:bpm,elapsed:0,points:[{time:0,bpm}],cfg,stats:null,verified:runtime.runVerified,planRef:planRun,planIndex:planRun?.index};
+  runtime.active=true;runtime.requestedBpm=null;const {bpm,beats,minutes,mode,rudiment}=cfg;const session=runtime.session={initial:bpm,last:bpm,elapsed:0,points:[{time:0,bpm}],cfg,stats:null,verified:runtime.runVerified,timingCalibration:engine.timingCalibration,effectiveOffset:engine.effectiveOffset(cfg.offset),planRef:planRun,planIndex:planRun?.index};
   showPage('playing');pauseError=false;cancelCountdown();$('liveVolume').value=cfg.volume;$('liveVolume').disabled=cfg.mode==='adaptive'||!!planRun?.probe;$('liveVolume').title=$('liveVolume').disabled?t('liveVolumeLocked'):t('volume');setText('liveVolumeValue',cfg.volume+'%');$('restartPlay').title=t('restartDiscard');aids.start();renderAids();updatePause();$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;
   $('beatLights').innerHTML=Array.from({length:beats},(_,i)=>'<i>'+(i+1)+'</i>').join('');
   $('timerLabel').dataset.t=minutes?'remaining':'elapsed';$('timerLabel').textContent=t(minutes?'remaining':'elapsed');$('liveProgress').hidden=!minutes;
   const liveNotation=createLiveNotation($('liveStaff'));let lastVisual=-1,lastCompact=null;
   function frame(){
    if(!runtime.active)return;const snap=engine.snapshot(),cur=snap.current;
-   if(!snap.active){stop();return;}
+   if(!snap.active){stop();return;}if(runtime.runVerified&&!engine.timingCalibration)runtime.runVerified=false;
    const counting=snap.counting,silent=!!cur?.silent;updatePause();$('playing').classList.toggle('is-counting',counting);$('playing').classList.toggle('is-silent',silent);$('countInLabel').hidden=!counting;$('liveNoteValue').hidden=counting||silent;$('liveNoteValue').textContent=cur?t('notes')[subdivisions.indexOf(cur.sub)]:'';
    $('countdown').hidden=!counting;$('liveScore').hidden=counting||silent;$('silentStage').hidden=!silent||snap.paused;
    $('beatLights').style.visibility=silent?'hidden':'visible';document.querySelector('.time-left').style.visibility=silent?'hidden':'visible';$('progressBar').parentElement.style.visibility=silent?'hidden':'visible';
@@ -86,6 +86,6 @@ async function start(){
  }catch(e){engine.stop();runtime.active=false;aids.stop();showPage('setup');$('practiceError').textContent=t('startError')+' '+String(e);}
  finally{runtime.starting=false;$('start').disabled=false;if(!runtime.active){const {micBusy,micConnecting}=getContext();for(const id of ['trainingBtn','progressBtn','libraryBtn','labBtn'])$(id).disabled=micBusy||micConnecting;render();}}
 }
-function stop(){if(!runtime.active)return;cancelCountdown();aids.stop();engine.stop();runtime.active=false;cancelAnimationFrame(raf);const session=runtime.session;const snap=engine.snapshot();$('soundBtn').disabled=false;$('settingsBtn').disabled=false;session.elapsed=snap.elapsed;session.last=snap.current?.bpm??session.last;if(session.last!==session.points.at(-1).bpm)session.points.push({time:session.elapsed,bpm:session.last});session.stats=snap.measured?snap.stats:null;session.timingDistribution=snap.measured?timingDistribution(engine.notes,engine.stoppedAt-.001):null;session.stages=snap.stages;session.paused=engine.hadPause;session.verified=runtime.runVerified&&engine.mic;session.segments=snap.measured?periods(engine.notes,engine.extraTimes,engine.startTime,engine.stoppedAt):[];session.tempoWindows=snap.measured&&(session.cfg.mode==='adaptive'||session.cfg.mode==='ladder')?measuredWindows(engine.notes,engine.extraTimes,engine.stoppedAt,session.cfg.beats):[];if(session.elapsed>=1)saveSession();runtime.requestedBpm=null;if(session.elapsed<1&&getContext().planRun){loadPlanStep(false);return;}showPage(session.elapsed>=1?'results':'setup');}
+function stop(){if(!runtime.active)return;cancelCountdown();aids.stop();engine.stop();runtime.active=false;cancelAnimationFrame(raf);const session=runtime.session;const snap=engine.snapshot();$('soundBtn').disabled=false;$('settingsBtn').disabled=false;session.elapsed=snap.elapsed;session.last=snap.current?.bpm??session.last;if(session.last!==session.points.at(-1).bpm)session.points.push({time:session.elapsed,bpm:session.last});session.stats=snap.measured?snap.stats:null;session.timingDistribution=snap.measured?timingDistribution(engine.notes,engine.stoppedAt-.001):null;session.stages=snap.stages;session.paused=engine.hadPause;session.verified=runtime.runVerified&&engine.mic&&!!engine.timingCalibration;session.segments=snap.measured?periods(engine.notes,engine.extraTimes,engine.startTime,engine.stoppedAt):[];session.tempoWindows=snap.measured&&(session.cfg.mode==='adaptive'||session.cfg.mode==='ladder')?measuredWindows(engine.notes,engine.extraTimes,engine.stoppedAt,session.cfg.beats):[];if(session.elapsed>=1)saveSession();runtime.requestedBpm=null;if(session.elapsed<1&&getContext().planRun){loadPlanStep(false);return;}showPage(session.elapsed>=1?'results':'setup');}
 return {start,stop,togglePause,restart,fullscreen};
 }

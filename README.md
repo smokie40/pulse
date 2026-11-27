@@ -212,3 +212,7 @@ Experimental device-specific pad recognition: six overlapping spectral energy ba
 ## v1.0.0-rc.26.1
 
 When all positive-band profiles fail, learn signed band contrasts from strong click-only frames. Clip negative residuals to zero in both replay and AudioWorklet. Select a stable passing sensitivity range and prefer residual separation. Independent click, fast and mixed checks are still required. A synthetic regression represents a much louder click across all bands. No user's diagnostic recording is committed.
+
+## v1.0.0-rc.27
+
+Local acoustic loopback latency estimation: seven tapered swept signals, dedicated bounded AudioWorklet PCM capture on the context sample clock, normalized correlation, ambiguity rejection, at least five consistent trials, maximum 6 ms spread. Automatic measurement during the second click-only calibration stage and separate retry without relearning the pad. Applies session-local offset to timestamps; no player-derived bias correction. Manual override clears the automatic result. Device changes invalidate the result. Uncalibrated timing remains provisional and cannot certify new skill evidence or drive adaptive tempo decisions. The acoustic path is approximate and may fail in headphones or noisy rooms; it does not isolate individual input/output delay or pad onset detector delay. No loopback PCM is retained/exported. Physical verification is still required.

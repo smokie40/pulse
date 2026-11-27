@@ -32,7 +32,7 @@ export class PulseEngine{
   this.stream=stream;this.mic=true;const track=stream.getAudioTracks()[0];track?.addEventListener('mute',()=>{if(this.stream===stream)this.invalidateLatency();});navigator.mediaDevices?.addEventListener('devicechange',this.onDeviceChange);}catch(e){stream.getTracks().forEach(t=>t.stop());if(revision===this.micRevision)this.disableMic();throw e;}
  }
  private onDeviceChange=()=>this.invalidateLatency();
- disableMic(){this.invalidateLatency();navigator.mediaDevices?.removeEventListener('devicechange',this.onDeviceChange);this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
+ disableMic(){this.invalidateLatency();if(typeof navigator!=='undefined')navigator.mediaDevices?.removeEventListener('devicechange',this.onDeviceChange);this.micRevision++;this.stream?.getTracks().forEach(t=>t.stop());this.source?.disconnect();this.detector?.disconnect();this.sink?.disconnect();if(this.detector)this.detector.port.onmessage=null;this.stream=null;this.source=null;this.detector=null;this.sink=null;this.mic=false;this.testing=false;this.micEvents=0;this.meterRms=0;this.meterPeak=0;}
  setPadProfile(profile:PadProfile|null){this.detector?.port.postMessage(profile?{padProfile:profile,sensitivity:profile.sensitivity}:{padProfile:null});}
  setSensitivity(v:number){this.detector?.port.postMessage({sensitivity:v});}
  configureSound(c:Config){
