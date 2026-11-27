@@ -215,7 +215,7 @@ Object.assign(translations.ru,{training:'Тренировки',trainingIntro:'О
 Object.assign(translations.en,{training:'Training',trainingIntro:'One goal. Three consecutive exercises.',todayPlan:'TODAY’S PLAN',dailyTitle:'Steady pulse',dailyDesc:'Warm up, maintain the beat, then check your timing.',beginPlan:'Start session',planLimit:'Starter plan. Timing-based personalization requires integration of the analysis engine.',skillTitle:'Skills to practice',progressTitle:'Progress',progressIntro:'Your practice history.',totalMinutes:'minutes practiced',sessions:'sessions',recent:'Recent sessions',historyLimit:'This prototype saves time and tempo. Timing accuracy is not scored yet.',emptyHistory:'Your first completed practice will appear here.',labTitle:'Sound & calibration',labIntro:'Set up once, then just play.',softSound:'Soft pulse',micTitle:'Microphone',connect:'Connect',disconnect:'Disconnect',micOff:'Disconnected',micOn:'Connected',inputLevel:'Input signal',calTitle:'Stroke detection check',calIntro:'Six short tests. One at a time.',resetCal:'Start over',extraAudio:'Advanced settings',sensitivity:'Sensitivity',latency:'Latency not measured.',stageStart:'Start test',getReady:'Get ready',nowPlay:'Now',calPass:'Event counts match all six tests. Latency is not yet verified.',calFail:'Some counts differ. Select a stage to repeat.',applyCandidate:'Apply sensitivity',candidate:'Candidate found by replay. Apply it and repeat the live test.',micError:'Could not connect microphone. Check browser permission and HTTPS support.',calError:'Test interrupted. Repeat the stage.',needMic:'Connect the microphone to begin.',stageNames:['Silence','Click','Normal','Quiet','Fast','Mixed'],stageInstructions:['Stay quiet for 3 seconds.','Do not play. Eight clicks will sound.','Play exactly 10 normal strokes.','Play exactly 10 quiet strokes.','Play exactly 20 fast strokes.','Play one stroke on each of ten clicks.'],warmup:'Warm-up',focus:'Internal pulse',control:'Control set',nextDrill:'Next exercise',planComplete:'Plan complete',planFinished:'All three exercises completed.',continuePlan:'Continue plan',partial:'Stopped early',zeroVolume:'Increase volume to test click rejection.'});
 const loadedHistory=loadHistory(read('pulse-history',[]));historyRepair=loadedHistory.invalid;
 let planLength=15,planRun=null,historyData=loadedHistory.history;
-let trainingDetail=false,guideReturnDetail=false;
+let trainingDetail=false,guideReturnDetail=false,guideReturnSetup=false;
 const savedFocus=read('pulse-training-focus',{});
 let focusSkill=skillIds.includes(savedFocus.skill)?savedFocus.skill:'timing';
 let manualFocus=savedFocus.manualFocus===true;
@@ -230,7 +230,8 @@ let guidePurpose=null;
 let checkpoint=restorePlan(read('pulse-pending-plan',null));
 function storeCheckpoint(value){checkpoint=value;save('pulse-pending-plan',value);}
 function discardPlan(){leavePlan();storeCheckpoint(null);}
-function openGuide(purpose){guideReturnDetail=page==='training'&&trainingDetail||!!planRun?.probe;leavePlan();guidePurpose=purpose;showPage('lab');}
+function openGuide(purpose){guideReturnSetup=page==='setup'&&purpose!=='probe';guideReturnDetail=page==='training'&&trainingDetail||!!planRun;leavePlan();guidePurpose=purpose;showPage('lab');}
+function returnFromGuide(){const setup=guideReturnSetup;guidePurpose=null;guideReturnSetup=false;if(setup){if(checkpoint&&guideReturnDetail){planRun=checkpoint;loadPlanStep(false);}else showPage('setup');}else showPage('training',guideReturnDetail);}
 function finishWelcome(){onboardingSkipped=true;saveFocus();}
 function startProbe(){if(!verified||!engine.mic){openGuide('probe');return;}dialog(t('probeTitle'),'<p>'+t('diagStartHint')+'</p><label for="diagSeed">'+t('diagSeed')+' · BPM</label><input id="diagSeed" type="number" min="30" max="300" value="'+Math.max(30,Math.min(300,Math.round(checkedTempo()??freePractice.bpm??80)))+'"><p>'+t('probeInstructions')+'</p><button id="diagBegin" class="primary">'+t('entryStart')+'</button>');$('diagBegin').onclick=()=>{const val=Number($('diagSeed').value);if(!Number.isFinite(val)||val<30||val>300){$('diagSeed').focus();return;}closeDialog();guidePurpose=null;finishWelcome();const diagnostic=newDiagnostic(val,focusRudiment,focusSub);planRun={probe:true,skill:currentFocus(),index:0,items:[diagnosticDrill(diagnostic)],diagnostic};loadPlanStep(false);};}
 function saveFocus(){save('pulse-training-focus',{skill:focusSkill,length:planLength,bpm:focusBpm,sub:focusSub,rudiment:focusRudiment,onboardingSkipped,manualFocus});}
@@ -312,8 +313,8 @@ $('homeCancel').onclick=()=>$('cancelPlan').onclick();
 $('homeMic').onclick=()=>openGuide('plan');
 $('homeProbe').onclick=()=>{if(verified&&engine.mic)startProbe();else openGuide('probe');};
 $('probeAction').onclick=()=>{if(!planRun)openGuide('probe')};
-$('guideContinue').onclick=()=>{if(!verified||!engine.mic||calBusy)return;if(guidePurpose==='probe')startProbe();else{guidePurpose=null;showPage('training',guideReturnDetail)}};
-$('guideSkip').onclick=()=>{if(calBusy||micConnecting)return;guidePurpose=null;finishWelcome();showPage('training',guideReturnDetail)};
+$('guideContinue').onclick=()=>{if(!verified||!engine.mic||calBusy)return;if(guidePurpose==='probe')startProbe();else returnFromGuide()};
+$('guideSkip').onclick=()=>{if(calBusy||micConnecting)return;finishWelcome();returnFromGuide()};
 $('trainingBtn').onclick=()=>showPage('training');$('progressBtn').onclick=()=>showPage('progress');$('labBtn').onclick=()=>{guidePurpose=null;showPage('lab')};$('progressPractice').onclick=()=>showPage('library');
 function saveSession(){
  const c=session.cfg;session.completed=c.minutes>0&&session.elapsed>=c.minutes*60-.25;
@@ -401,7 +402,7 @@ function renderLab(){if(page!=='lab')return;$('lab').classList.toggle('guided',!
 }
 async function runStage(){if(!engine.mic||calBusy)return;if(calResults.every(Boolean)&&candidate!==null){sensitivity=candidate;engine.setSensitivity(sensitivity);persist();resetCal();return}if((stage===1||stage===5)&&(!volume||!accentVolume||!beatVolume||!subVolume)){calError='zeroVolume';renderLab();return}const i=stage;calBusy=true;calError='';calLive=0;calCountdown=t('getReady');renderLab();const started=performance.now(),id=setInterval(()=>{const e=(performance.now()-started)/1000;calCountdown=e<1.5?t('getReady'):t('nowPlay')+' · '+Math.max(0,Math.ceil(steps[i].seconds+1.5-e))+' s';$('calStart').textContent=calCountdown;if(e>=1.5){calLive=engine.diagnosticLiveCount;const el=$('calLive');if(el)el.textContent=calLive;}},80);
  try{calResults[i]=await engine.capture(steps[i].id,steps[i].seconds,steps[i].expected,config());const missing=calResults.findIndex(x=>!x);if(missing>=0)stage=missing;else{verified=calResults.every((x,j)=>x.frames.length>=100&&x.liveCount===targets[j]);candidate=chooseSensitivity(calResults,sensitivity)}}catch{calError='calError'}finally{clearInterval(id);calBusy=false;renderLab()}}
-$('micToggle').onclick=connectMic;$('setupMic').onclick=()=>{if(!planRun){guidePurpose=null;showPage('lab');}else openGuide(planRun.probe?'probe':'plan');};$('calStart').onclick=runStage;$('calReset').onclick=resetCal;
+$('micToggle').onclick=connectMic;$('setupMic').onclick=()=>openGuide(planRun?.probe?'probe':'plan');$('calStart').onclick=runStage;$('calReset').onclick=resetCal;
 $('calSteps').onclick=e=>{const b=e.target.closest('[data-stage]');if(!b||calBusy||b.disabled)return;stage=+b.dataset.stage;calResults[stage]=null;candidate=null;verified=false;renderLab()};
 $('sensitivity').oninput=e=>{sensitivity=+e.target.value;engine.setSensitivity(sensitivity);persist();resetCal()};
 $('labVol').oninput=e=>{volume=+e.target.value;engine.configureSound(config());persist();resetCal()};
