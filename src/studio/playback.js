@@ -38,8 +38,8 @@ let raf=0,pauseBusy=false,pauseError=false,resumeTimer=0,resumeUntil=0,restartin
   runtime.requestedBpm=null;runtime.session=null;restoreConfig(cfg);showPage('setup');
   try{await start();}finally{restarting=false;if(!runtime.active)aids.stop();else updatePause();}
  }
- function volumeChanged(value){if(!runtime.active)return;const volume=Math.max(0,Math.min(100,Math.round(Number(value))));if(!Number.isFinite(volume)||volume===runtime.session.cfg.volume)return;
-  runtime.session.cfg.volume=volume;engine.configureSound({...engine.cfg,volume});setVolume(volume);runtime.runVerified=false;setText('liveVolumeValue',volume+'%');
+ function volumeChanged(value){if(!runtime.active||$('liveVolume').disabled)return;const volume=Math.max(0,Math.min(100,Math.round(Number(value))));if(!Number.isFinite(volume)||volume===runtime.session.cfg.volume)return;
+  runtime.session.cfg.volume=volume;runtime.session.volumeChanged=true;engine.configureSound({...engine.cfg,volume});setVolume(volume);runtime.runVerified=false;setText('liveVolumeValue',volume+'%');
  }
  async function fullscreen(){if(runtime.active)await aids.toggleFullscreen();}
  $('liveVolume').addEventListener('input',e=>volumeChanged(e.target.value));
@@ -57,7 +57,7 @@ async function start(){
   await engine.start(cfg);
   if(document.hidden){engine.stop();return;}
   runtime.active=true;runtime.requestedBpm=null;const {bpm,beats,minutes,mode,rudiment}=cfg;const session=runtime.session={initial:bpm,last:bpm,elapsed:0,points:[{time:0,bpm}],cfg,stats:null,verified:runtime.runVerified,planRef:planRun,planIndex:planRun?.index};
-  showPage('playing');pauseError=false;cancelCountdown();$('liveVolume').value=cfg.volume;setText('liveVolumeValue',cfg.volume+'%');$('restartPlay').title=t('restartDiscard');aids.start();renderAids();updatePause();$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;
+  showPage('playing');pauseError=false;cancelCountdown();$('liveVolume').value=cfg.volume;$('liveVolume').disabled=cfg.mode==='adaptive'||!!planRun?.probe;$('liveVolume').title=$('liveVolume').disabled?t('liveVolumeLocked'):t('volume');setText('liveVolumeValue',cfg.volume+'%');$('restartPlay').title=t('restartDiscard');aids.start();renderAids();updatePause();$('liveSig').textContent=beats+'/4';$('soundBtn').disabled=true;$('settingsBtn').disabled=true;
   $('beatLights').innerHTML=Array.from({length:beats},(_,i)=>'<i>'+(i+1)+'</i>').join('');
   $('timerLabel').dataset.t=minutes?'remaining':'elapsed';$('timerLabel').textContent=t(minutes?'remaining':'elapsed');$('liveProgress').hidden=!minutes;
   const liveNotation=createLiveNotation($('liveStaff'));let lastVisual=-1,lastCompact=null;

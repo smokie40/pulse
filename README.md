@@ -196,3 +196,7 @@ Unified plan header and controls, compact narrow-screen setup, responsive SVG ch
 ## v1.0.0-rc.23.1
 
 Stable-interface patch: pause/resume on the performance screen and Space shortcut. AudioContext suspension freezes the exercise clock and scheduler. Paused practice remains in history but does not certify uninterrupted control, skill or diagnostic performance. Stop remains available while paused. RC24 technical work stays on its audit branch.
+
+## v1.0.0-rc.23.2
+
+Performance-only controls: bottom transport, restart (discards current unsaved attempt), volume, fullscreen, screen wake lock, keyboard shortcuts and cancellable visual three-second resume countdown. Hit feedback distinguishes detection from matching quality. Volume is locked during adaptive and diagnostic playback; other live changes invalidate recognition verification. Device aids depend on browser support. RC24 remains separate.

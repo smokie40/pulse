@@ -221,7 +221,7 @@
 #playing .play-actions .stop{color:var(--accent)}
 #playing .play-actions button:hover{border-color:var(--muted)}
 #playing .play-actions button:disabled{opacity:.5}
-#playing .pause-status{color:var(--accent);font-size:16px;line-height:1.4;text-align:center;margin:0 0 12px}
+#playing .pause-status{color:var(--accent);font-size:18px;line-height:1.4;text-align:center;margin:0}
 #playing.is-paused .beat-lights i.on{opacity:.45}
 #playing .play-shortcuts,#playing .play-device-note{color:var(--muted);font-size:12px;line-height:1.4;text-align:center;margin:10px 0 0}
 #playing .play-device-note{margin-top:3px}
@@ -237,3 +237,6 @@
  #playing .play-shortcuts{display:none}
  #playing .live-feedback{min-height:36px}
 }
+
+#playing .live-volume input:disabled{opacity:.45;cursor:default}
+#playing .play-actions .pause-control:hover:not(:disabled){background:#ff8c59;color:#171411}
