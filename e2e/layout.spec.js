@@ -19,3 +19,19 @@ test('open choice matrix has only internal vertical rules on each responsive row
 test('setup surface remains within the viewport in both locales',async({page})=>{for(const width of [390,768,1440]){await page.setViewportSize({width,height:900});await page.goto('./');await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();for(const locale of ['ru','en']){await page.locator('#'+locale).click();expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);await expect(page.locator('#timeSignature')).toBeVisible();await expect(page.locator('#start')).toBeVisible();}}});
 
 test('choice hover is temporary and restores the open surface',async({page})=>{await page.setViewportSize({width:1440,height:900});await page.goto('./');const tile=page.locator('#skillPath .choice-tile').first();await page.mouse.move(0,0);await expect(tile).toHaveCSS('background-color','rgba(0, 0, 0, 0)');await tile.hover();await expect(tile).toHaveCSS('background-color','rgb(25, 27, 29)');await page.mouse.move(0,0);await expect(tile).toHaveCSS('background-color','rgba(0, 0, 0, 0)');});
+
+
+test('small screens keep setup navigation, guided stroke labels and sticking dialogs readable',async({page})=>{
+ for(const width of [320,390,768]){
+  await page.setViewportSize({width,height:844});await page.goto('./');await page.locator('[data-skill="speed"]').click();await page.locator('#beginPlan').click();
+  await expect(page.locator('#stageBack')).toHaveText('← К плану занятия');
+  const count=page.locator('#strokeCount');await expect(count).toHaveCSS('white-space','nowrap');
+  expect(await count.evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
+  await page.locator('#stageBack').click();await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await expect(page.locator('#stageBack')).toHaveText('← К упражнениям');
+  await page.locator('#patternBtn').click();await expect(page.locator('#close')).toBeVisible();
+  const close=await page.locator('#close').boundingBox();expect(close.width).toBeGreaterThanOrEqual(40);expect(close.height).toBeGreaterThanOrEqual(40);
+  const options=await page.locator('#dialogContent [data-pattern] strong').evaluateAll(els=>els.map(e=>({nowrap:getComputedStyle(e).whiteSpace,width:e.clientWidth,scroll:e.scrollWidth})));expect(options.length).toBe(6);expect(options.every(x=>x.nowrap==='nowrap'&&x.scroll<=x.width+1)).toBe(true);
+  expect(await page.locator('#dialogContent').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);await page.locator('#close').click();
+  const nav=await page.locator('#trainingBtn').boundingBox();expect(nav.height).toBeGreaterThanOrEqual(40);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
+ }
+});

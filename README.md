@@ -184,3 +184,7 @@ Completed studio composition refactor: training focus, training events, setup an
 ## v1.0.0-rc.21
 
 Final audit fixes: validate restored plan labels, rudiments, tempo bounds and optional evidence parameters; enforce ladder/adaptive step and ceiling in the guided exercise match; use one resolved configuration for playback and control certification; surface unreadable history JSON. Added regression coverage. No intentional change to audio, scoring formulas or visual design.
+
+## v1.0.0-rc.22
+
+UX audit corrections: one back arrow, unbroken guided stroke count on narrow screens, larger mobile navigation and close targets, readable sticking sequences, and no redundant fixed-tempo range in history. Added browser regression coverage. Visual baseline checked on RC21 production assets at 1440, 768, 390 and 320 px; real microphone and measured-result review remain separate.

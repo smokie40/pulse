@@ -88,3 +88,17 @@
  #library #exerciseLibrary .choice-tile[data-mode=adaptive] .glyph{transform:none}
 }
 
+/* RC22: touch targets and readable guided-practice notation on narrow screens. */
+.dialog .close{min-width:40px;min-height:40px;display:grid;place-items:center;margin:-6px -6px 0 8px}
+.dialog [data-pattern]{gap:12px}
+.dialog [data-pattern] strong{white-space:nowrap}
+@media(max-width:800px){
+ .top .main-nav button{min-height:40px}
+ #setup.guided-setup .score-head{grid-template-columns:auto minmax(0,1fr) max-content;gap:6px}
+ #setup.guided-setup .score-head .stroke-count{white-space:nowrap;font-size:11px}
+}
+@media(max-width:480px){
+ .dialog [data-pattern] strong{font-size:13px;letter-spacing:0}
+ .dialog [data-pattern="4"]{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+ .dialog [data-pattern="4"] strong{justify-self:end}
+}
