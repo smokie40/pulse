@@ -71,7 +71,8 @@ async function start(){
    for(const id of ['liveMinus','livePlus','liveTempoRange'])$(id).disabled=locked||snap.paused;
    $('liveTempoHint').textContent=t(mode==='adaptive'||mode==='ladder'?'autoTempo':session.planRef?'guidedTempo':'');$('playing').classList.toggle('tempo-locked',locked);$('liveStageTitle').textContent=session.planRef?(session.planRef.probe?t('probeTitle'):t('stageLabel')+' '+(session.planIndex+1)+' / '+session.planRef.items.length+' · '+t(session.planRef.items[session.planIndex].name)):t('practice');$('liveMicStatus').textContent=t(snap.measured?(runtime.runVerified?'analysisReady':'analysisUnchecked'):'analysisOff');
    const actual=cur?.bpm??session.initial;
-   if(runtime.requestedBpm===actual)runtime.requestedBpm=null;
+   // A queued note may match an older target before a different queued note sounds.
+   // Keep the user's target for the entire run; use actual notes only for evidence.
    setActualBpm(actual);setText('liveBpm',String(runtime.requestedBpm??actual));
    const target=runtime.requestedBpm??actual;if(Number($('liveTempoRange').value)!==target)$('liveTempoRange').value=target;$('liveTempoRange').style.setProperty('--fill',((target-30)/270*100)+'%');
    Array.from($('beatLights').children).forEach((el,i)=>el.classList.toggle('on',!silent&&(counting?snap.countBeat>0&&i===(snap.countBeat-1)%beats:!!cur&&i===Math.floor(cur.step/cur.sub))));

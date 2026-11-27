@@ -19,3 +19,13 @@ test('stopping while paused uses frozen playing time; next session starts fresh'
  const {engine,ctx,schedule}=fixture();await engine.start({...defaults,countIn:0});ctx.currentTime=2;schedule();await engine.togglePause();const elapsed=engine.snapshot().elapsed;engine.stop();expect(engine.active).toBe(false);expect(engine.paused).toBe(false);expect(engine.snapshot().elapsed).toBe(elapsed);await engine.start({...defaults,countIn:0});expect(engine.hadPause).toBe(false);expect(ctx.state).toBe('running');engine.stop();
 });
 test('failed suspension leaves playback running',async()=>{const {engine,ctx}=fixture();await engine.start({...defaults,countIn:0});ctx.suspend.mockRejectedValueOnce(new Error('failure'));expect(await engine.togglePause()).toBe(false);expect(engine.paused).toBe(false);expect(engine.active).toBe(true);engine.stop();});
+
+test('rapid opposite tempo requests preserve scheduled notes and use only the latest target for future notes',async()=>{
+ const {engine,ctx,schedule}=fixture();
+ await engine.start({...defaults,countIn:0,bpm:140,sub:4});ctx.currentTime=.2;schedule();
+ const old=engine.notes.map(n=>({...n}));expect(engine.setLiveTempo(141)).toBe(true);
+ ctx.currentTime=.3;schedule();expect(engine.notes.slice(0,old.length)).toEqual(old);
+ expect(engine.notes.at(-1)?.bpm).toBe(141);expect(engine.setLiveTempo(140)).toBe(true);
+ ctx.currentTime=.5;schedule();expect(engine.notes.at(-1)?.bpm).toBe(140);
+ expect(engine.notes.some(n=>n.bpm===141)).toBe(true);expect(engine.notes.every((n,i)=>i===0||n.time>engine.notes[i-1].time)).toBe(true);engine.stop();
+});
