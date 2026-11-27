@@ -64,3 +64,9 @@ test('six recorded clicks can be auditioned and selection survives reload',async
  await page.keyboard.press('Escape');expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-settings')).sound)).toBe('electronic');
  await page.reload();await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();await expect(page.locator('[data-sound="electronic"]')).toHaveClass(/selected/);expect(errors).toEqual([]);
 });
+
+test('manual latency compensation is saved in milliseconds without changing sound',async({page})=>{
+ await page.goto('./');await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();await page.locator('[data-level="offset"]').fill('75');await expect(page.locator('#offsetVal')).toHaveText('75 ms');await page.keyboard.press('Escape');
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pulse-settings')).offset)).toBe(75);
+ await page.reload();await page.locator('#libraryBtn').click();await page.locator('[data-mode="steady"]').click();await page.locator('#soundBtn').click();await expect(page.locator('[data-level="offset"]')).toHaveValue('75');
+});
