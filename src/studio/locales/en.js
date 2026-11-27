@@ -92,6 +92,7 @@ export default {
   "micOff": "Disconnected",
   "micOn": "Connected",
   "inputLevel": "Input signal",
+  "calRetryFailed": "Review failed stage",
   "calExpected": "Expected events",
   "calDetected": "Detected events",
   "calTitle": "Stroke detection check",

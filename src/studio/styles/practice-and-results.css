@@ -197,3 +197,8 @@
  #lab .cal-track button{min-height:52px}
  #lab .cal-current strong{font-size:38px}
 }
+
+/* Optical alignment and explicit completed-stage actions, verified in the RC23 capture pass. */
+#dailyPlan .focus-hero #levelInfo,#dailyPlan .focus-hero #recommendationReason,#dailyPlan .focus-hero #autoFocus{text-align:left;margin-inline:0}
+#dailyPlan .focus-hero #autoFocus{display:inline-block;margin-top:2px}
+#lab .cal-track .cal-stage-result{display:block;white-space:nowrap;font-variant-numeric:tabular-nums;margin-top:3px}

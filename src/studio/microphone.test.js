@@ -24,6 +24,6 @@ test('six calibration screens show expected counts and short captures cannot app
    expect($('calCurrent').innerHTML).toContain('id="calLive">'+steps[i].expected);
    await $('calStart').onclick();
   }
-  expect(verified()).toBe(false);expect($('calCounter').textContent).toBe('6 / 6');expect($('calCurrent').innerHTML).toContain('5 / 6');expect($('calSteps').innerHTML).toContain('0/0 ×');expect($('exportCal').disabled).toBe(false);
+  expect(verified()).toBe(false);expect($('calCounter').textContent).toBe('6 / 6');expect($('calCurrent').innerHTML).toContain('5 / 6');expect($('calSteps').innerHTML).toContain('0/0 ×');expect($('exportCal').disabled).toBe(false);expect($('calStart').textContent).toBe('К неудачному этапу');expect($('calStart').disabled).toBe(false);await $('calStart').onclick();expect($('calCounter').textContent).toBe('5 / 6');expect($('calCurrent').innerHTML).toContain('id="calLive">0');
  }finally{vi.clearAllTimers();vi.useRealTimers();vi.unstubAllGlobals();}
 });

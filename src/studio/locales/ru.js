@@ -92,6 +92,7 @@ export default {
   "micOff": "Не подключён",
   "micOn": "Подключён",
   "inputLevel": "Входной сигнал",
+  "calRetryFailed": "К неудачному этапу",
   "calExpected": "Ожидаемое число событий",
   "calDetected": "Распознано событий",
   "calTitle": "Проверка ударов",
