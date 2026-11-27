@@ -1,0 +1,90 @@
+/* RC10 — instrument workspace on the frozen RC9 visual system. */
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .choice-copy{position:static}
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .choice-arrow{top:50%;right:8px;transform:translateY(-50%)}
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .glyph{transform:translateX(-12px)}
+#setup .setup-intro{text-align:left;margin:0 0 18px}
+#setup .setup-intro h1{font-size:clamp(30px,4vw,46px);line-height:1.12;letter-spacing:-.045em}
+#setup .setup-back{display:block;text-align:left;color:var(--muted);padding:6px 0;margin:0 0 12px;font-size:13px;min-height:32px}
+#setup .setup-back:hover{color:var(--accent)}
+#setup #stagePrep{margin:0 0 8px}
+.setup-parameters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.7fr);gap:24px;align-items:center;border-block:1px solid var(--line);padding:17px 0}
+.setup-tempo,.setup-rhythm{min-width:0}
+.setup-tempo{padding-right:24px;border-right:1px solid var(--line)}
+#setup .tempo{margin:0 auto 10px;gap:14px}
+#setup .bpm-box input{font-size:clamp(60px,7vw,88px)}
+#setup .tempo-slider{margin:0 auto 8px;width:100%;max-width:340px}
+#setup .rhythm-chooser{margin:0 auto;gap:5px;max-width:100%;grid-template-columns:repeat(4,minmax(0,1fr));display:grid}
+#setup .sub-choice{min-height:52px;padding:4px 2px}
+#setup .sub-choice svg{height:30px;max-width:100%}
+#setup .sub-choice span{font-size:11px}
+#setup .mode-preview{margin:12px auto 0;max-width:100%}
+#setup .mode-preview .glyph{height:64px;max-width:280px}
+#setup.guided-setup:not(:has(#modePreview:not([hidden]))) .setup-parameters{grid-template-columns:1fr}
+#setup.guided-setup:not(:has(#modePreview:not([hidden]))) .setup-tempo{border:0;padding:0}
+#setup.guided-setup:not(:has(#modePreview:not([hidden]))) .setup-rhythm{display:none}
+#setup.guided-setup #choices{display:none}
+#setup .score{padding:15px 0 10px;margin:0 auto}
+#setup .meter-control{min-height:36px;text-align:left;color:var(--ink);font-size:14px;border:1px solid var(--line);border-radius:3px;padding:4px 8px;justify-self:start}
+#setup .meter-control:disabled{border-color:transparent;opacity:1;color:var(--muted)}
+#setup .meter-control:not(:disabled):hover{border-color:var(--accent)}
+#setup .action-area{width:100%;max-width:none;margin:8px 0 0;border-top:1px solid var(--line);padding-top:12px;display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,280px);gap:10px 20px;align-items:center;text-align:left}
+#setup .setup-parameter-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;grid-column:1/-1}
+#setup .duration-control{margin:0;border:1px solid var(--line);min-height:36px;padding:5px 9px}
+#setup .setup-controls{margin:0;gap:8px;justify-content:flex-start}
+#setup .setup-controls button{min-height:36px}
+#setup .stage-cue{grid-column:1/-1;text-align:left;margin:0;max-width:none}
+#setup #setupMic{margin:0;text-align:left;font-size:13px;padding:6px 0;justify-self:start}
+#setup #practiceError{grid-column:1/-1;margin:0;text-align:left}
+#setup #practiceError:empty{display:none}
+#setup #start{grid-column:2;margin:0;height:48px}
+#playing .play-head{position:sticky;top:0;z-index:5;background:#131416;padding:12px 0;border-bottom:1px solid var(--line);gap:12px}
+#playing .play-stage{margin-top:14px}
+#playing .play-head h1{line-height:1.15}
+#playing .live-context:empty{display:none}
+#playing .play-metrics{justify-content:space-between;max-width:760px;margin-inline:auto}
+#playing .stop{flex:none}
+#results .result-heading{margin-bottom:16px}
+#results .result-summary{display:flex;align-items:stretch;border-block:1px solid var(--line);padding:16px 0;margin-bottom:12px;gap:0}
+#results .result-summary .result-time{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;flex:1;min-width:0;margin:0;padding:0 18px 0 0}
+#results .result-summary .result-detail{display:flex;flex:2;align-items:center;gap:0;border:0;border-left:1px solid var(--line);margin:0;padding:0}
+#results .result-summary .result-detail:has(>div[hidden]){flex:1}
+#results .result-summary .result-detail>div{flex:1;min-width:0;padding-left:18px}
+#results .result-summary strong{font-size:36px;line-height:1.15;font-weight:650}
+#results .result-summary .result-time span,#results .result-summary .result-detail span{font-size:13px;color:var(--muted)}
+#results #resultAnalysisState{margin:0 0 12px}
+#results #resultAnalysis .result-detail{border-top:0;margin:0 0 12px}
+#results .result-actions{max-width:none;grid-template-columns:minmax(0,280px) minmax(0,1fr);align-items:center;gap:10px 20px;margin:20px 0 24px}
+#results .result-actions .primary{grid-column:1;margin:0}
+#results .result-actions .text-action{text-align:left;justify-self:start;padding:10px 0}
+#results #probeResult{grid-column:1/-1;margin:0;text-align:left}
+#results .result-graph{margin:0 0 20px}
+@media(max-width:800px){
+ .setup-parameters{grid-template-columns:1fr;gap:12px;padding:14px 0}
+ .setup-tempo{border:0;padding:0}
+ #setup .rhythm-chooser{grid-template-columns:repeat(7,minmax(0,1fr))}
+ #setup .setup-intro h1{font-size:30px}
+ #setup .action-area{grid-template-columns:minmax(0,1fr) minmax(0,180px)}
+ #results .result-summary strong{font-size:29px}
+}
+@media(max-width:480px){
+ #setup .setup-intro{margin-bottom:12px}
+ #setup .rhythm-chooser{grid-template-columns:repeat(4,minmax(0,1fr))}
+ #setup .score-head{grid-template-columns:auto minmax(0,1fr) 38px;gap:4px}
+ #setup .meter-control{font-size:12px;padding:3px 5px}
+ #setup .action-area{grid-template-columns:1fr;gap:8px}
+ #setup #start{grid-column:1}
+ #setup .setup-controls button{font-size:12px}
+ #playing .play-head{padding:8px 0}
+ #playing .play-head h1{font-size:20px}
+ #playing .play-metrics{gap:5px}
+ #playing .beat-lights{flex-wrap:wrap;max-width:68%}
+ #results .result-summary{flex-wrap:wrap;gap:12px}
+ #results .result-summary .result-time{flex:0 0 100%}
+ #results .result-summary .result-detail{border:0;flex:1 0 100%;padding-top:10px;border-top:1px solid var(--line)}
+ #results .result-summary .result-detail>div{padding-left:0}
+ #results .result-summary .result-detail>div+div{padding-left:12px}
+ #results .result-actions{grid-template-columns:1fr}
+ #results .result-actions .text-action{padding:8px 0}
+ #library #exerciseLibrary .choice-tile[data-mode=adaptive] .glyph{transform:none}
+}
+

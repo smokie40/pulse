@@ -1,0 +1,96 @@
+/* RC9 — shared open musical surface. Boundaries are rules, not containers. */
+:root{
+ --choice-rule:#35383b;
+ --choice-pad:20px;
+ --choice-art:88px;
+ --choice-title:18px;
+ --choice-caption:14px;
+ --choice-cols:3;
+}
+#training #skillPath.choice-grid,#library #exerciseLibrary.choice-grid{
+ display:grid;grid-template-columns:repeat(var(--choice-cols),minmax(0,1fr));
+ gap:0;border:0;border-bottom:1px solid var(--choice-rule);padding:0;margin:0;align-items:stretch;
+}
+#training #skillPath .choice-tile,#library #exerciseLibrary .choice-tile{
+ display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;
+ min-width:0;min-height:0;position:relative;text-align:left;gap:12px;
+ padding:15px var(--choice-pad) 13px;
+ border:0;border-top:1px solid var(--choice-rule);border-radius:0;background:transparent;
+ color:var(--ink);box-shadow:none;transition:background .12s ease;
+}
+/* One shortened rule per internal column boundary; never an enclosing rectangle. */
+#training #skillPath .choice-tile::after,#library #exerciseLibrary .choice-tile::after{
+ content:"";position:absolute;right:0;top:12px;bottom:12px;width:1px;background:var(--choice-rule);pointer-events:none;
+}
+#training #skillPath .choice-tile:hover,#library #exerciseLibrary .choice-tile:hover{background:#191b1d}
+#training #skillPath .choice-tile:focus-visible,#library #exerciseLibrary .choice-tile:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;z-index:1}
+#training #skillPath .choice-tile .glyph,#library #exerciseLibrary .choice-tile .glyph{
+ display:block;width:100%;height:var(--choice-art);max-width:none;min-width:0;align-self:stretch;justify-self:auto;margin:0;
+}
+#training #skillPath .choice-copy,#library #exerciseLibrary .choice-copy{
+ display:block;position:relative;width:100%;min-width:0;min-height:45px;margin:0;padding-right:17px;
+}
+#training #skillPath .choice-copy strong,#library #exerciseLibrary .choice-copy strong{
+ display:block;color:var(--ink);font-size:var(--choice-title);font-weight:620;line-height:1.28;letter-spacing:-.018em;
+ padding:0;margin:0;white-space:normal;overflow-wrap:break-word;
+}
+#training #skillPath .choice-caption,#library #exerciseLibrary .choice-caption{
+ display:block;font-size:var(--choice-caption);line-height:1.4;font-weight:400;color:#b4b6b8;
+ margin-top:4px;white-space:normal;overflow-wrap:break-word;
+}
+#training #skillPath .choice-arrow,#library #exerciseLibrary .choice-arrow{
+ display:block;position:absolute;top:0;right:0;bottom:auto;font-size:21px;font-weight:400;line-height:1.05;color:#a4a7aa;
+}
+#training #skillPath .choice-tile:hover .choice-arrow,#library #exerciseLibrary .choice-tile:hover .choice-arrow{color:var(--accent)}
+#training #skillPath .home-skill-status{margin-top:0}
+#training #skillPath .home-skill-status small{font-size:12px;margin:0;line-height:1.4}
+/* The adaptive mode is a separate full-width line with a normal-sized graphic. */
+#library #exerciseLibrary .choice-tile[data-mode=adaptive]{
+ grid-column:1/-1;display:grid;
+ grid-template-columns:minmax(0,1fr) calc((100% - (var(--choice-cols) - 1) * 2 * var(--choice-pad)) / var(--choice-cols));
+ gap:var(--choice-pad);align-items:center;
+}
+#library #exerciseLibrary .choice-tile[data-mode=adaptive]::after{display:none}
+#library #exerciseLibrary .choice-tile[data-mode=adaptive] .choice-copy{align-self:center}
+#training .home-goal-heading{margin:0 0 12px}
+#training .home-goal-heading h2{margin:0}
+#training .home-goals{margin-top:20px}
+#training .home-recommend{padding:14px 0}
+#training .home-copy .kicker,#training .home-copy h2,#training .home-copy #homeMeta,#training .home-copy #homeDesc{margin:0}
+#training .home-copy .kicker{letter-spacing:0}
+#training .home-secondary{gap:15px;margin-top:5px}
+#training .home-secondary .text-action{font-size:13px;padding:4px 0}
+#training .home-diagnostic{margin:0;padding:15px 0 20px;border-top:0}
+#training .home-diagnostic #homeProbe{min-height:40px}
+#training #welcomeTempo{padding-bottom:10px}
+#library .library-heading{margin-bottom:20px}
+@media(min-width:801px){
+ #training,#library{padding-top:32px;padding-bottom:36px}
+ #training #welcomeTempo .page-intro{margin-bottom:18px}
+ #training .home-mic-line{margin-top:8px}
+ #training .home-copy{row-gap:4px}
+ #training .home-copy h2{font-size:clamp(24px,3vw,32px)}
+ #training .home-copy .home-meta{font-size:14px}
+ #training #skillPath .choice-tile:nth-child(3n)::after,#library #exerciseLibrary .choice-tile:nth-child(3n)::after{display:none}
+}
+@media(max-width:1050px){:root{--choice-art:78px;--choice-title:17px;--choice-caption:13px;--choice-pad:16px}}
+@media(max-width:800px){
+ :root{--choice-cols:2;--choice-art:70px;--choice-title:16px;--choice-pad:14px}
+ #training .home-goal-heading h2{font-size:21px}
+ #training #skillPath .choice-tile:nth-child(2n)::after,#library #exerciseLibrary .choice-tile:nth-child(2n)::after{display:none}
+}
+@media(max-width:460px){
+ :root{--choice-pad:10px;--choice-art:53px;--choice-title:14px;--choice-caption:12px}
+ #training #skillPath .choice-tile,#library #exerciseLibrary .choice-tile{padding-block:12px;gap:8px}
+ #training #skillPath .choice-copy,#library #exerciseLibrary .choice-copy{min-height:53px;padding-right:0}
+ #training #skillPath .choice-arrow,#library #exerciseLibrary .choice-arrow{display:none}
+ #training .home-goal-heading h2{font-size:19px}
+ #training .home-secondary .text-action{font-size:12px}
+ #training .home-diagnostic{gap:10px;padding-bottom:14px}
+}
+@media(max-width:350px){
+ :root{--choice-cols:1;--choice-art:66px}
+ #training #skillPath .choice-tile::after,#library #exerciseLibrary .choice-tile::after{display:none}
+ #library #exerciseLibrary .choice-tile[data-mode=adaptive]{display:flex;align-items:stretch}
+}
+

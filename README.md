@@ -152,3 +152,7 @@ Behavior-preserving structural refactor. Studio locale catalog is resolved once,
 ## v1.0.0-rc.13
 
 Incremental live timing statistics with late-hit invalidation, bounded recent-note lookup, stable per-bar notation with moving current-note highlight, cancellation of obsolete microphone connection requests, hidden-page start guard and calibration reset on back-forward cache restoration. Final metrics retain the existing formulas. No hit-detector changes. Tests compare incremental/full statistics including long sessions and verify live SVG reuse.
+
+## v1.0.0-rc.14
+
+Feature-level extraction: progress owns its filters and history I/O interface, training and results views receive explicit snapshots, microphone controller owns calibration and connection lifecycle. Locale resources are split. CSS is divided into ordered, balanced layers with byte-for-byte cascade parity; historical overrides are retained pending selector-level cleanup. The RC13 Playwright stop assertion now selects the visible destination and confirms that playback has ended. Detector and scoring unchanged.

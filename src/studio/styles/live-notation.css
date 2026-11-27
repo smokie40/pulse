@@ -1,0 +1,5 @@
+/* RC13 — live notation reuses its SVG between strokes. */
+#liveStaff [data-note-index].note-current ellipse,#liveStaff [data-note-index].note-current text[fill="#eeedea"],#liveStaff [data-note-index].note-current text[fill="#c9c9c7"]{fill:#ff7840}
+#liveStaff [data-note-index].note-current path[stroke="#eeedea"]{stroke:#ff7840}
+#liveStaff [data-note-index].note-past ellipse,#liveStaff [data-note-index].note-past text[fill="#eeedea"],#liveStaff [data-note-index].note-past text[fill="#c9c9c7"]{fill:#85888c}
+#liveStaff [data-note-index].note-past path[stroke="#eeedea"]{stroke:#85888c}

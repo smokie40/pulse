@@ -1,0 +1,106 @@
+/* RC7: apply desktop optical changes only at desktop widths. Keep RC6's verified compact layout on smaller viewports. */
+@media(min-width:801px){
+/* RC7 — shared optical scale, layout rhythm and restrained focus. */
+:root{--work-width:1080px;--space-grid:30px}
+#training,#library,#progress,#setup,#results,#playing{width:100%;max-width:var(--work-width);margin-inline:auto}
+#training .training-home{max-width:none}
+#training,#library,#progress,#setup,#results{padding-top:36px}
+#training .page-intro,.library-heading,#progress .page-intro,.result-heading{margin:0 0 26px;text-align:left}
+#training .page-intro h1,.library-heading h1,#progress .page-intro h1,.result-heading h1{font-size:clamp(32px,4vw,46px);line-height:1.1;letter-spacing:-.045em}
+#training .page-intro p,.library-heading p,#progress .page-intro p{font-size:15px;line-height:1.5}
+.top .main-nav{gap:32px}
+.top .main-nav button{position:relative;font-size:16px;line-height:1.3;padding:12px 2px;min-height:44px}
+.top .main-nav button:focus{outline:none}
+.top .main-nav button:focus-visible{outline:1px solid #c5c7ca;outline-offset:-2px;border-radius:3px}
+.top .main-nav button[aria-current=page]:after{content:"";position:absolute;left:2px;right:2px;bottom:5px;height:2px;background:var(--accent)}
+.top .icon-btn{width:42px;height:42px}
+.top .icon-btn svg{width:23px;height:23px;stroke-width:1.6}
+.tools{gap:7px}
+.home-mic-line{font-size:13px;gap:14px;margin-top:12px}
+.home-mic-line button,.home-secondary button{font-size:13px;min-height:32px}
+.home-recommend{padding:19px 0;border-block:1px solid var(--line)}
+.home-copy{grid-template-columns:minmax(0,1fr) minmax(220px,280px);column-gap:32px;row-gap:5px}
+.home-copy h2{font-size:clamp(24px,3vw,34px);line-height:1.18}
+.home-copy .kicker,.home-copy #homeDesc{font-size:13px}
+.home-copy .home-meta{font-size:15px}
+.home-main-action .primary{min-height:48px;font-size:15px}
+.home-goals{margin-top:28px}
+.home-goal-heading{margin-bottom:15px}
+.home-goal-heading h2{font-size:23px;letter-spacing:-.025em}
+.home-skill-grid{gap:20px var(--space-grid);border-top:1px solid var(--line);padding-top:15px}
+.home-skill{border-top:0;padding:8px 0 12px;gap:10px;min-width:0}
+.home-skill .glyph{width:100%;max-width:295px;height:96px;align-self:flex-start}
+.home-skill-copy{position:relative;min-height:0}
+.home-skill strong{font-size:19px;line-height:1.25;padding-right:18px}
+.home-skill small{font-size:13px;line-height:1.4;margin-top:5px}
+.home-skill .home-skill-status small{font-size:12px}
+.home-arrow{right:2px;top:116px;font-size:21px;line-height:1;color:#aaaeb1}
+.home-skill:hover .home-arrow,.exercise-tile:hover .tile-arrow{color:var(--accent)}
+.home-skill:hover{background:#17191b}
+.home-diagnostic{margin-top:13px;padding:17px 0}
+.home-diagnostic h2{font-size:19px}
+.home-diagnostic button{font-size:14px;min-height:40px;max-width:48%}
+.exercise-library{gap:12px var(--space-grid);border-top:1px solid var(--line);padding-top:12px}
+.exercise-tile,.exercise-tile[data-mode=adaptive]{min-height:114px;border-top:0;border-bottom:0;padding:13px 0;grid-template-columns:minmax(125px,40%) minmax(0,1fr) 18px;gap:18px}
+.exercise-tile[data-mode=adaptive]{grid-column:1/-1;grid-template-columns:minmax(125px,calc((100% - var(--space-grid)) * .2)) minmax(0,1fr) 18px;border-top:1px solid var(--line);padding-top:18px}
+.exercise-tile:last-child{border-bottom:0}
+.exercise-tile .glyph{height:79px;max-width:220px;margin:0}
+.exercise-tile strong{font-size:19px;line-height:1.25}
+.exercise-tile p{font-size:13px;line-height:1.4;margin-top:6px}
+.exercise-tile .tile-arrow{font-size:23px;color:#aaaeb1}
+.analytics-filters{gap:24px;padding-top:20px}
+.analytics-section{padding:26px 0}
+.analytics-section h2{font-size:24px;letter-spacing:-.025em}
+.analytics-filters label,.analytics-section p,.history-row p{font-size:14px}
+.analytics-filters select{min-height:42px;font-size:14px}
+#training .daily-steps{gap:14px}
+.route-card{background:transparent;border:0;border-top:2px solid #484b4f;border-radius:0;padding:18px 14px 20px}
+.route-card.current{background:transparent;border-top-color:var(--accent)}
+.route-card.done{border-top-color:#8bd5aa}
+.route-card .glyph{height:94px}
+.route-card h2{font-size:19px;line-height:1.25}
+.route-card p,.route-pattern{font-size:13px}
+.route-legend{font-size:12px}
+#setup .score{max-width:100%}
+#results .measured-chart h2{font-size:19px}
+#results .measured-chart p,.hit-labels{font-size:13px}
+#results .result-next strong{font-size:20px}
+@media(max-width:1050px){.top .main-nav{gap:20px}.top .main-nav button{font-size:14px}.tools{gap:4px}.top .icon-btn{width:38px;height:38px}.top .icon-btn svg{width:21px;height:21px}.home-skill strong,.exercise-tile strong{font-size:17px}.home-skill .glyph{height:84px}.home-arrow{top:104px}.exercise-tile .glyph{height:70px}.exercise-tile{gap:13px}.exercise-tile[data-mode=adaptive]{gap:13px}}
+
+}
+@media(max-width:800px){
+ .top .main-nav button{position:relative}
+ .top .main-nav button:focus:not(:focus-visible){outline:none}
+ .top .main-nav button:focus-visible{outline:1px solid #c5c7ca;outline-offset:-2px;border-radius:3px}
+ .top .main-nav button[aria-current=page]:after{content:"";position:absolute;left:0;right:0;bottom:1px;height:1px;background:var(--accent)}
+ .top .main-nav{min-width:0;gap:clamp(8px,2vw,16px)}
+ .top .main-nav button{min-width:0}
+ .home-skill .glyph{min-width:0;max-width:100%}
+ .home-copy,.home-main-action,.home-skill-copy,.exercise-copy{min-width:0}
+ .home-skill strong,.exercise-tile strong{overflow-wrap:anywhere}
+}
+
+.top .main-nav #libraryBtn{position:relative;inset:auto;transform:none}
+
+/* RC7 optical finishing pass. No changes to the workspace width or layout. */
+.top .main-nav button:focus:not(:focus-visible){outline:none}
+.top .main-nav button:focus-visible{outline:1px solid #c5c7ca;outline-offset:-2px;border-radius:3px}
+.home-skill .home-arrow{position:absolute;right:1px;top:0;line-height:1.2}
+.home-skill-copy{position:relative}
+.home-skill .glyph{display:block}
+.home-diagnostic #homeProbe{border:1px solid #a65332;border-radius:4px;padding:9px 14px;min-height:40px;text-align:center}
+.home-diagnostic #homeProbe:hover{border-color:var(--accent);background:#201b18}
+.home-diagnostic #homeProbe:focus-visible{outline-offset:3px}
+@media(min-width:801px){
+ .home-skill .glyph{max-width:290px}
+ .home-skill strong,.exercise-tile strong{font-weight:670}
+ .home-skill small,.exercise-tile p{font-size:14px;line-height:1.4;color:#b4b6b8}
+ .home-skill small{margin-top:6px}
+ .home-skill .home-skill-status small{font-size:12px}
+ .home-skill-copy{min-width:0}
+ .home-diagnostic #homeProbe{min-width:174px}
+ .exercise-tile .glyph{justify-self:start}
+}
+@media(max-width:460px){.home-diagnostic #homeProbe{min-width:0;padding:7px 9px;max-width:48%;font-size:12px}.home-skill .home-arrow{display:none}}
+
+
