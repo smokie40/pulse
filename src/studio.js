@@ -44,7 +44,7 @@ function exercise(){return exercises.find(e=>e.id===mode)}
 function glyph(id){let art='';const orange='#ff7840',grey='#72757a';if(id==='ladder'||id==='adaptive'){const pts=id==='ladder'?'M12 53 H48 V43 H84 V32 H120 V21 H156 V10 H188':'M12 51 H48 V33 H84 V43 H120 V23 H156 V12 H188';art='<path d="'+pts+'" fill="none" stroke="'+orange+'" stroke-width="2.5" stroke-linejoin="round"/>';}
 else {const groups=id==='morph'?[2,3,4,6]:id==='burst'?[2,2,4,4]:[4,4,4,4];let index=0;for(let b=0;b<4;b++){const n=groups[b];for(let j=0;j<n;j++){const x=12+b*46+(j+.5)*38/n;const mute=id==='ghost'&&b>=2;const a=id==='accent'?j===b:j===0;const h=a?35:21;art+='<rect x="'+x+'" y="'+(33-h/2)+'" width="3.5" height="'+h+'" rx="1.7" fill="'+(mute?'#383b3f':a?orange:grey)+'"/>';index++;}if(b<3)art+='<path d="M'+(57+b*46)+' 12V54" stroke="#34363a" stroke-dasharray="2 4"/>';}}
 return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true">'+art+'</svg>'}
-function renderLibrary(){ $('exerciseLibrary').innerHTML=exercises.map(e=>'<button class="exercise-tile" data-mode="'+e.id+'">'+musicArt(e.id)+'<span class="exercise-copy"><strong>'+e[lang][0]+'</strong><p>'+t('shortMode_'+e.id)+'</p></span><span class="tile-arrow" aria-hidden="true">›</span></button>').join('');}
+function renderLibrary(){ $('exerciseLibrary').innerHTML=exercises.map(e=>'<button class="exercise-tile choice-tile" data-mode="'+e.id+'">'+musicArt(e.id)+'<span class="exercise-copy choice-copy"><strong>'+e[lang][0]+'</strong><span class="choice-caption">'+t('shortMode_'+e.id)+'</span><span class="tile-arrow choice-arrow" aria-hidden="true">›</span></span></button>').join('');}
 function showPage(p,detail=false){
  if(p==='training'){guidePurpose=null;leavePlan();trainingDetail=detail;if(detail&&checkpoint)planRun=checkpoint;}
  else if(['library','progress','skills'].includes(p))leavePlan();
@@ -239,21 +239,48 @@ function saveFocus(){save('pulse-training-focus',{skill:focusSkill,length:planLe
 const skillGlyph={timing:'steady',pulse:'ghost',speed:'ladder',flexibility:'morph',dynamics:'accent',endurance:'endurance'};
 // Illustrations show musical structure, never measured user data.
 // Illustrative notation, not a simulated measurement. White dots = strokes, orange ticks = click.
+// Illustrative musical notation only; measured charts use actual session data.
 function musicArt(kind,opts={}){
- const white='#d7d9da',orange='#ff7840',grid='#55585c',parts=[];
- const line=(x,y1,y2,c=grid,dash=false)=>'<path d="M'+x+' '+y1+' V'+y2+'" stroke="'+c+'" stroke-width="1"'+(dash?' stroke-dasharray="2 3"':'')+'/>';
- const note=(x,y=46,r=2.9)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+white+'"/>';
- const text=(x,y,str,anchor='start')=>'<text x="'+x+'" y="'+y+'" fill="#c3c5c7" font-size="10" font-weight="500" text-anchor="'+anchor+'">'+str+'</text>';
- const click=(x,y=8,h=17)=>'<rect x="'+(x-1.5)+'" y="'+y+'" width="3" height="'+h+'" rx="1" fill="'+orange+'"/>';
+ const white='#d7d9da',orange='#ff7840',grid='#515458',parts=[];
+ const line=(x,y1,y2,dash=true)=>'<path d="M'+x+' '+y1+' V'+y2+'" stroke="'+grid+'" stroke-width=".85"'+(dash?' stroke-dasharray="2 3"':'')+'/>';
+ const note=(x,y=44,r=2.6)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+white+'"/>';
+ const label=(x,y,str,anchor='start')=>'<text x="'+x+'" y="'+y+'" fill="#b7babe" font-size="10" font-weight="500" text-anchor="'+anchor+'">'+str+'</text>';
+ const click=(x,y=10,h=17)=>'<rect x="'+(x-1.25)+'" y="'+y+'" width="2.5" height="'+h+'" rx=".8" fill="'+orange+'"/>';
  const sub=opts.sub??4;
- if(kind==='timing'){parts.push(text(8,19,t('artUneven')),text(8,51,t('artEven')));for(let i=0;i<6;i++){const x=68+i*24;parts.push(line(x,5,60,grid,true),note(x+[0,-7,5,-5,7,-4][i],16,2.9),note(x,48,2.9));}parts.push('<path d="M8 32 H192" stroke="#333639"/>');}
- else if(kind==='pulse'||kind==='ghost'){const audible=opts.audibleBars??1,silent=opts.silentBars??1,perBar=opts.beats??4,beats=(audible+silent)*perBar,w=184/beats,n=opts.sub??2;for(let i=0;i<beats;i++){const x=8+i*w;if(i<audible*perBar){parts.push(click(x+1.5,10,17));if(opts.clickSub)for(let j=1;j<n;j++)parts.push(click(x+j*w/n+1.5,16,11));}for(let j=0;j<n;j++)parts.push(note(x+j*w/n+1.5,45,Math.min(2.9,w/n*.34)));}parts.push(line(8+audible*perBar*w,6,54,grid,true),text(8,63,t('artClick')),text(192,63,t('artSilent'),'end'));}
- else if(kind==='speed'){[80,100,120].forEach((bpm,i)=>{const y=13+i*22;parts.push(text(8,y+3,bpm+' BPM'));for(let j=0;j<8;j++)parts.push(note(61+j*18*80/bpm,y,2.9));});}
- else if(kind==='burst'||kind==='flexibility'||kind==='morph'){const groups=kind==='burst'?[2,2,4,4]:opts.morphSequence??[2,3,4,6],w=184/groups.length;groups.forEach((n,b)=>{let x=8+b*w;parts.push(text(x+w/2,10,String(n),'middle'),click(x+1.5,17,13));if(b)parts.push(line(x,14,56,grid,true));for(let j=0;j<n;j++)parts.push(note(x+j*w/n+1.5,45,2.9));});parts.push(text(100,63,t('artFixedTempo'),'middle'));}
- else if(kind==='dynamics'||kind==='accent'){// One representative beat from each of four consecutive bars. Accent position advances each bar.
- const n=opts.sub??4,total=4*n,w=184/total;for(let i=0;i<total;i++){const x=8+(i+.5)*w,bar=Math.floor(i/n),accent=i%n===bar%n,hh=accent?28:12;if(i>0&&i%n===0)parts.push(line(8+i*w,5,57,grid,true));parts.push('<rect x="'+(x-1.4)+'" y="'+(53-hh)+'" width="2.8" height="'+hh+'" rx="1" fill="'+white+'"/>');if(accent)parts.push('<path d="M'+(x-3.5)+' 10 l7 3 -7 3" stroke="'+white+'" stroke-width="1.4" fill="none"/>');}}
- else if(kind==='endurance'){for(let i=0;i<20;i++){const x=8+i*9.65;parts.push(line(x,9,43,grid,true),note(x,26,2.8));}parts.push('<path d="M8 44 V50 H192 V44" fill="none" stroke="#aaaaaa" stroke-width="1.3"/>',text(8,62,t('artStart')),text(192,62,t('artEnd'),'end'));}
- else if(kind==='steady'){const n=4*sub,w=184/n;for(let i=0;i<n;i++){const x=8+(i+.5)*w;if(i%sub===0||opts.clickSub)parts.push(click(x,i%sub===0?8:14,i%sub===0?17:11));parts.push(note(x,46,Math.min(2.9,w*.33)));}}
+ if(kind==='timing'){
+  parts.push(label(8,21,t('artUneven')),label(8,49,t('artEven')));
+  for(let i=0;i<6;i++){const x=69+i*24;parts.push(line(x,10,54),note(x+[0,-7,5,-5,7,-4][i],18),note(x,46));}
+ }
+ else if(kind==='pulse'||kind==='ghost'){
+  const audible=opts.audibleBars??1,silent=opts.silentBars??1,perBar=opts.beats??4,beats=(audible+silent)*perBar,w=184/beats,n=opts.sub??2;
+  for(let i=0;i<beats;i++){const x=8+i*w+1.25;if(i<audible*perBar){parts.push(click(x));if(opts.clickSub)for(let j=1;j<n;j++)parts.push(click(x+j*w/n,16,11));}for(let j=0;j<n;j++)parts.push(note(x+j*w/n,43,Math.min(2.6,w/n*.34)));}
+  parts.push(line(8+audible*perBar*w,6,51),label(8,60,t('artClick')),label(192,60,t('artSilent'),'end'));
+ }
+ else if(kind==='speed'){
+  [80,120].forEach((bpm,i)=>{const y=20+i*28;parts.push(label(8,y+3,bpm+' BPM'));for(let j=0;j<8;j++)parts.push(note(62+j*18*80/bpm,y));});
+ }
+ else if(kind==='burst'||kind==='flexibility'||kind==='morph'){
+  const groups=kind==='burst'?[2,2,4,4]:opts.morphSequence??[2,3,4,6],w=184/groups.length;
+  groups.forEach((n,b)=>{const x=8+b*w;parts.push(label(x+w/2,11,String(n),'middle'),click(x+1.25,18,14));if(b)parts.push(line(x,17,48));for(let j=0;j<n;j++)parts.push(note(x+j*w/n+1.25,43,Math.min(2.6,w/n*.34)));});
+  parts.push(label(100,63,t('artFixedTempo'),'middle'));
+ }
+ else if(kind==='dynamics'||kind==='accent'){
+  // A representative beat from each of four bars; the accent shifts on every bar.
+  const n=opts.sub??4,total=4*n,w=184/total;
+  for(let i=0;i<total;i++){const x=8+(i+.5)*w,bar=Math.floor(i/n),accent=i%n===bar%n;if(i>0&&i%n===0)parts.push(line(8+i*w,19,50));parts.push(note(x,39,Math.min(accent?4.15:2.35,w*.37)));if(accent)parts.push('<path d="M'+(x-3.5)+' 16 l7 3 -7 3" stroke="'+white+'" stroke-width="1.4" stroke-linejoin="round" fill="none"/>');}
+ }
+ else if(kind==='endurance'){
+  for(let i=0;i<20;i++){const x=8+i*9.65;if(i%4===0)parts.push(line(x,10,40));parts.push(note(x,28));}
+  parts.push('<path d="M8 43 V49 H192 V43" fill="none" stroke="#919498" stroke-width="1.1"/>',label(8,62,t('artStart')),label(192,62,t('artEnd'),'end'));
+ }
+ else if(kind==='steady'){
+  const perBar=opts.beats??4,n=perBar*sub,w=184/n;
+  for(let i=0;i<n;i++){const x=8+(i+.5)*w;if(i%sub===0||opts.clickSub)parts.push(click(x,i%sub===0?10:16,i%sub===0?17:11));parts.push(note(x,43,Math.min(2.6,w*.33)));}
+ }
+ else if(kind==='ladder'||kind==='adaptive'){
+  const d=kind==='ladder'?'M8 50 H45 V40 H82 V30 H119 V20 H156 V10 H192':'M8 50 H45 V31 H82 V41 H119 V21 H156 V10 H192';
+  parts.push('<path d="'+d+'" fill="none" stroke="'+orange+'" stroke-width="2" stroke-linejoin="round"/>');
+ }
  else return glyph(kind);
  return '<svg class="glyph" viewBox="0 0 200 66" aria-hidden="true">'+parts.join('')+'</svg>';
 }
@@ -297,7 +324,7 @@ function renderHome(){
  $('homeArt').hidden=!checkpoint;
  $('welcomeStart').textContent=t(checkpoint?'continuePlan':'viewPlan');
  $('homeArt').hidden=true;$('homeViewPlan').hidden=!checkpoint;$('homeCancel').hidden=!checkpoint;const ready=!!(engine.mic&&verified);$('homeMicStatus').textContent=t(ready?'analysisReady':engine.mic?'analysisUnchecked':'analysisOff');$('homeMicStatus').classList.toggle('positive',ready);$('homeMic').textContent=t(ready?'checkMic':'configureMic');$('homeMic').disabled=micConnecting||calBusy;const work=checkedTempo();$('homeProbe').textContent=t(work===null?'homeCheckTempo':'homeRecheckTempo');$('homeTempoValue').hidden=work===null;$('homeTempoValue').textContent=work===null?'':work+' BPM';$('homeTempoContext').hidden=work===null;$('homeTempoContext').textContent=patternNames()[stickings.indexOf(focusRudiment)]+' · '+t('notes')[subdivisions.indexOf(focusSub)]+(work===null?'':' · '+t(profile().confirmedWorking?'tempoConfirmedShort':'tempoEstimatedShort'));
- $('skillPath').innerHTML=skillIds.map(k=>'<button class="home-skill" data-skill="'+k+'">'+skillArt(k)+'<span class="home-skill-copy"><strong>'+t('skill_'+k)+'</strong><small>'+t('shortGoal_'+k)+'</small><span class="home-arrow" aria-hidden="true">›</span></span>'+homeSkillStatus(k)+'</button>').join('');
+ $('skillPath').innerHTML=skillIds.map(k=>'<button class="home-skill choice-tile" data-skill="'+k+'">'+skillArt(k)+'<span class="home-skill-copy choice-copy"><strong>'+t('skill_'+k)+'</strong><span class="choice-caption">'+t('shortGoal_'+k)+'</span><span class="home-arrow choice-arrow" aria-hidden="true">›</span></span>'+homeSkillStatus(k)+'</button>').join('');
 }
 function selectGoal(skill,manual=true){
  const proceed=()=>{if(checkpoint&&checkpoint.skill!==skill)discardPlan();focusSkill=skill;manualFocus=manual;finishWelcome();showPage('training',true);};

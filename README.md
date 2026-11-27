@@ -128,3 +128,7 @@ Larger semantic diagrams, measured home working tempo with context, compact guid
 Optical polish: 1080px shared workspace, larger headings and musical labels, consistent spacing and fewer separators, visible keyboard focus, explicit microphone icon, clearer accent grouping, responsive layout. No changes to detection, scoring, training, or storage logic.
 
 RC7 optical follow-up: balanced diagram typography and weights, simplified illustrative pulse, title-aligned arrows, neutral keyboard focus and a visible tempo-check action. Workspace scale and training logic unchanged.
+
+## v1.0.0-rc.8
+
+Unified goal and exercise selection surfaces: shared responsive grid, diagram dimensions, typography, subtle borders and hover targets; full-width adaptive mode with the same diagram scale. Compact training entry and clearer diagram semantics. New browser checks compare rendered dimensions across tabs at desktop, tablet and phone widths. Detector, scoring, training engine and storage are unchanged.
