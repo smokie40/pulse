@@ -130,6 +130,75 @@
 #results{max-width:880px;text-align:left}.result-heading{text-align:left}.result-heading h1{font-size:clamp(30px,4vw,44px)}#results .result-time{margin:18px 0 10px;text-align:left;display:flex;gap:12px;align-items:baseline}#results .result-time strong{font-size:36px}#results .result-time span{font-size:13px}#results>.result-detail{margin:0 0 15px;text-align:left}#results>.result-detail:has(>div[hidden]){grid-template-columns:1fr}#results .result-note{text-align:left}.result-next{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;border-block:1px solid var(--line);margin:18px 0}.result-next small,.result-next strong,.result-next span{display:block}.result-next small,.result-next span{font-size:12px;color:var(--muted)}.result-next strong{font-size:18px;margin:4px 0}.result-next .glyph{width:min(35%,210px);height:64px}.result-actions{margin:18px auto 24px}#resultCharts:not(:empty){border-top:1px solid var(--line);margin-top:20px}
 @media(max-width:760px){.home-skill .glyph{height:66px}.home-arrow{top:94px}.exercise-tile .glyph{height:53px}.exercise-tile{min-height:80px}#playing .live-tempo-row{grid-template-columns:38px minmax(0,1fr) 38px}.performance .stop{min-width:0;min-height:44px}.performance .score svg.staff{max-height:none!important}.live-note-value{font-size:12px}.performance .time-left strong{font-size:30px}}
 @media(max-width:460px){.home-skill .glyph{height:53px}.home-skill{padding:8px 2px 12px;gap:5px}.exercise-tile .glyph{height:43px}.setup-controls{gap:5px}.setup-controls button{padding:5px;font-size:11px}.guided-setup .tempo{margin:10px auto}.guided-setup .score-head{grid-template-columns:32px minmax(0,1fr) 40px}.performance .stop{font-size:12px}.result-next .glyph{width:35%;height:47px}}
+
+/* RC7 — shared optical scale, layout rhythm and restrained focus. */
+:root{--work-width:1080px;--space-grid:30px}
+#training,#library,#progress,#setup,#results,#playing{width:100%;max-width:var(--work-width);margin-inline:auto}
+#training .training-home{max-width:none}
+#training,#library,#progress,#setup,#results{padding-top:36px}
+#training .page-intro,.library-heading,#progress .page-intro,.result-heading{margin:0 0 26px;text-align:left}
+#training .page-intro h1,.library-heading h1,#progress .page-intro h1,.result-heading h1{font-size:clamp(32px,4vw,46px);line-height:1.1;letter-spacing:-.045em}
+#training .page-intro p,.library-heading p,#progress .page-intro p{font-size:15px;line-height:1.5}
+.top .main-nav{gap:32px}
+.top .main-nav button{position:relative;font-size:16px;line-height:1.3;padding:12px 2px;min-height:44px}
+.top .main-nav button:focus{outline:none}
+.top .main-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.top .main-nav button[aria-current=page]:after{content:"";position:absolute;left:2px;right:2px;bottom:5px;height:2px;background:var(--accent)}
+.top .icon-btn{width:42px;height:42px}
+.top .icon-btn svg{width:23px;height:23px;stroke-width:1.6}
+.tools{gap:7px}
+.home-mic-line{font-size:13px;gap:14px;margin-top:12px}
+.home-mic-line button,.home-secondary button{font-size:13px;min-height:32px}
+.home-recommend{padding:19px 0;border-block:1px solid var(--line)}
+.home-copy{grid-template-columns:minmax(0,1fr) minmax(220px,280px);column-gap:32px;row-gap:5px}
+.home-copy h2{font-size:clamp(24px,3vw,34px);line-height:1.18}
+.home-copy .kicker,.home-copy #homeDesc{font-size:13px}
+.home-copy .home-meta{font-size:15px}
+.home-main-action .primary{min-height:48px;font-size:15px}
+.home-goals{margin-top:28px}
+.home-goal-heading{margin-bottom:15px}
+.home-goal-heading h2{font-size:23px;letter-spacing:-.025em}
+.home-skill-grid{gap:20px var(--space-grid);border-top:1px solid var(--line);padding-top:15px}
+.home-skill{border-top:0;padding:8px 0 12px;gap:10px;min-width:0}
+.home-skill .glyph{width:100%;max-width:295px;height:96px;align-self:flex-start}
+.home-skill-copy{position:relative;min-height:0}
+.home-skill strong{font-size:19px;line-height:1.25;padding-right:18px}
+.home-skill small{font-size:13px;line-height:1.4;margin-top:5px}
+.home-skill .home-skill-status small{font-size:12px}
+.home-arrow{right:2px;top:116px;font-size:21px;line-height:1;color:#aaaeb1}
+.home-skill:hover .home-arrow,.exercise-tile:hover .tile-arrow{color:var(--accent)}
+.home-skill:hover{background:#17191b}
+.home-diagnostic{margin-top:13px;padding:17px 0}
+.home-diagnostic h2{font-size:19px}
+.home-diagnostic button{font-size:14px;min-height:40px;max-width:48%}
+.exercise-library{gap:12px var(--space-grid);border-top:1px solid var(--line);padding-top:12px}
+.exercise-tile,.exercise-tile[data-mode=adaptive]{min-height:114px;border-top:0;border-bottom:0;padding:13px 0;grid-template-columns:minmax(125px,40%) minmax(0,1fr) 18px;gap:18px}
+.exercise-tile[data-mode=adaptive]{grid-column:1/-1;grid-template-columns:minmax(125px,calc((100% - var(--space-grid)) * .2)) minmax(0,1fr) 18px;border-top:1px solid var(--line);padding-top:18px}
+.exercise-tile:last-child{border-bottom:0}
+.exercise-tile .glyph{height:79px;max-width:220px;margin:0}
+.exercise-tile strong{font-size:19px;line-height:1.25}
+.exercise-tile p{font-size:13px;line-height:1.4;margin-top:6px}
+.exercise-tile .tile-arrow{font-size:23px;color:#aaaeb1}
+.analytics-filters{gap:24px;padding-top:20px}
+.analytics-section{padding:26px 0}
+.analytics-section h2{font-size:24px;letter-spacing:-.025em}
+.analytics-filters label,.analytics-section p,.history-row p{font-size:14px}
+.analytics-filters select{min-height:42px;font-size:14px}
+#training .daily-steps{gap:14px}
+.route-card{background:transparent;border:0;border-top:2px solid #484b4f;border-radius:0;padding:18px 14px 20px}
+.route-card.current{background:transparent;border-top-color:var(--accent)}
+.route-card.done{border-top-color:#8bd5aa}
+.route-card .glyph{height:94px}
+.route-card h2{font-size:19px;line-height:1.25}
+.route-card p,.route-pattern{font-size:13px}
+.route-legend{font-size:12px}
+#setup .score{max-width:100%}
+#results .measured-chart h2{font-size:19px}
+#results .measured-chart p,.hit-labels{font-size:13px}
+#results .result-next strong{font-size:20px}
+@media(max-width:1050px){.top .main-nav{gap:20px}.top .main-nav button{font-size:14px}.tools{gap:4px}.top .icon-btn{width:38px;height:38px}.top .icon-btn svg{width:21px;height:21px}.home-skill strong,.exercise-tile strong{font-size:17px}.home-skill .glyph{height:84px}.home-arrow{top:104px}.exercise-tile .glyph{height:70px}.exercise-tile{gap:13px}.exercise-tile[data-mode=adaptive]{gap:13px}}
+@media(max-width:760px){:root{--space-grid:18px}#training,#library,#progress,#setup,#results{padding-top:26px}.top .main-nav{gap:16px}.top .main-nav button{font-size:13px;padding:8px 2px;min-height:36px}.top .main-nav button[aria-current=page]:after{bottom:2px}.top .icon-btn{width:34px;height:36px}.top .icon-btn svg{width:20px;height:20px}.tools{gap:3px}.home-copy{grid-template-columns:minmax(0,1fr) minmax(145px,220px);gap:6px 16px}.home-skill-grid{row-gap:14px}.home-skill .glyph{height:72px;max-width:225px}.home-arrow{top:92px}.home-skill strong,.exercise-tile strong{font-size:16px}.home-goal-heading h2{font-size:21px}.exercise-library{gap:5px}.exercise-tile,.exercise-tile[data-mode=adaptive]{min-height:83px;grid-column:auto;grid-template-columns:130px minmax(0,1fr) 16px;gap:14px;padding:10px 0}.exercise-tile .glyph{height:56px}.analytics-filters{gap:12px}.analytics-section h2{font-size:21px}.route-card .glyph{height:65px}.route-card h2{font-size:16px}}
+@media(max-width:460px){:root{--space-grid:14px}.top .main-nav{gap:8px}.top .main-nav button{font-size:12px;padding-inline:0}.top .icon-btn{width:30px;height:34px}.tools{gap:2px}.home-copy{display:flex;flex-direction:column;gap:6px}.home-mic-line{font-size:12px;gap:7px}.home-mic-line button{font-size:12px}.home-recommend{padding:14px 0}.home-goals{margin-top:22px}.home-goal-heading h2{font-size:19px}.home-skill-grid{gap:12px var(--space-grid)}.home-skill{gap:6px;padding:5px 0 10px}.home-skill .glyph{height:59px}.home-skill strong{font-size:15px;padding-right:0}.home-skill small{font-size:12px}.home-skill-copy{min-height:47px}.exercise-tile,.exercise-tile[data-mode=adaptive]{grid-template-columns:100px minmax(0,1fr) 12px;gap:10px;min-height:78px}.exercise-tile .glyph{height:45px}.exercise-tile strong{font-size:15px}.exercise-tile p{font-size:12px}.home-diagnostic h2{font-size:16px}.home-diagnostic button{font-size:13px}.analytics-filters label,.analytics-section p,.history-row p{font-size:12px}.analytics-filters select{font-size:12px}.route-card .glyph{height:45px}.route-card h2{font-size:15px}.route-card p,.route-pattern{font-size:12px}}
 </style>
 </head>
 <body>
@@ -137,7 +206,7 @@
   <header class="top">
     <div class="logo">PULSE<span>.</span><small>PRACTICE STUDIO</small></div>
     <nav class="main-nav" aria-label="PULSE"><button id="trainingBtn" data-t="training">Тренировки</button><button id="libraryBtn" class="library-link"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span data-t="library">Упражнения</span></button><button id="progressBtn" data-t="progressTitle">Прогресс</button></nav><div class="tools">
-      <button class="icon-btn" id="labBtn" aria-label="Audio Lab"><svg viewBox="0 0 24 24"><path d="M3 10v4M7 6v12M12 3v18M17 6v12M21 10v4"/></svg></button><button class="icon-btn" id="soundBtn" aria-label="Звук метронома" title="Звук метронома"><svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zM16 9a5 5 0 0 1 0 6M19 6a9 9 0 0 1 0 12"/></svg></button>
+      <button class="icon-btn" id="labBtn" aria-label="Микрофон и анализ ударов"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3M9 22h6"/></svg></button><button class="icon-btn" id="soundBtn" aria-label="Звук метронома" title="Звук метронома"><svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3zM16 9a5 5 0 0 1 0 6M19 6a9 9 0 0 1 0 12"/></svg></button>
       <button class="icon-btn" id="settingsBtn" aria-label="Дополнительные настройки" title="Дополнительные настройки"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2" fill="#111214"/><circle cx="16" cy="12" r="2" fill="#111214"/><circle cx="10" cy="18" r="2" fill="#111214"/></svg></button>
       <span class="build-version" id="buildVersion" title="PULSE v__PULSE_VERSION__ · build __PULSE_REVISION__">v__PULSE_VERSION__<small> · __PULSE_REVISION__</small></span><div class="lang"><button id="ru" class="on" aria-pressed="true">RU</button><button id="en" aria-pressed="false">EN</button></div>
     </div>

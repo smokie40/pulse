@@ -122,3 +122,7 @@ Semantic musical diagrams distinguish speed from subdivision; plan previews use 
 ## v1.0.0-rc.6
 
 Larger semantic diagrams, measured home working tempo with context, compact guided setup, direct click and count-in controls for free practice, clearer live score and next-set preview, measured charts below immediate result actions. Silent intervals retain no rhythmic visual cues. No detector, scoring, or training algorithm changes.
+
+## v1.0.0-rc.7
+
+Optical polish: 1080px shared workspace, larger headings and musical labels, consistent spacing and fewer separators, visible keyboard focus, explicit microphone icon, clearer accent grouping, responsive layout. No changes to detection, scoring, training, or storage logic.
