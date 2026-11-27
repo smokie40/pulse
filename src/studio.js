@@ -73,6 +73,6 @@ $('stageBack').onclick=()=>navigation.backFromPractice();
 $('start').onclick=start;$('stop').onclick=stop;
 ['ru','en'].forEach(l=>$(l).onclick=()=>{lang=l;render();});
 document.addEventListener('keydown',e=>{if(e.code==='Space' && !e.repeat && $('overlay').hidden && !['INPUT','BUTTON','SELECT','TEXTAREA','A'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault(); runtime.active?stop():navigation.page==='setup'&&start()}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){engine.cancelPending();stop();}});
 window.addEventListener('resize',()=>{if(!runtime.active) render()});
 showPage('training');

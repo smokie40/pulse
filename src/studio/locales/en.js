@@ -93,6 +93,7 @@ export default {
   "micOn": "Connected",
   "inputLevel": "Input signal",
   "calRetryFailed": "Review failed stage",
+  "audioInterrupted": "Practice was interrupted by the system. This result is not used to assess skill mastery.",
   "calExpected": "Expected events",
   "calDetected": "Detected events",
   "calTitle": "Stroke detection check",

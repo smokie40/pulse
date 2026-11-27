@@ -1,10 +1,14 @@
 import {summarize,type Note,type Stats} from './training';
+import {lowerBound,ordered,countBetween,identity} from './event-range';
 export type Period={seconds:number;stats:Stats};
 export function periods(notes:Note[],extraTimes:number[],start:number,end:number,window=30):Period[]{
  const result:Period[]=[];
+ if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(window)||window<=0)return result;
+ const orderedNotes=ordered(notes,n=>n.time),extras=ordered(extraTimes,identity);
+ let cursor=lowerBound(orderedNotes,start,n=>n.time);
  for(let from=start;from<end;from+=window){
-  const to=Math.min(end,from+window),selected=notes.filter(n=>n.time>=from&&n.time<to);
-  if(selected.length)result.push({seconds:to-start,stats:summarize(selected,extraTimes.filter(t=>t>=from&&t<to).length,Infinity)});
+  const to=Math.min(end,from+window),next=lowerBound(orderedNotes,to,n=>n.time),selected=orderedNotes.slice(cursor,next);cursor=next;
+  if(selected.length)result.push({seconds:to-start,stats:summarize(selected,countBetween(extras,from,to),Infinity)});
  }
  return result;
 }

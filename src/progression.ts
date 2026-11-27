@@ -1,5 +1,6 @@
 import {summarize,type Note,type Stats} from './training';
 import type {Session,Drill} from './coach';
+import {ordered,countBetween,identity} from './event-range';
 export const quality=(s:Stats|null|undefined,minExpected=40):'pass'|'repeat'|'reduce'|'unknown'=>{
  if(!s||s.expected<minExpected||s.hits<s.expected*.5||s.deviation===null||!Number.isFinite(s.deviation)||!Number.isFinite(s.accuracy)||s.expected<=0)return 'unknown';
  if(s.accuracy>=92&&s.deviation<=20)return 'pass';
@@ -9,12 +10,12 @@ export type TempoWindow={bpm:number;stats:Stats};
 export function measuredWindows(notes:Note[],extraTimes:number[],end:number,beats:number):TempoWindow[]{
  const bars=new Map<number,Note[]>();
  for(const n of notes){if(n.time+n.interval>end+.001)continue;const b=bars.get(n.bar)??[];b.push(n);bars.set(n.bar,b);}
- const out:TempoWindow[]=[];let run:Note[][]=[];
+ const extras=ordered(extraTimes,identity),out:TempoWindow[]=[];let run:Note[][]=[];
  for(const b of bars.values()){
   const first=b[0];if(b.length!==beats*first.sub||b.some(n=>n.bpm!==first.bpm||n.sub!==first.sub)||first.step!==0||b.at(-1)!.step!==b.length-1){run=[];continue;}
   if(run.length&&(run[0][0].bpm!==first.bpm||run[0][0].sub!==first.sub||run.at(-1)![0].bar!==first.bar-1))run=[];
   run.push(b);
-  if(run.length===3){const ns=run.flat(),from=ns[0].time,to=ns.at(-1)!.time+ns.at(-1)!.interval;out.push({bpm:first.bpm,stats:summarize(ns,extraTimes.filter(t=>t>=from&&t<to).length,Infinity)});run=[];}
+  if(run.length===3){const ns=run.flat(),from=ns[0].time,to=ns.at(-1)!.time+ns.at(-1)!.interval;out.push({bpm:first.bpm,stats:summarize(ns,countBetween(extras,from,to),Infinity)});run=[];}
  }
  return out;
 }

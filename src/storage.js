@@ -14,7 +14,7 @@ function stats(x){
 export function cleanRecord(x){
  if(!object(x)||!date(x.date)||!modes.includes(x.mode)||!finite(x.bpm,30,300)||!finite(x.seconds,0,86400))throw Error('invalidRecord');
  const r={date:x.date,mode:x.mode,bpm:x.bpm,seconds:x.seconds,stats:x.stats==null?null:stats(x.stats)};
- for(const k of ['recognitionVerified','manualTempoChanged','tempoProbe','diagnosticResult','completed','controlTest','clickSub','skillSelfCheck'])if(typeof x[k]==='boolean')r[k]=x[k];
+ for(const k of ['recognitionVerified','interrupted','manualTempoChanged','tempoProbe','diagnosticResult','completed','controlTest','clickSub','skillSelfCheck'])if(typeof x[k]==='boolean')r[k]=x[k];
  if(day(x.practiceDay))r.practiceDay=x.practiceDay;
  for(const k of ['rudiment','skillBaseRudiment'])if(patterns.includes(x[k]))r[k]=x[k];
  for(const k of ['sub','skillBaseSub'])if(subs.includes(x[k]))r[k]=x[k];
